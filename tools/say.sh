@@ -3,7 +3,8 @@
 # Email needs MULLIGAN_MAIL_PASS (Gmail app password of the sending account MULLIGAN_MAIL_USER) set on this machine; without it, board only.
 ISSUE=$(cat "$(dirname "$0")/board_issue")
 gh issue comment "$ISSUE" -R Mishtuk/Mulligan-Games-Website-concept- -b "$1" || exit 1
-[ -n "$MULLIGAN_MAIL_PASS" ] && python - "$1" "$ISSUE" <<'PY'
+[ -z "$MULLIGAN_MAIL_PASS" ] && { echo "board only: MULLIGAN_MAIL_PASS not set, no email"; exit 0; }
+python - "$1" "$ISSUE" <<'PY'
 import os, sys, smtplib
 from email.message import EmailMessage
 u = os.environ["MULLIGAN_MAIL_USER"]; body, issue = sys.argv[1], sys.argv[2]
