@@ -3,3 +3,5 @@ dist/
 .env
 tmp/
 source/
+.astro/
+.data/

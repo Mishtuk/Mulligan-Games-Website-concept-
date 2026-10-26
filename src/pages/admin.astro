@@ -1,0 +1,372 @@
+---
+// Store admin. A static page with no secrets: signed-out visitors see the sign-in form, and every read or save goes to /api/admin/*,
+// where server.js checks the session cookie. Plain on purpose: big text, big buttons, one thing per screen (staff use it at the counter).
+// The look is provisional until DESIGN.md is signed off.
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Admin | Mulligan Games</title>
+    <style is:global>
+      :root { --night: #16161d; --on-dark: #eeeef4; --accent: #b9b2ff; --paper: #ececf1; --card: #fafafc; --stone: #dedee6; --ink: #1d1d26; --ink-2: #4a4a58; --field: #5a5a6a; --line: rgb(29 29 38 / .18);
+        --gold-ink: #6a521d; --warn-bg: #f3e7c6; --red-ink: #8a2328; --bad-bg: #f4dedb; --olive: #3f5a2b; --ok-bg: #e2ead6; --edit: #24405f; --edit-bg: #dfe6ee; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      h1, h2, .num { font-weight: 700; }
+      h1 { font-size: 2rem; margin: 0 0 .5rem; line-height: 1.2; }
+      h2 { font-size: 1.4rem; margin: 0 0 .75rem; line-height: 1.25; }
+      a { color: var(--ink); }
+      [hidden] { display: none !important; }
+      :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+      .side :focus-visible, .top :focus-visible, .toast :focus-visible { outline-color: var(--accent); }
+      .ic { display: inline-flex; flex: none; vertical-align: middle; }
+
+      .wrap { display: grid; grid-template-columns: 16rem minmax(0, 1fr); min-height: 100vh; }
+      .top { display: none; }
+      .side { background: var(--night); color: var(--on-dark); position: sticky; top: 0; height: 100vh; overflow: auto; display: flex; flex-direction: column; padding: 1.25rem .75rem; }
+      .brand { padding: 0 .5rem 1.25rem; }
+      .wordmark { font-weight: 800; font-size: 1.3rem; letter-spacing: .02em; color: var(--on-dark); text-decoration: none; }
+      .brand p { margin: .35rem 0 0; font-weight: 600; color: var(--accent); }
+      .side nav, .tail { display: grid; gap: 2px; }
+      .tail { margin-top: auto; padding-top: 1rem; }
+      .side a:not(.wordmark), .side .linkbtn, .mnav a, .mnav .linkbtn { display: flex; align-items: center; gap: .7rem; min-height: 52px; padding: 0 .8rem; border-radius: 6px; font: 600 1.05rem/1.2 system-ui, sans-serif; color: var(--on-dark); text-decoration: none; position: relative; width: 100%; background: none; border: 0; cursor: pointer; text-align: left; }
+      .side a:hover, .side .linkbtn:hover, .mnav a:hover, .mnav .linkbtn:hover { background: rgb(238 238 244 / .08); }
+      a[aria-current='page'] { background: rgb(185 178 255 / .16); color: var(--accent) !important; }
+      a[aria-current='page']::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; background: var(--accent); border-radius: 2px; }
+      .linkbtn { text-decoration: underline; }
+
+      .main { padding: 1.5rem; max-width: 60rem; width: 100%; min-width: 0; }
+      .banner { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; background: var(--bad-bg); color: var(--red-ink); font-weight: 700; border-radius: 6px; padding: .8rem 1rem; margin-bottom: 1.25rem; }
+      .card { background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(29 29 38 / .12); }
+      .head { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+      .head h1 { margin: 0; }
+      .meta, .hint { color: var(--ink-2); font-size: .95rem; }
+      .big { font-size: 1.15rem; font-weight: 700; margin: 0 0 .25rem; }
+
+      .fld { margin: 0 0 1.1rem; }
+      .fld > label { display: block; font-weight: 600; }
+      .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
+      .hint { display: block; }
+      input[type=text], input[type=password] { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
+      .fld.bad input { border-color: var(--red-ink); }
+      .ferr, .err { color: var(--red-ink); font-weight: 700; margin: .3rem 0 0; }
+
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font: inherit; font-weight: 700; min-height: 48px; padding: .5rem 1.1rem; border-radius: 6px; border: 2px solid var(--night); background: var(--night); color: var(--on-dark); cursor: pointer; text-decoration: none; }
+      .btn.alt { background: var(--card); color: var(--ink); border-color: var(--ink); }
+      .btn.danger { background: var(--card); color: var(--red-ink); border-color: var(--red-ink); }
+      .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+      .chip { display: inline-block; font-size: .85rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; background: var(--stone); color: var(--ink-2); line-height: 1.4; vertical-align: middle; }
+      .chip.ok { background: var(--ok-bg); color: var(--olive); } .chip.warn { background: var(--warn-bg); color: var(--gold-ink); }
+
+      .seg { display: flex; flex-wrap: wrap; gap: .5rem; }
+      .seg .btn[aria-pressed=true] { background: var(--night); color: var(--on-dark); border-color: var(--night); }
+      .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+      .tile { margin: 0; padding: 1rem; }
+      .tl { font-size: .95rem; font-weight: 600; color: var(--ink-2); }
+      .num { font-size: 2.75rem; line-height: 1.15; }
+      .chg { font-size: .95rem; display: flex; gap: .3rem; align-items: center; color: var(--ink-2); }
+      .chg.up { color: var(--olive); }
+      .chart { width: 100%; height: auto; display: block; }
+      .chart text { font-size: 13px; fill: var(--ink-2); }
+      .chart .gl { stroke: var(--line); }
+      .chart .bar { fill: var(--ink-2); } .chart .bar.hi { fill: var(--ink); }
+      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
+      ul.rank { list-style: none; margin: 0; padding: 0; }
+      ul.rank li { position: relative; display: flex; justify-content: space-between; gap: 1rem; align-items: center; min-height: 44px; padding: 0 .5rem; }
+      ul.rank .bg { position: absolute; left: 0; top: 4px; bottom: 4px; background: rgb(74 74 88 / .14); border-radius: 4px; }
+      ul.rank .nm, ul.rank .ct { position: relative; } ul.rank .ct { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+      .ev { display: flex; gap: .85rem; align-items: flex-start; min-height: 56px; padding: .6rem 0; border-top: 1px solid var(--line); }
+      .ev:first-of-type { border-top: 0; }
+      .evi { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--stone); color: var(--ink-2); }
+      .evi.ok { background: var(--ok-bg); color: var(--olive); } .evi.warn { background: var(--warn-bg); color: var(--gold-ink); }
+      .evi.bad { background: var(--bad-bg); color: var(--red-ink); } .evi.edit { background: var(--edit-bg); color: var(--edit); }
+      .ev details summary { cursor: pointer; font-size: .95rem; color: var(--ink-2); min-height: 44px; display: inline-flex; align-items: center; padding: 0 .5rem; }
+
+      .gate { max-width: 28rem; margin: 3rem auto; padding: 0 1rem; }
+      .gate .wordmark { color: var(--ink); display: block; margin-bottom: 1rem; }
+      .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--night); color: var(--on-dark); padding: .5rem .5rem .5rem 1.25rem; border-radius: 6px; z-index: 20; display: flex; gap: .75rem; align-items: center; min-height: 48px; max-width: calc(100vw - 2rem); }
+      .toast button { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; min-height: 48px; padding: 0 .75rem; cursor: pointer; text-decoration: underline; }
+      dialog.ask { border: 0; border-radius: 6px; padding: 1.5rem; max-width: 28rem; width: calc(100vw - 2rem); background: var(--card); color: var(--ink); }
+      dialog.ask::backdrop { background: rgb(22 22 29 / .6); }
+      @media (max-width: 800px) {
+        .wrap { grid-template-columns: minmax(0, 1fr); }
+        .side { display: none; }
+        .top { display: flex; position: sticky; top: 0; z-index: 10; height: 64px; background: var(--night); align-items: center; justify-content: space-between; padding: 0 1rem; }
+        .mnav summary { list-style: none; display: flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 1rem; color: var(--on-dark); font-weight: 700; border: 2px solid var(--accent); border-radius: 6px; cursor: pointer; }
+        .mnav summary::-webkit-details-marker { display: none; }
+        .mnav > div { position: absolute; left: 0; right: 0; top: 64px; background: var(--night); padding: .5rem 1rem 1rem; max-height: calc(100vh - 64px); overflow: auto; }
+        .mnav a, .mnav .linkbtn { min-height: 56px; }
+        .main { padding: 1rem; }
+        .btn { min-height: 52px; }
+        .two { grid-template-columns: 1fr; }
+        .num { font-size: 2.2rem; }
+        .seg { display: grid; grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="gate" id="gate" hidden>
+      <form class="card" id="login" novalidate>
+        <span class="wordmark">Mulligan Games</span>
+        <h1>Store admin</h1>
+        <p class="meta">Sign in to run the store's website.</p>
+        <div class="fld"><label for="lu">Username</label><input id="lu" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required /></div>
+        <div class="fld"><label for="lp">Password</label><input id="lp" type="password" name="password" autocomplete="current-password" required /></div>
+        <p class="err" id="login-err" role="alert" hidden></p>
+        <button class="btn" type="submit">Sign in</button>
+      </form>
+      <p><a href="/">Back to the website</a></p>
+    </div>
+
+    <div class="wrap" id="app" hidden>
+      <header class="top">
+        <a class="wordmark" href="#dashboard">Mulligan Games</a>
+        <details class="mnav" id="mnav">
+          <summary><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Menu</summary>
+          <div id="mlinks"></div>
+        </details>
+      </header>
+      <aside class="side">
+        <div class="brand"><a class="wordmark" href="#dashboard">Mulligan Games</a><p>Store admin</p></div>
+        <nav id="links" aria-label="Admin sections"></nav>
+        <div class="tail" id="tail"></div>
+      </aside>
+      <main class="main" id="main" tabindex="-1">
+        <div class="banner" id="default-warning" hidden><span>The password is still the starter password. Please change it now.</span><a class="btn" href="#account">Change the password</a></div>
+        <section data-section="dashboard"></section>
+        <section data-section="security" hidden></section>
+        <section data-section="account" hidden></section>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <script is:inline>
+      const $ = (s, r = document) => r.querySelector(s);
+      const h = (tag, props, ...kids) => {
+        const el = document.createElement(tag);
+        for (const [k, v] of Object.entries(props || {})) {
+          if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+          else if (k === 'value' || k === 'checked') el[k] = v;
+          else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+        }
+        for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+        return el;
+      };
+      // replaceChildren() does not flatten arrays (they print as "[object HTMLDivElement]"), so every redraw goes through put().
+      const put = (el, ...kids) => el.replaceChildren(...kids.flat(9).filter((k) => k != null && k !== false));
+      const IC = { home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', person: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+        ext: '<path d="M7 17L17 7M9 7h8v8"/>', up: '<path d="M12 19V5M5 12l7-7 7 7"/>', down: '<path d="M12 5v14M5 12l7 7 7-7"/>', check: '<path d="M5 12l5 5 9-10"/>',
+        warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>', bshield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
+        pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>' };
+      const ico = (n, s = 20) => { const e = h('span', { class: 'ic', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
+      const ERR = { signed_out: 'Please sign in again.', origin: 'Reload the page and try again.', current: 'The current password is not right.', too_short: 'The new password needs at least 10 characters.',
+        too_easy: 'Pick a harder password.', same: 'That is the same as the old password.', too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.' };
+      const money = (n) => Number(n).toLocaleString('en-US');
+      const plural = (n, one, many) => `${money(n)} ${n === 1 ? one : many}`;
+      const UTC = (d, o) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { ...o, timeZone: 'UTC' });
+      const wd = (d) => UTC(d, { weekday: 'short', month: 'short', day: 'numeric' }), md = (d) => UTC(d, { month: 'short', day: 'numeric' }), mon = (d) => UTC(d, { month: 'short' });
+      const ET = { timeZone: 'America/New_York' };
+      const etDay = (ms) => new Date(ms).toLocaleDateString('en-CA', ET);
+      let S = null, guard = null; // server state; guard() returns a warning text while the open screen has unsaved changes
+
+      function toast(msg, act) {
+        const t = $('#toast');
+        put(t, h('span', {}, msg), act && h('button', { type: 'button', onclick: () => { t.hidden = true; act.fn(); } }, act.label));
+        t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 6000);
+      }
+      function ask(title, text, yes, keep = 'Keep it') {
+        return new Promise((ok) => {
+          const no = h('button', { class: 'btn alt', type: 'button', onclick: () => d.close('no') }, keep);
+          const d = h('dialog', { class: 'ask', 'aria-labelledby': 'ask-t' }, h('h2', { id: 'ask-t' }, title), h('p', {}, text),
+            h('div', { class: 'row' }, h('button', { class: 'btn danger', type: 'button', onclick: () => d.close('yes') }, yes), no));
+          d.addEventListener('close', () => { d.remove(); ok(d.returnValue === 'yes'); });
+          document.body.append(d); d.showModal(); no.focus();
+        });
+      }
+      const leave = () => { const g = guard?.(); return g ? ask('Leave without saving?', g, 'Leave', 'Stay here') : true; };
+      async function api(method, path, body) {
+        const r = await fetch('/api/' + path, { method, credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+        const data = r.status === 413 ? { error: 'file_size' } : await r.json().catch(() => ({}));
+        if (r.status === 401 && path !== 'login') showLogin();
+        return { ok: r.ok, status: r.status, data };
+      }
+      const say = (r) => r.data.message || ERR[r.data.error] || 'Something went wrong. Try again.';
+
+      // ---------- form fields ----------
+      const clearErr = (d) => { d.classList.remove('bad'); $('.ferr', d).hidden = true; $('input,select,textarea', d)?.removeAttribute('aria-invalid'); };
+      function markErr(ctl, msg) { const d = ctl.closest('.fld'), e = $('.ferr', d); d.classList.add('bad'); e.textContent = msg; e.hidden = false; ctl.setAttribute('aria-invalid', 'true'); }
+      /** A labelled field: label (+ quiet "Optional" tag), hint, the control, and a place for its error. x = { optional, hint, half, cls }. */
+      function fld(id, label, ctl, x = {}) {
+        ctl.id = id;
+        if (x.hint) ctl.setAttribute('aria-describedby', id + '-h');
+        const d = h('div', { class: `fld ${x.half ? '' : 'wide'} ${x.cls || ''}` }, h('label', { for: id }, label, x.optional && h('span', { class: 'opt' }, 'Optional')),
+          x.hint && h('span', { class: 'hint', id: id + '-h' }, x.hint), ctl, h('p', { class: 'ferr', role: 'alert', hidden: true }));
+        ctl.addEventListener('input', () => clearErr(d));
+        return d;
+      }
+
+      // ---------- sign in and navigation ----------
+      function showLogin() { $('#app').hidden = true; $('#gate').hidden = false; }
+      $('#login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const f = e.target, err = $('#login-err');
+        err.hidden = true;
+        const r = await api('POST', 'login', { username: f.username.value, password: f.password.value });
+        if (!r.ok) { err.textContent = say(r); err.hidden = false; return; }
+        f.password.value = '';
+        start();
+      });
+      const NAV = [['dashboard', 'Dashboard', 'home'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
+      const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t)));
+      const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
+      async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
+
+      // ---------- dashboard ----------
+      let range = '30d';
+      const RANGES = [['7d', '7 days', 'the 7 days before'], ['30d', '30 days', 'the 30 days before'], ['90d', '90 days', 'the 90 days before'], ['365d', 'Year', 'the year before']];
+      const PAGES = { '/': 'Home' }; // friendly names for the page list; add pages as they are built
+      const pageName = (p) => PAGES[p] || ((s) => s.charAt(0).toUpperCase() + s.slice(1))(p.split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Home');
+      const SITES = [[/^maps\.google\./, 'Google Maps'], [/(^|\.)(facebook|fb)\.com$/, 'Facebook'], [/(^|\.)google\.[a-z.]+$/, 'Google'], [/(^|\.)bing\.com$/, 'Bing'], [/(^|\.)duckduckgo\.com$/, 'DuckDuckGo'],
+        [/(^|\.)yahoo\.com$/, 'Yahoo'], [/(^|\.)instagram\.com$/, 'Instagram'], [/(^|\.)discord\.(com|gg)$/, 'Discord'], [/(^|\.)topdeck\.gg$/, 'TopDeck']];
+      const siteName = (host) => { const x = host.replace(/^www\./, ''); return SITES.find(([re]) => re.test(x))?.[1] || x; };
+      const merge = (rows, name) => [...rows.reduce((m, r) => m.set(name(r), (m.get(name(r)) || 0) + r.n), new Map())].sort((a, b) => b[1] - a[1]);
+      function change(cur, prev, before) {
+        if (!cur && !prev) return null;
+        const diff = cur - prev, pct = prev >= 5 ? Math.round((Math.abs(diff) / prev) * 100) : 0;
+        if (!diff || (prev >= 5 && !pct)) return h('div', { class: 'chg' }, `Same as ${before}`);
+        const up = diff > 0, words = prev >= 5 ? `${up ? 'Up' : 'Down'} ${pct}% on ${before}` : `${money(Math.abs(diff))} ${up ? 'more' : 'fewer'} than ${before}`;
+        return h('div', { class: 'chg' + (up ? ' up' : '') }, ico(up ? 'up' : 'down', 16), words);
+      }
+      function bars(series, r) {
+        if (r === '90d') return { head: 'Visitors per week', bs: Array.from({ length: Math.ceil(series.length / 7) }, (_, i) => { const w = series.slice(i * 7, i * 7 + 7), n = w.reduce((a, p) => a + p.n, 0); return { n, label: md(w[0].day), title: `Week of ${wd(w[0].day)}: ${plural(n, 'visitor', 'visitors')}` }; }) };
+        if (r === '365d') { const by = new Map(); for (const p of series) by.set(p.day.slice(0, 7), (by.get(p.day.slice(0, 7)) || 0) + p.n); return { head: 'Visitors per month', bs: [...by].map(([k, n], i, all) => ({ n, label: i === 0 || i === all.length - 1 ? UTC(k + '-15', { month: 'short', year: 'numeric' }) : mon(k + '-15'), title: `${UTC(k + '-15', { month: 'long', year: 'numeric' })}: ${plural(n, 'visitor', 'visitors')}` })) }; }
+        return { head: 'Visitors per day', bs: series.map((p) => ({ n: p.n, label: md(p.day), title: `${wd(p.day)}: ${plural(p.n, 'visitor', 'visitors')}` })) };
+      }
+      function chart(bs, label, W) {
+        const H = 220, L = 38, B = 26, T = 12, R = 6, max = Math.max(...bs.map((b) => b.n)), top = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000].find((x) => x >= max) || Math.ceil(max / 1000) * 1000;
+        const y = (n) => T + (H - T - B) * (1 - n / top), slot = (W - L - R) / bs.length, bw = slot / 1.25, hi = bs.findIndex((b) => b.n === max);
+        const grid = [0, top / 2, top].map((v) => `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('');
+        const rects = bs.map((b, i) => { const hh = (H - B - T) * (b.n / top), r = Math.min(2, hh), x = L + i * slot + (slot - bw) / 2; return `<g><title>${b.title}</title>` + (hh ? `<path class="bar${i === hi ? ' hi' : ''}" d="M${x} ${H - B}v${-(hh - r)}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}v${hh - r}z"/>` : '') + `<rect x="${L + i * slot}" y="${T}" width="${slot}" height="${H - T - B}" fill="transparent"/></g>`; }).join('');
+        const lab = (i, a) => `<text x="${a === 'start' ? L + i * slot : a === 'end' ? L + (i + 1) * slot - (slot - bw) / 2 : L + i * slot + slot / 2}" y="${H - 6}" text-anchor="${a}">${bs[i].label}</text>`;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'chart'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', label);
+        svg.innerHTML = grid + rects + lab(0, 'start') + (bs.length > 2 ? lab(Math.floor((bs.length - 1) / 2), 'middle') : '') + (bs.length > 1 ? lab(bs.length - 1, 'end') : '');
+        return svg;
+      }
+      async function renderDashboard() {
+        guard = null;
+        const sec = $('[data-section=dashboard]');
+        const r = await api('GET', 'admin/stats?range=' + range);
+        if (!r.ok) return;
+        const d = r.data, before = RANGES.find((x) => x[0] === d.range)[2], period = d.range === '365d' ? 'Last year' : 'Last ' + d.range.replace('d', ' days');
+        const best = d.series.reduce((a, p) => (p.n > a.n ? p : a), { n: 0 });
+        const sentence = best.n ? `Busiest day: ${wd(best.day)}, with ${plural(best.n, 'visitor', 'visitors')}.` : 'No visitors counted in this period yet.';
+        const tile = (label, n, prev) => h('div', { class: 'tile card' }, h('div', { class: 'tl' }, label), h('div', { class: 'meta' }, period), h('div', { class: 'num' }, money(n)), change(n, prev, before));
+        const { head, bs } = bars(d.series, d.range), holder = h('div');
+        const rank = (rows, empty) => { const max = Math.max(1, ...rows.map((x) => x[1])); return rows.length ? h('ul', { class: 'rank' }, rows.map(([name, n]) => h('li', {}, h('span', { class: 'bg', style: `width:${(n / max) * 100}%` }, ''), h('span', { class: 'nm' }, name), h('span', { class: 'ct' }, money(n))))) : h('p', { class: 'meta' }, empty); };
+        const secCard = h('div', { class: 'card' });
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Dashboard'),
+            h('div', { class: 'seg', role: 'group', 'aria-label': 'Time range' }, RANGES.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === d.range), onclick: () => { range = k; renderDashboard(); } }, t)))),
+          h('div', { class: 'tiles' }, tile('Visitors', d.visitors, d.prev.visitors), tile('Page views', d.views, d.prev.views)),
+          h('div', { class: 'card' }, h('h2', {}, head), holder, h('p', { class: 'meta' }, sentence), h('p', { class: 'meta' }, 'Counted without cookies. Your own visits while signed in are not counted.')),
+          h('div', { class: 'two' }, h('div', { class: 'card' }, h('h2', {}, 'Most viewed pages'), rank(merge(d.pages, (p) => pageName(p.path)), 'No page visits counted yet.')),
+            h('div', { class: 'card' }, h('h2', {}, 'Where visitors came from'), rank(merge(d.referrers, (p) => siteName(p.host)), 'No other websites have sent visitors yet.'))), secCard);
+        if (best.n) holder.append(chart(bs, sentence, holder.clientWidth || 640));
+        const sr = await api('GET', 'admin/security');
+        if (sr.ok) {
+          const n = sr.data.events.filter((e) => e.at > Date.now() - 7 * 864e5 && ['warn', 'bad'].includes(evInfo(e).kind)).length;
+          put(secCard, h('h2', {}, 'Security'), h('p', {}, n ? h('span', { class: 'chip warn' }, `${plural(n, 'warning', 'warnings')} in the last 7 days`) : h('span', { class: 'chip ok' }, 'All quiet in the last 7 days')),
+            h('a', { class: 'btn alt', href: '#security' }, 'Open the security log'));
+        }
+      }
+
+      // ---------- security log ----------
+      const EVT = { login_ok: ['Signed in', 'ok'], logout: ['Signed out', 'muted', 'door'], login_fail: ['Wrong username or password', 'warn'], lockout: ['Locked out after too many wrong tries', 'bad'],
+        login_blocked: ['Sign-in refused while locked out', 'bad'], password_change: ['Password changed', 'ok'], password_change_fail: ['Password change refused: current password was wrong', 'warn'],
+        password_change_blocked: ['Password changes paused: too many tries', 'bad'], photo_upload: ['Uploaded a picture', 'edit'], photo_delete: ['Deleted a picture', 'edit', 'bin'],
+        photo_upload_blocked: ['Stopped a picture upload that was not allowed', 'warn'] };
+      const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
+      function evInfo(e) {
+        let [name, kind, icon] = EVT[e.type] || ['Other activity', 'muted'], detail = e.detail;
+        if (kind !== 'edit' || /^id \S+/.test(detail) || e.type === 'photo_upload' || e.type === 'photo_delete') detail = '';
+        const local = ['::1', '127.0.0.1', '::ffff:127.0.0.1'].includes(e.ip);
+        const who = ['login_fail', 'lockout', 'login_blocked'].includes(e.type) ? (e.who ? 'Username tried: ' + e.who : 'No username typed') : e.who === 'visitor' ? 'by a visitor' : e.who === 'system' ? 'automatic' : e.who ? 'by ' + e.who : '';
+        return { name, kind, icon: icon || KIND_ICON[kind], detail, who, ip: e.ip && (local ? 'This computer' : e.ip) };
+      }
+      let secFilter = 'all', secShown = 50, secEvents = [];
+      const FILTERS = [['all', 'All'], ['in', 'Sign-ins'], ['edit', 'Changes'], ['warn', 'Warnings']];
+      async function renderSecurity() {
+        guard = null;
+        const r = await api('GET', 'admin/security');
+        if (!r.ok) return;
+        secEvents = r.data.events; secShown = 50; drawSecurity();
+      }
+      function drawSecurity() {
+        const sec = $('[data-section=security]');
+        const all = secEvents.map((e) => ({ e, ...evInfo(e) })).filter((x) => secFilter === 'all' || (secFilter === 'in' ? /^(login|logout|lockout|password)/.test(x.e.type) : secFilter === 'edit' ? x.kind === 'edit' : ['warn', 'bad'].includes(x.kind))), rows = all.slice(0, secShown);
+        const days = [], now = Date.now();
+        for (const x of rows) { const day = etDay(x.e.at); if (days.at(-1)?.day !== day) days.push({ day, rows: [] }); days.at(-1).rows.push(x); }
+        const dayName = (day) => (day === etDay(now) ? 'Today' : day === etDay(now - 864e5) ? 'Yesterday' : UTC(day, { weekday: 'long', month: 'long', day: 'numeric' }));
+        put(sec, h('h1', {}, 'Security log'), h('p', {}, 'Sign-ins, lockouts, password changes and every change made in this admin. Kept automatically; nothing here can be edited.'),
+          h('div', { class: 'seg', role: 'group', 'aria-label': 'Show', style: 'margin-bottom:1.25rem' }, FILTERS.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === secFilter), onclick: () => { secFilter = k; secShown = 50; drawSecurity(); } }, t))),
+          days.length ? [days.map(({ day, rows: rs }) => [h('h2', {}, dayName(day)), h('div', { class: 'card' }, rs.map((x) => h('div', { class: 'ev' }, h('span', { class: 'evi ' + x.kind }, ico(x.icon)),
+            h('div', {}, h('div', {}, h('strong', {}, x.name), x.detail && ' · ' + x.detail), h('div', { class: 'meta' }, new Date(x.e.at).toLocaleTimeString('en-US', { ...ET, hour: 'numeric', minute: '2-digit' }) + (x.who ? ' · ' + x.who : '')),
+              x.ip && h('details', {}, h('summary', {}, 'More'), h('div', { class: 'meta' }, x.ip === 'This computer' ? 'This computer' : 'Internet address: ' + x.ip))))))]),
+            all.length > secShown && h('button', { class: 'btn alt', type: 'button', onclick: () => { secShown += 50; drawSecurity(); } }, 'Show older entries')]
+            : h('div', { class: 'card' }, h('p', { class: 'big' }, secEvents.length ? (secFilter === 'warn' ? 'No warnings in the log. All quiet.' : 'Nothing of that kind in the log.') : 'Nothing logged yet.')));
+      }
+
+      // ---------- account ----------
+      function renderAccount() {
+        guard = null;
+        const sec = $('[data-section=account]');
+        const err = h('p', { class: 'err', role: 'alert', hidden: true });
+        const pw = (id, label, name, auto, x) => fld(id, label, h('input', { type: 'password', name, autocomplete: auto }), x);
+        const form = h('form', { class: 'card', novalidate: true }, h('h2', {}, 'Change the password'),
+          pw('pw-c', 'Current password', 'current', 'current-password'), pw('pw-n', 'New password', 'password', 'new-password', { hint: 'At least 10 characters. A short sentence is easy to remember.' }), pw('pw-a', 'New password again', 'again', 'new-password'),
+          err, h('button', { class: 'btn', type: 'submit' }, 'Change password'));
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); err.hidden = true;
+          if (form.password.value !== form.again.value) { markErr(form.again, 'The two new passwords are not the same.'); return; }
+          const r = await api('POST', 'admin/password', { current: form.current.value, password: form.password.value });
+          if (!r.ok) { err.textContent = say(r); err.hidden = false; return; }
+          form.reset(); $('#default-warning').hidden = true; toast('Password changed.');
+        });
+        put(sec, h('h1', {}, 'Account'), h('p', {}, 'Signed in as ' + S.user + '.'), form);
+      }
+
+      // ---------- navigation ----------
+      const VIEWS = { dashboard: renderDashboard, security: renderSecurity, account: renderAccount };
+      let cur = '', restoring = false;
+      function show() {
+        const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
+        cur = v; $('#mnav').open = false;
+        document.querySelectorAll('[data-section]').forEach((s) => (s.hidden = s.dataset.section !== v));
+        document.querySelectorAll('[data-view]').forEach((a) => (a.dataset.view === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+        VIEWS[v]();
+      }
+      async function start() {
+        const r = await api('GET', 'admin/state');
+        if (!r.ok) return showLogin();
+        S = r.data;
+        put($('#links'), navLinks()); put($('#tail'), navTail()); put($('#mlinks'), navLinks(), navTail());
+        $('#gate').hidden = true; $('#app').hidden = false;
+        $('#default-warning').hidden = !S.defaultPassword;
+        show();
+      }
+      addEventListener('hashchange', async () => {
+        if (!S) return;
+        if (restoring) { restoring = false; return; }
+        if (!(await leave())) { restoring = true; location.hash = cur; return; }
+        show();
+      });
+      addEventListener('beforeunload', (e) => { if (guard?.()) e.preventDefault(); });
+      start();
+    </script>
+  </body>
+</html>

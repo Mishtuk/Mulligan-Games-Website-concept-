@@ -32,5 +32,21 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   they run, weekly schedule, prices, photos, logo, tone); later the Astro build reusing the Warminster VFW site.
 
 ### Now working on
-- **Desktop:** P2.1 base port (package.json, astro.config.mjs, server.js, src/, scripts/, test/, .github/workflows/, .gitignore)
 - **Laptop:** research (`docs/research/stores-and-sites.md`, `docs/research/event-and-inventory-tools.md`).
+
+## Phase 2 status
+- **P2.1 base port: done.** The VFW server core lives at the repo root: `server.js` (static serving from `dist/`, CSP with
+  per-page script hashes, compression, ranges, body caps, same-origin CSRF check, rate limits, sign-in with lockout,
+  photo upload with WebP check and sharp re-encode, `<!--mg:name-->` live markers), `src/auth.js`, `src/audit.js`
+  (security log), `src/db.js` (`node:sqlite` in `DATA_DIR/mg.db`, hourly-checked daily backup), `src/stats/`
+  (cookieless visits), `src/forms.js` (public-form guard with honeypot, for P2.4), `src/lib/state.js` (cleaning helpers,
+  `occurrences()` / `expand()` recurrence, markers), `scripts/backup.mjs` / `restore.mjs`, `.github/workflows/checks.yml`
+  (tests, npm audit, CodeQL) and `.github/dependabot.yml`.
+- **Pages:** `/` is a placeholder; `/admin` has sign-in, Dashboard (visits, pages, referrers, security summary), Security
+  log and Account (change password). No events, sign-ups, inventory, store facts or public UI yet (P2.2 onward).
+- **Left behind from VFW:** hall, inquiries, bar/taps/menu/specials, news, honor, shop, volunteers, help requests, site
+  settings, TV, feeds, hero/event photos, email (nodemailer), Post details + site rebuild (`site-build.js`, `post.js`).
+  Copy those from VFW when a task needs them (store facts editing needs `site-build.js` + `post.js` + `content.js`).
+- **Run tests:** `npm install && npm test` (41 tests, Node 22.13+). Build: `npm run build`. Serve: `node server.js`.
+- **Local admin:** `ALLOW_DEFAULT_ADMIN=1 DATA_DIR=<temp folder> PORT=<free port> node server.js` after a build, then
+  `/admin` with admin / admin (testing only; production refuses it). Stop that server by its PID, never all node.
