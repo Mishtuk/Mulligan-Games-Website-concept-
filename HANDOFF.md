@@ -32,7 +32,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** P1.1 designer (`DESIGN.md`, `prototype/`).
-- **Desktop:** #9 content seed (`src/content/`).
+- **Desktop:** #9 content seed (`src/content/`, `test/content.test.js`); Dependabot PRs #6-8.
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported. The design (P1.1) is in progress; every UI task
