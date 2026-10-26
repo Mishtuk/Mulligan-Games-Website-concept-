@@ -151,6 +151,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] Templates: picking game + format pre-fills; staff can save their own template.
   - [ ] Recurrence reuses `occurrences()`; one date can be cancelled, moved or given a note without touching the series.
   - [ ] Tests: recurrence (incl. 5th-weekday and DST weeks), one-date exception, validation rejects.
+  - [ ] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs (left out of P2.1).
 
 ### P2.3 Public front page + events page
 - **Owner:** Desktop coder. **Files:** `src/pages/index.astro`, `src/pages/events.astro`, `src/pages/events/[id]`
@@ -163,6 +164,8 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] Admin edits appear on the public pages without a rebuild (markers), including cancellations.
   - [ ] Open-now strip correct across midnight closes and holiday overrides (tested).
   - [ ] `.ics` feed and per-event files include admin edits and exceptions (tested); JSON-LD validates (tested).
+  - [ ] Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
+        from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2).
 
 ### P2.4 Sign-ups, waitlist, check-in
 - **Owner:** Desktop coder. **Files:** `src/lib/registrations.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`
