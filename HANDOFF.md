@@ -32,5 +32,4 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   they run, weekly schedule, prices, photos, logo, tone); later the Astro build reusing the Warminster VFW site.
 
 ### Now working on
-- **Desktop:** #3 Facebook research (`docs/research/mulligan-facebook.md`, `source/fb/`).
 - **Laptop:** research (`docs/research/stores-and-sites.md`, `docs/research/event-and-inventory-tools.md`).
