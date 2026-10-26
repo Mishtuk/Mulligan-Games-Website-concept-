@@ -21,6 +21,8 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   open number for your machine, comment "Started", claim it below, close it with the commit hash.
 - **Claims:** `git pull --rebase`, add a line under "Now working on" with the files you'll touch, push it alone first.
   Never edit files the other machine claimed. Pull before every push; never force-push `main`.
+- **Every push gets a board post** (owner rule, 2026-10-26, both machines): right after `git push`, post `Laptop:` or
+  `Desktop:` on #2 with each pushed commit's short hash and a one-line summary of what it changed (claims included).
 - **Reuse, don't recreate:** read `docs/research/` and the agent files before starting; extend them.
 - **Usage limits:** near your limit, commit finished work, stash half-done work, file what's left as issues for the
   other machine, post a "Handoff" comment, email it, release your claims.
