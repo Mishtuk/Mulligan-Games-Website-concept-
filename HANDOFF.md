@@ -25,14 +25,55 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 - **Usage limits:** near your limit, commit finished work, stash half-done work, file what's left as issues for the
   other machine, post a "Handoff" comment, email it, release your claims.
 
-### Who does what (proposal, Laptop 2026-10-26)
-- **Laptop** (no Node/Python): research on TCG store sites, event platforms and owner tools; `DESIGN.md`;
-  static prototypes in `prototype/`.
-- **Desktop** (Node, Chrome with sign-ins): Chrome research of the store's Facebook page (hours, games and formats
-  they run, weekly schedule, prices, photos, logo, tone); later the Astro build reusing the Warminster VFW site.
+### Who does what (agreed on #2, 2026-10-26)
+- **Laptop** (no Node/Python): research, `DESIGN.md`, static prototypes in `prototype/` (open from disk, no build).
+- **Desktop** (Node, Chrome with sign-ins): Chrome research and screenshots, the Astro build reusing the Warminster
+  VFW site, tests.
 
 ### Now working on
-- **Laptop:** research (`docs/research/stores-and-sites.md`, `docs/research/event-and-inventory-tools.md`).
+- **Laptop:** P1.1 designer (`DESIGN.md`, `prototype/`).
+- **Desktop:** #9 content seed (`src/content/`).
+
+## Status (handoff, 2026-10-26)
+**Research is done, the plan is set, the server base is ported. The design (P1.1) is in progress; every UI task
+waits for it.**
+
+### Done
+- **Team setup** (2cdf876): `BRIEF.md` (the goal), agents in `.claude/agents/` (boss opus/high, designer opus/high,
+  coder sonnet/high, researcher sonnet/medium, mediator haiku/low). When a session runs from the home folder these
+  agents don't load: spawn `general-purpose` with "follow `.claude/agents/<role>.md`" and the role's model/effort.
+- **Research** in `docs/research/` (start with each file's "Top takeaways"):
+  - `mulligan-public.md`: every public source except Facebook (locator, TopDeck cEDH series, reviews, tools in use).
+  - `mulligan-facebook.md` (Desktop, #3): weekly schedule, upcoming one-offs, caps / min-to-fire, prize wording,
+    preorders, customer questions. **Address is 445 York Rd** (the locator's "455" is a typo).
+  - `stores-and-sites.md`: 12 store sites, patterns and mistakes, plus the Desktop's "Rendered look" section and
+    24 screenshots in `docs/research/shots/` (#5).
+  - `event-and-inventory-tools.md`: what owners use (EventLink, Play! Pokemon, KONAMI, Bandai, TopDeck, BCP, Melee,
+    BinderPOS...), what our admin owns vs links out to.
+- **Plan** (7632763, c097f09): `PLAN.md` (Phase 1 concept on Laptop, Phase 2 build on Desktop, Phase 3 polish and
+  owner review, "Not now" list, designer brief), `DECISIONS.md` (14 rulings: events lead the home page, link out to
+  official pairing tools, no online payment without owner approval, cEDH section, no player accounts, D7 data model),
+  `OWNER-QUESTIONS.md`.
+- **P2.1 server base** (Desktop, 7123e6d): see Phase 2 status below.
+
+### In progress
+- **P1.1 designer (Laptop):** `DESIGN.md` + `prototype/` (index.html, tokens/site css, `data/sample.js` with the real
+  schedule). Not committed yet. Next: P1.2 prototype of events page and admin (Today / check-in, events, inventory),
+  then P1.3 designer review and sign-off. Post on #2 when signed off; that unblocks P2.2 onward.
+- **#9 content seed (Desktop):** real schedule, one-offs and preorders under `src/content/`, each with a source.
+
+### Open
+- **Owner questions** (`OWNER-QUESTIONS.md`): hours, POS in use, 40k league app, online payment, logo / photo
+  permission, which Discord, hosting. Facebook images can't be downloaded, so the concept uses a placeholder
+  wordmark until the owners supply a logo.
+- **PRs #6-8:** Dependabot bumps (astro, codeql) from the ported base; the Desktop merges them when tests pass.
+
+### Plugins (Laptop, user scope)
+`frontend-design` and `modern-web-guidance` (claude-plugins-official). Playwright skipped (needs Node).
+
+### Laptop watcher
+`bash "$TMP/mg_watch.sh"` under Monitor (30 min, re-arm on expiry; re-scans the last 6 h so nothing is missed).
+After re-arming, read #2's latest comments by hand.
 
 ## Phase 2 status
 - **P2.1 base port: done.** The VFW server core lives at the repo root: `server.js` (static serving from `dist/`, CSP with
