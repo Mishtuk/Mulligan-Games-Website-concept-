@@ -45,3 +45,11 @@ write the answer and date under the question and, if it changes a ruling, add an
 17. **Wizards locator vs your flyer:** the locator still lists Magic Academy (Thu 7 PM, Sun 4 PM) and Commander/EDH open
     play blocks; your April flyer doesn't. Does Magic Academy still run? Which seat limits are current (Pauper 28, FNM 28,
     Saturday draft 16)?
+
+## From the feature research (2026-10-26; `docs/research/feature-ideas.md`)
+18. **Google Business Profile:** do you manage the store's Google listing yourselves, and would you post events there?
+    (The site will give you copy-ready event text; we never edit your listings.) Blocks: nothing; shapes P3.1's listing check.
+19. **Other games:** players in Bucks County ask for Lorcana, Flesh and Blood, Star Wars Unlimited and D&D. Do you sell or
+    run any of them, or plan to? Decides which game chips are switched on (D14).
+20. **"New here?" page:** kids / age rule, loaner or precon decks to borrow, house rules or code of conduct, and which
+    trade-ins you buy (and when to bring them). Blocks the page's text in P2.3 / P3.1.

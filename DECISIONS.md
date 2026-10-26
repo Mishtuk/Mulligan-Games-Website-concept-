@@ -124,3 +124,25 @@ the behaviour, not the flat fields). The flat VFW `date + recurring` model can't
 slots, RCQ dates). P2.2's `events.js` expands the nested shape directly; the adapter in `test/content.test.js` is
 deleted then.
 **Why:** one model, no adapter in production; the flat model loses the `dates` case.
+
+### D16. Each event date gets its own page with Event JSON-LD; no anchor-only details (2026-10-26)
+Replaces P2.3's "or anchors". Every upcoming occurrence is a server-rendered page (URL as `DESIGN.md` section 7:
+`/events/<series-id>?date=YYYY-MM-DD`, with a self-canonical link that includes the date) carrying one Event JSON-LD
+(offers, location, `eventStatus`). A `sitemap.xml` lists them. The prototype keeps its `#e-<key>` dialog.
+**Why:** Google needs one crawlable URL per event and ignores multi-event list pages; recurring events are marked up per
+date (`feature-ideas.md` section 4, takeaway 1). Cancels must flip to EventCancelled from admin, which only a live page can.
+
+### D17. Event tags and seat-release time (extends D7) (2026-10-26)
+Event series gain: beginner friendly (y/n), age (all ages / text note), play style (casual / competitive, mainly
+Commander), seat-release time ("arrive by"). Shown on card, event page and sign-up reply. Commander brackets, entry rules
+and "loaner decks" go in the existing description, not new fields. No separate public kit counter: for prereleases the
+capacity is the kit count, so "seats left / sold out / waitlist" already answers it; P2.5 warns when reserved > on hand.
+**Why:** players' top questions are "is it for beginners / kids", "casual or tuned", "is it sold out", "can I just show up"
+(`feature-ideas.md` sections 2, 2c); owners lose seats to no-shows (section 3). Four fields, no new screens.
+
+### D18. Publish everywhere by copy text, not integrations (2026-10-26)
+Each event date has a "Copy post text" button (title, day, start and end time, fee, sign-up mode, page link) the owner
+pastes into Facebook, Discord, Google Business Profile and the Wizards locator. No GBP / Facebook / Wizards APIs or
+auto-posting; listings and GBP are the owner's to edit. A Discord webhook stays in "Not now" (Q7).
+**Why:** owners post to five places (`feature-ideas.md` takeaway 5); GBP event posts need start and end times or show
+as 24 h (section 4); posting to store accounts needs the owner, and APIs add keys and upkeep for one store.

@@ -89,6 +89,8 @@ Series / 5K / Redemption dates). Four screens: front page, events page, admin ev
 - **Done when:**
   - [ ] Every screen checked against `DESIGN.md` at three widths and both themes; deviations either fixed or the spec
         updated with the reason.
+  - [ ] `DESIGN.md` covers the boss-ranking additions (2026-10-26, `feature-ideas.md` end): per-date event page
+        (D16), event tags and seat-release time (D17), "New here?" page, admin "Copy post text" (D18) and "No-show".
   - [ ] Boss signs off against P1.1 and P1.2 "done when".
 
 ### P1.4 Fold in Facebook + screenshot findings
@@ -147,17 +149,21 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Needs:** P2.1, `DESIGN.md` admin events sections (P1.3 signed off).
 - **Done when:**
   - [ ] Event series per `DECISIONS.md` D7 (game, format, kind, fee, capacity, sign-up mode, tool link + code,
-        Warhammer fields, cEDH series tag) with server-side validation and errors under the field.
+        Warhammer fields, cEDH series tag) and D17 tags (beginner friendly, age, casual / competitive, seat-release
+        time) with server-side validation and errors under the field.
+  - [ ] "Copy post text" on each date in the admin list (D18): plain text with title, day, start and end time, fee,
+        sign-up mode and the event page link, ready for Facebook, Discord, Google Business Profile, Wizards (tested).
   - [ ] Templates: picking game + format pre-fills; staff can save their own template.
   - [ ] Recurrence reuses `occurrences()`; one date can be cancelled, moved or given a note without touching the series.
   - [ ] Tests: recurrence (incl. 5th-weekday and DST weeks), one-date exception, validation rejects.
   - [ ] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs (left out of P2.1).
 
 ### P2.3 Public front page + events page
-- **Owner:** Desktop coder. **Files:** `src/pages/index.astro`, `src/pages/events.astro`, `src/pages/events/[id]`
-  (or anchors, per `DESIGN.md`), `src/components/*`, `src/styles/global.css`, `src/lib/store-hours.js`,
-  `src/lib/jsonld.js`, server `.ics` routes, `test/hours.test.js`, `test/ics.test.js`, `test/jsonld.test.js`.
-- **Needs:** P2.2, `DESIGN.md` front + events sections.
+- **Owner:** Desktop coder. **Files:** `src/pages/index.astro`, `src/pages/events.astro`, server-rendered per-date
+  event page (D16), "New here?" page, `src/components/*`, `src/styles/global.css`, `src/lib/store-hours.js`,
+  `src/lib/jsonld.js`, server `.ics` and `sitemap.xml` routes, `test/hours.test.js`, `test/ics.test.js`,
+  `test/jsonld.test.js`.
+- **Needs:** P2.2, `DESIGN.md` front + events sections (incl. the P1.3 boss-ranking additions).
 - **Done when:**
   - [ ] Matches the signed-off prototype at 360 / 768 / 1280, light and dark; pages render server-side (work without JS;
         chips enhance).
@@ -166,6 +172,16 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] `.ics` feed and per-event files include admin edits and exceptions (tested); JSON-LD validates (tested).
   - [ ] Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
         from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2).
+  - [ ] Every upcoming date has its own page (D16) with Event JSON-LD: name, start/end with UTC offset, location Place
+        with name and full address, offers (price, 0 when free, USD, availability from seats), `eventStatus`
+        (EventCancelled / EventRescheduled + `previousStartDate`); one weekly and one one-off pass Google's Rich
+        Results Test.
+  - [ ] Cards and event pages show Cancelled or Changed with "updated <date>"; cancelled dates stay listed, struck
+        through; D17 tags and the seat-release time show on card and page.
+  - [ ] `sitemap.xml` lists the public pages and every upcoming event date; `HobbyShop` JSON-LD has `sameAs`
+        (Facebook, TopDeck, Discord, Wizards locator) (tested).
+  - [ ] "New here?" page from store facts and owner answers (Q20): what to bring, kids / age rule, pay at the store,
+        proxies, prerelease and waitlist rules, parking, trade-ins; linked from the front page and footer.
 
 ### P2.4 Sign-ups, waitlist, check-in
 - **Owner:** Desktop coder. **Files:** `src/lib/registrations.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`
@@ -175,8 +191,11 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] Public form (no account): name, email or phone, optional player ID; honeypot, rate limit, origin check as VFW.
   - [ ] Capacity, cutoff, waitlist with auto-promote on cancel or staff removal; "You're on the waitlist (#n)" reply.
   - [ ] Admin Today: check-in, walk-in add, payment status (at door / online elsewhere / comped / store credit).
+  - [ ] Today: one-tap "No-show" (with Undo) frees the seat and promotes the waitlist; no-shows counted per date.
+  - [ ] The sign-up reply states the seat-release time when set (D17): "Arrive by 6:50 PM or your seat goes to the
+        waitlist."
   - [ ] Contact details deleted N days after the event (N decided in `DECISIONS.md`); counts kept; privacy page says so.
-  - [ ] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, retention purge.
+  - [ ] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, no-show, retention purge.
 
 ### P2.5 Inventory
 - **Owner:** Desktop coder. **Files:** `src/lib/inventory.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`
@@ -194,7 +213,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Owner:** Desktop coder. **Files:** `src/lib/results.js`, `server.js`, `src/pages/admin.astro`, `test/results.test.js`.
 - **Needs:** P2.4.
 - **Done when:**
-  - [ ] Per date: headcount (from check-ins, editable), winner / top N, prizes given (linked to stock moves), a
+  - [ ] Per date: headcount (from check-ins, editable), no-shows (from P2.4), winner / top N, prizes given (linked to stock moves), a
         "reported to the publisher tool" tick, and a reminder list of unreported events.
   - [ ] Store credit: as decided after Q4/Q6 (ledger here, or "issued in POS" note only).
   - [ ] Public results archive for tournaments that opt in.
@@ -215,6 +234,8 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Needs:** R1. Start now from `docs/research/mulligan-facebook.md` (issue #6); owner answers to Q1-Q3 fill the gaps later.
 - **Done when:** [ ] the real weekly schedule, hours, address, phone, links and current one-offs are seeded, each
   traced to a source or an owner answer.
+  [ ] Listing check: Google Maps / Business Profile, Wizards locator, TopDeck, Facebook and directory entries compared
+  with the seeded hours, address and phone; mismatches go to `OWNER-QUESTIONS.md` (the owner fixes them; we don't).
 
 ### P3.2 Quality pass
 - **Owner:** Desktop coder. **Files:** as needed.
@@ -244,8 +265,10 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Email newsletter / text reminders:** later; needs SMTP or a provider (costs money).
 - **Webstore / shopping cart.**
 - **Warhammer league page** with seasons and lists: fields only until the owner confirms they run 40k (Q5).
-- **In-store TV screen** (VFW `/tv`) and **printable weekly flyer** (VFW `/events/flyer`): good cheap reuses for after
-  launch, not needed for the concept.
+- **In-store TV screen** (VFW `/tv`) and **printable weekly flyer** (VFW `/events/flyer`) with a QR to the site: first
+  thing after launch (owner evidence in `feature-ideas.md`), not needed for the concept.
+- **Winner photos on public results:** needs photo consent from players; P2.6 results are text first.
+- **"Tell me when it arrives" form:** notifying needs email (costs money); preorders at the counter cover it.
 - **Private room / party booking, multiple stores, Spanish.**
 - **Hosting, domain, deploy, Cloudflare Access:** owner decision and cost; VFW launch checklist applies when chosen.
 - **Real logo and photos in any public deploy:** only with permission (Q12).
