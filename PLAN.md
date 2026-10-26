@@ -86,12 +86,25 @@ Series / 5K / Redemption dates). Four screens: front page, events page, admin ev
 ### P1.3 Designer review of the prototype
 - **Owner:** Laptop designer. **Files:** `DESIGN.md` (fixes), prototype fixes, a short review list on the task issue.
 - **Needs:** P1.2.
+- **Status:** signed off by the boss 2026-10-26 (`docs/review/p1.3-design-review.md`, Desktop designer). The D16-D18
+  design line moved to P1.3b so P2.2 isn't held up.
 - **Done when:**
-  - [ ] Every screen checked against `DESIGN.md` at three widths and both themes; deviations either fixed or the spec
+  - [x] Every screen checked against `DESIGN.md` at three widths and both themes; deviations either fixed or the spec
         updated with the reason.
-  - [ ] `DESIGN.md` covers the boss-ranking additions (2026-10-26, `feature-ideas.md` end): per-date event page
-        (D16), event tags and seat-release time (D17), "New here?" page, admin "Copy post text" (D18) and "No-show".
-  - [ ] Boss signs off against P1.1 and P1.2 "done when".
+  - [x] Boss signs off against P1.1 and P1.2 "done when".
+
+### P1.3b Design the boss-ranking additions (D16-D18)
+- **Owner:** designer (Desktop or Laptop, whichever has usage). **Files:** `DESIGN.md` only (no prototype needed;
+  ASCII layouts and states like the rest of the spec).
+- **Needs:** P1.3 (done). Research is in `docs/research/feature-ideas.md`.
+- **Done when:** `DESIGN.md` covers, with layout per width and all states:
+  - [ ] Admin (needed by P2.2): D17 fields in the event editor (beginner friendly, age, casual / competitive,
+        seat-release "arrive by") and the "Copy post text" button on each date in the admin list (D18), with the exact
+        text format and the "Copied" feedback.
+  - [ ] Public (needed by P2.3): per-date event page (D16) incl. Cancelled / Changed with "updated <date>" and struck
+        cancelled dates, D17 tags and arrive-by on card and page, the "New here?" page.
+  - [ ] Counter (needed by P2.4): one-tap "No-show" with Undo on the Today roster.
+  - [ ] Boss review. The admin bullet lands first; P2.2 builds its editor fields and copy button only after it.
 
 ### P1.4 Fold in Facebook + screenshot findings
 - **Owner:** Laptop designer. **Files:** `DESIGN.md`, `prototype/css/tokens.css`, `prototype/data/sample.js`.
@@ -146,7 +159,9 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 ### P2.2 Events data and admin
 - **Owner:** Desktop coder. **Files:** `src/lib/events.js` (from `state.js`), `src/lib/games.js`, `src/db.js`,
   `server.js` (admin API), `src/pages/admin.astro`, `test/events.test.js`.
-- **Needs:** P2.1, `DESIGN.md` admin events sections (P1.3 signed off).
+- **Needs:** P2.1, `DESIGN.md` admin events sections (P1.3 signed off 2026-10-26). The D17 editor fields and
+  "Copy post text" UI wait for P1.3b's admin bullet; the data model, validation and tests for them can start now.
+  Every client-side update follows D20 (no data through `innerHTML`).
 - **Done when:**
   - [ ] Event series per `DECISIONS.md` D7 (game, format, kind, fee, capacity, sign-up mode, tool link + code,
         Warhammer fields, cEDH series tag) and D17 tags (beginner friendly, age, casual / competitive, seat-release
@@ -163,7 +178,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   event page (D16), "New here?" page, `src/components/*`, `src/styles/global.css`, `src/lib/store-hours.js`,
   `src/lib/jsonld.js`, server `.ics` and `sitemap.xml` routes, `test/hours.test.js`, `test/ics.test.js`,
   `test/jsonld.test.js`.
-- **Needs:** P2.2, `DESIGN.md` front + events sections (incl. the P1.3 boss-ranking additions).
+- **Needs:** P2.2, `DESIGN.md` front + events sections (incl. the P1.3b public additions).
 - **Done when:**
   - [ ] Matches the signed-off prototype at 360 / 768 / 1280, light and dark; pages render server-side (work without JS;
         chips enhance).
@@ -186,7 +201,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 ### P2.4 Sign-ups, waitlist, check-in
 - **Owner:** Desktop coder. **Files:** `src/lib/registrations.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`
   (Today + roster views), event detail form, `test/registrations.test.js`.
-- **Needs:** P2.3.
+- **Needs:** P2.3, P1.3b counter bullet (No-show).
 - **Done when:**
   - [ ] Public form (no account): name, email or phone, optional player ID; honeypot, rate limit, origin check as VFW.
   - [ ] Capacity, cutoff, waitlist with auto-promote on cancel or staff removal; "You're on the waitlist (#n)" reply.

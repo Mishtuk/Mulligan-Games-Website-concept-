@@ -34,11 +34,11 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** out of usage (claims released).
-- **Desktop:** #10 P1.3 design review (`DESIGN.md`, `prototype/`, `docs/review/`); Dependabot PRs #6-8 (waiting on owner OK to merge).
+- **Desktop:** P1.3 done; next P1.3b (DESIGN.md) + P2.2 events data; Dependabot PRs #6-8 (waiting on owner OK to merge).
 
 ## Status (handoff, 2026-10-26)
-**Research is done, the plan is set, the server base is ported. The design (P1.1) is in progress; every UI task
-waits for it.**
+**Research is done, the plan is set, the server base is ported, the design is signed off (P1.3, 2026-10-26). P2.2 can start;
+P1.3b (DESIGN.md for D16-D18) comes before P2.3 / P2.4.**
 
 ### Done
 - **Team setup** (2cdf876): `BRIEF.md` (the goal), agents in `.claude/agents/` (boss opus/high, designer opus/high,

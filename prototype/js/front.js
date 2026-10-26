@@ -193,7 +193,7 @@
       '<a class="btn btn-2" href="' + e(href({ game: null })) + '#week" data-chip="all">Show all games</a></div>';
   }
   function signupShort(s) {
-    return s.signup === 'walkin' ? 'Walk in' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
+    return s.inviteOnly ? 'Invite only' : s.signup === 'walkin' ? 'Walk in' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
       : (s.tool && s.tool.cta) || 'Sign up on ' + ((s.tool && s.tool.name) || 'another site');
   }
   function renderLater() {
@@ -225,9 +225,9 @@
     $('#cedh-list').innerHTML = list.map(function (o) {
       var s = o.series, d = MG.parseYmd(o.date), st = MG.seatState(o, now), tool = s.tool || {};
       var act = s.inviteOnly ? '<p class="ev-how">' + MG.icon('lock') + 'Invite only. Seats come from the Championship Series.</p>'
-        : '<a class="btn btn-act" href="' + e(tool.url) + '" target="_blank" rel="noopener">Register on ' + e(tool.name) +
+        : '<a class="btn btn-act" href="' + e(MG.safeUrl(tool.url)) + '" target="_blank" rel="noopener">' + e(tool.cta || 'Sign up on ' + tool.name) +
           '<span class="vh"> (opens ' + e(tool.name) + ')</span>' + MG.icon('external', 'ic-ext') + '</a>';
-      var stat = st.count ? '<p class="ev-stat">' + MG.icon('users') + '<span class="ev-stat-big">' + st.count + '</span><span class="ev-stat-unit">registered</span><span class="ev-stat-small">on TopDeck</span></p>' : '';
+      var stat = st.count ? '<p class="ev-stat">' + MG.icon('users') + '<span class="ev-stat-big">' + e(st.count) + '</span><span class="ev-stat-unit">registered</span><span class="ev-stat-small">on ' + e(tool.name) + '</span></p>' : '';
       return '<li class="tix"><p class="tix-date" aria-hidden="true">' + MG.dayShort(d) + '<b>' + d.getDate() + '</b>' + MG.monthShort(d) + '</p>' +
         '<div class="tix-what"><h4>' + e(s.title) + '</h4><p>' + e(MG.fmtLongDate(d)) + ', ' + MG.fmtTime(o.start) +
         (s.fee ? '. Entry ' + MG.fmtFee(s.fee) : '') + '.</p></div>' +

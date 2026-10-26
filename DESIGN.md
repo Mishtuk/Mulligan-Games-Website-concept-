@@ -1,6 +1,6 @@
 # Mulligan Games: design spec
 
-Owner: Laptop designer. Status: **P1.1 draft for sign-off** (2026-10-26). Built from `BRIEF.md`, `DECISIONS.md` (D1 to D14),
+Owner: Laptop designer (P1.3 review: Desktop designer). Status: **P1.1 draft, reviewed against the P1.2 prototype in P1.3; for sign-off** (2026-10-26). Built from `BRIEF.md`, `DECISIONS.md` (D1 to D14),
 `docs/research/*.md` (including `mulligan-facebook.md` and the "Rendered look" screenshot notes) and the Warminster VFW admin.
 The front page prototype (`prototype/index.html`) is the reference build of this spec: when the two disagree, fix one
 and note it here.
@@ -127,7 +127,11 @@ pairs (a PowerShell snippet is enough: relative luminance, `(L1+0.05)/(L2+0.05)`
 - Motion: the deal-in of the week cards (520ms, `--ease-deal`, 60ms stagger, closed cards rotate to tapped at the end);
   the "On now" dot pulse; 140ms colour transitions on buttons. `prefers-reduced-motion: reduce` collapses all of it to
   the end state. No scroll reveals, no hover lifts on cards.
-- Targets: public `--tap` 48px minimum; admin `--tap-admin` 56px (counter tablet, one hand).
+- Targets: public `--tap` 48px minimum for buttons, chips and nav; text links inside a sentence or a card title follow
+  WCAG 2.5.8 (24px or spaced) because the card's button is the target. Admin `--tap-admin` 56px for the counter actions
+  (check-in, steppers, primary and secondary buttons, inputs); 48px floor for secondary controls that come in sets
+  (chips, payment segments, row menu and its items, reminder chips, tabs, `btn-sm`), with 8px between separate targets
+  (segments touch, as one control). P1.3: 56px everywhere made the roster row two lines on a tablet.
 
 ---
 
@@ -165,7 +169,8 @@ heading; the date line above the hero headline is information, not decoration. T
   `900px` header nav joins the logo row; `1024px` desktop (day groups become a two-column rail, cEDH band two columns,
   admin sidebar); content stops growing at 1240px (seen at 1280).
 - **Phone is a different layout, not a squeezed one** (screenshot study): chips and release tiles scroll sideways with
-  snap; the week deck scrolls sideways; day headers stick to the top while you scroll that day's cards.
+  snap (every sideways rail sets `scroll-padding-inline: var(--gutter)`, else snapping pulls the first item to the
+  screen edge); the week deck scrolls sideways; day headers stick to the top while you scroll that day's cards.
 - **Alignment:** everything left-aligned; numbers in stat boxes and the hours table right-aligned or tabular. Nothing
   centred except inside the diamond, the week cards and placeholders.
 - **Server-rendered first (D11):** every section in section 6 is plain HTML from the server. JS only enhances: chips
@@ -233,7 +238,7 @@ words and (where useful) a number; colour only reinforces.
 | 2 | **Walk-in only** | sign-up = walk in | door icon + "Just show up. No sign-up needed." | none |
 | 3 | **External sign-up** | sign-up = another site | primary "Sign up on TopDeck" (or the tool's own label, e.g. "Sign up online") + external icon | if a count is known: users icon, "80 registered, on TopDeck" |
 | 4 | **Pre-register at the counter** | sign-up = in store only (prereleases today) | door icon + "Pre-register at the counter." + secondary "Call the shop" (tel:) | none |
-| 5 | **Sign-ups closed** | sign up here, now past the cutoff (default: start time) | "Sign-ups closed. Walk in if seats are left." | seat icon, "4 seats left, of 28" |
+| 5 | **Sign-ups closed** | sign up here, now past the cutoff (default: start time) | "Sign-ups closed. Walk in if seats are left." When no seats are left: "Sign-ups closed. All seats are taken." | seat icon, "4 seats left, of 28"; lock + "Full" at 0; none when there is no seat limit |
 | 6 | **Waitlist** | full, waitlist on | secondary "Join the waitlist" | hourglass, "Full", "3 waiting"; `--wait` border |
 | 7 | **Full** | full, waitlist off | "Full. Ask at the counter about open seats." | lock, "Full" |
 | 8 | **Needs players** | min to run set and sign-ups below it | primary "Sign up" | users icon, "5 signed up, needs 8 to run"; warn border and fill |
@@ -277,8 +282,8 @@ same text; the free-play line becomes a black pill under it.
 - **Further out list** (under the week): one row per series for days 8 to 35 (big one-offs, prereleases, cEDH, RCQs,
   monthly events), "and 2 more dates" tag for short series; date block, title link, game badge, time, fee, sign-up
   mode in words. Max 6 rows, then "See every date".
-- **cEDH ticket** (in the band): date block, title, long date + time + entry, primary "Register on TopDeck" (or the
-  invite-only sentence), stat box "120 registered on TopDeck". 6px cEDH-purple left edge.
+- **cEDH ticket** (in the band): date block, title, long date + time + entry, primary "Sign up on TopDeck" (the same
+  label as the event card, so one action has one name; P1.3) or the invite-only sentence, stat box "120 registered on TopDeck". 6px cEDH-purple left edge.
 - **Release tile**: the card anatomy again, portrait: art box (lattice in the game colour + big game icon; a real
   product image later, if the owners want), name, type line (game ◆ "Preorder" / "Out now" / "Coming soon"), text box
   (note, linked prerelease dates + fee), stat box ("6 days left, preorders end Sun Nov 1"; "Last day today";
@@ -459,7 +464,7 @@ TABLET 768 (portrait)
 ┌─────────────────────────────────────────────────────────┐
 │ Today, Friday Oct 30                ● Open till midnight│
 │ ┌ 3 low in stock ┐ ┌ FNM Oct 23 not reported ┐ ┌ 2 preorders arrived ┐   ← reminder chips (links)
-│ [6 PM Chaos Draft 5/24] [7 PM Draft FNM 28/28 +3] [7 PM Nexus Nights walk-in]  ← tonight's events (segmented, scrolls)
+│ [6 PM Chaos Draft 5 of 24 signed up] [7 PM Draft FNM 28 of 28 signed up, 3 waiting] [7 PM Nexus Nights Walk-in]
 ├─────────────────────────────────────────────────────────┤
 │ Draft FNM · 7 PM · $20         Checked in 18 of 28 · Paid 15 · Waitlist 3    (no middots in build: separate stats)
 │ [ Find a name…                                   ]  [Enter results]
@@ -474,9 +479,15 @@ TABLET 768 (portrait)
 ```
 
 - Opens on the event that's on now or starts next today; tomorrow's first event if nothing is left.
+- Event buttons say the count in words ("28 of 28 signed up, 3 waiting"; P1.3: "0/28 of 28 +3" needed decoding).
+  Check-ins are in the stat row under the title.
+- Phone (under 600px): reminder chips scroll sideways in one row and the open-now pill is left to the top bar, so the
+  roster and the sticky walk-in bar fit on the first screen.
 - **Row:** a 56x56 check button (empty box / filled green check + "Checked in" visually hidden or visible at 768+),
-  name (bold), player ID, sign-up time small; payment: segmented control of five 48px buttons at 768+, a native
-  select under 600: "Not paid / At the door / Paid online elsewhere / Comped / Store credit" (D3). Row menu (⋯):
+  name (bold), player ID, sign-up time small; payment: segmented control of five 48px buttons at 600+ with short labels
+  "Unpaid / Door / Online / Comped / Credit" (full label as the tooltip and in the toast), a native select under 600 with
+  the full labels "Not paid / At the door / Paid online elsewhere / Comped / Store credit" (D3). The check button shows
+  "Check in" / "Checked in" at 14px from 768 (88px wide). Row menu (⋯):
   "Cancel sign-up", "Edit name or contact", "Show contact" (contacts are hidden by default: privacy at a public counter).
 - Tapping check-in toggles at once; toast "Sam B. checked in. Undo".
 - **Cancel** a registered player: toast "Riley K. cancelled. Jordan K. moved in from the waitlist. Undo" (auto-promote,
@@ -516,7 +527,7 @@ TABLET 768 (portrait)
      {weekday} / Every month on the {1st, 2nd, 3rd, 4th, last} {weekday} / On these dates (add date + time rows);
      Ends: Never / On {date}. A sentence under the group reads it back: "Every Friday at 7 PM, starting Oct 30."
    - *Entry and seats:* Entry fee ($, "0 means free"); Seats ("Leave empty for no limit"); Minimum players to run;
-     **How players sign up** (radio cards with a one-line explainer): Walk in, no sign-up / Sign up on this site /
+     **How players sign up** (visible label over radio cards with a one-line explainer): Walk in, no sign-up / Sign up on this site /
      At the counter only / On another site (+ Link and Button text, e.g. "Sign up online"). Waitlist when full
      (checkbox, on). Sign-ups close: At the start time / {n} hours before.
    - *Official tool (D2):* Tool (EventLink, Play! Pokemon, Bandai TCG+, KONAMI, Ravensburger Play Hub, PlayRiftbound,
@@ -607,7 +618,8 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 - Week deck links have full `aria-label`s; captions are `aria-hidden` (duplicated in the label).
 - Chips: links with `aria-current`; filter results announced via a polite live region.
 - Focus: 3px ring, `--focus` colour, 3px offset; white inside the red hero. Never removed.
-- Targets: 48px public, 56px admin; spacing between adjacent targets at least 8px.
+- Targets: section 2.4 (48px public, 56px admin counter actions, 48px admin floor); spacing between adjacent targets
+  at least 8px.
 - Motion: one load animation, reduced-motion respected. The pulse dot stops.
 - Theme: follows the system; the toggle maps `<meta name="color-scheme">` back to `color-scheme` via `:root:has(...)`
   so it works without JS-only classes; stored in `localStorage` (`mg-scheme`) only when it differs from the system;
@@ -672,6 +684,10 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
   state), in-store pre-registration (new "Pre-register at the counter" state), last-minute changes (the "Updated" tag),
   preorder deadlines (release tiles with a countdown), the kids question (Good to know), One Piece as a chip, Gundam
   as "coming soon". Address 445 York Rd.
+- **P1.3 design review (Desktop, 2026-10-26):** list and reasons in `docs/review/p1.3-design-review.md`. Spec changes:
+  admin target floor (2.4), rail scroll padding (4), closed-and-full card (5.3 state 5), one label for TopDeck sign-up
+  (5.8), Today event buttons in words, phone reminders row and short payment labels (9.2), "How players sign up" is a
+  visible label in the editor (9.3).
 - **Folded in from R2 (screenshots, 2026-10-26):** schedule on the first screen (the week deck lives in the hero), one
   action colour (red only on actions), white-diamond day numbers, a sideways chip row with counts (TopDeck), cEDH chip
   highlighted, "N registered" matching TopDeck, one real room photo slot (Mox), no script needed to see the schedule

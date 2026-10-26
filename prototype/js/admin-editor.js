@@ -67,7 +67,7 @@
         fld('capacity', 'Seats', '<input name="capacity" inputmode="numeric" value="' + e(f.capacity) + '" aria-describedby="e-capacity">', { hint: 'Leave empty for no limit.' }) +
         fld('minPlayers', 'Minimum players to run', '<input name="minPlayers" inputmode="numeric" value="' + e(f.minPlayers) + '" aria-describedby="e-minPlayers">', { hint: 'Shows "needs players" until it is met. Leave empty for none.' }) +
       '</div>' +
-      '<div class="radios" role="radiogroup" aria-label="How players sign up" id="f-signup">' + signups.map(function (s) {
+      '<p class="radios-h" id="signup-h">How players sign up</p><div class="radios" role="radiogroup" aria-labelledby="signup-h" id="f-signup">' + signups.map(function (s) {
         return '<label class="rcard"><input type="radio" name="signup" value="' + s[0] + '"' + (f.signup === s[0] ? ' checked' : '') + '><strong>' + e(s[1]) + '</strong><small>' + e(s[2]) + '</small></label>';
       }).join('') + '<em class="err" id="e-signup" hidden></em></div>' +
       chk('waitlist', 'Waitlist when full. The next person moves in automatically when a seat opens.', f.waitlist, 'signup=here') +

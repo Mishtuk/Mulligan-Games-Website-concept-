@@ -36,8 +36,8 @@
         stat = statBox('Full', '', st.waiting ? st.waiting + ' waiting' : 'waitlist open', 'hourglass'); break;
       case 'full': act = '<p class="ev-how">Full. Ask at the counter about open seats.</p>'; stat = statBox('Full', '', '', 'lock'); break;
       case 'closed':
-        act = '<p class="ev-how">Sign-ups closed. Walk in if seats are left.</p>';
-        stat = st.cap ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat') : ''; break;
+        act = '<p class="ev-how">' + (st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.') + '</p>';
+        stat = !st.cap ? '' : st.left ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat') : statBox('Full', '', '', 'lock'); break;
       case 'walkin': act = '<p class="ev-how">' + MG.icon('door') + 'Just show up. No sign-up needed.</p>'; break;
       case 'counter':
         act = '<p class="ev-how">' + MG.icon('door') + 'Pre-register at the counter.</p><a class="btn btn-2" href="' + e(MG.data.store.phoneHref) + '">' + MG.icon('phone') + 'Call the shop</a>'; break;
@@ -90,7 +90,7 @@
       (occ.cancelled ? '<p class="ev-stamp det-stamp">' + MG.icon('cancel') + 'Cancelled</p>' : V.action(occ, st)) +
       (rows ? '<dl class="det-list">' + rows + '</dl>' : '') +
       '<p class="det-acts"><button type="button" class="btn btn-2" data-ics-one="' + e(occ.key) + '">' + MG.icon('calendar') + 'Add to calendar</button>' +
-      '<a class="btn btn-2" href="' + e(MG.data.store.mapsUrl) + '" target="_blank" rel="noopener">' + MG.icon('pin') + 'Directions<span class="vh"> (opens Google Maps)</span></a></p>' +
+      '<a class="btn btn-2" href="' + e(MG.safeUrl(MG.data.store.mapsUrl)) + '" target="_blank" rel="noopener">' + MG.icon('pin') + 'Directions<span class="vh"> (opens Google Maps)</span></a></p>' +
       '<p class="det-where">445 York Rd, Warminster. ' + e(MG.data.store.parking) + '</p></article>';
   };
 

@@ -27,7 +27,7 @@
     var s = o.series;
     if (s.signup === 'here' || s.signup === 'counter') {
       var c = R.counts(A.regs(o)), cap = MG.capOf(o);
-      return (c.checkedIn + '/' + c.in) + (cap ? ' of ' + cap : '') + (c.waitlist ? ' +' + c.waitlist : '');
+      return c.in + (cap ? ' of ' + cap : '') + ' signed up' + (c.waitlist ? ', ' + c.waitlist + ' waiting' : '');
     }
     return 'Walk-in';
   }

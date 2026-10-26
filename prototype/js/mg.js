@@ -296,8 +296,8 @@
         act = '<p class="ev-how">Full. Ask at the counter about open seats.</p>';
         stat = statBox('Full', '', '', 'lock'); break;
       case 'closed':
-        act = '<p class="ev-how">Sign-ups closed. Walk in if seats are left.</p>';
-        stat = statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat'); break;
+        act = '<p class="ev-how">' + (st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.') + '</p>';
+        stat = !st.cap ? '' : st.left ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat') : statBox('Full', '', '', 'lock'); break;
       case 'walkin':
         act = '<p class="ev-how">' + MG.icon('door') + 'Just show up. No sign-up needed.</p>'; break;
       case 'counter':
@@ -306,7 +306,9 @@
       case 'external':
         act = tool.url ? '<a class="btn btn-act" href="' + e(MG.safeUrl(tool.url)) + '" target="_blank" rel="noopener">' + e(tool.cta || 'Sign up on ' + tool.name) + ext + '</a>'
           : '<p class="ev-how">Sign up on ' + e(tool.name) + '.</p>';
-        if (st.count) stat = statBox(st.count, 'registered', 'on ' + tool.name, 'users'); break;
+        if (st.count) stat = statBox(st.count, 'registered', 'on ' + tool.name, 'users');
+        if (s.inviteOnly) act = '<p class="ev-how">' + MG.icon('lock') + 'Invite only. Seats come from the Championship Series.</p>';
+        break;
       case 'cancelled':
         act = ''; break;
     }

@@ -146,3 +146,21 @@ pastes into Facebook, Discord, Google Business Profile and the Wizards locator. 
 auto-posting; listings and GBP are the owner's to edit. A Discord webhook stays in "Not now" (Q7).
 **Why:** owners post to five places (`feature-ideas.md` takeaway 5); GBP event posts need start and end times or show
 as 24 h (section 4); posting to store accounts needs the owner, and APIs add keys and upkeep for one store.
+
+### D19. P1.2 coder's open calls, confirmed (2026-10-26)
+(1) Reserved stock looks ahead 14 days by default, with a 7 / 14 / 30 / 60 selector; a weekly event counts once per
+date in the window (twice in 14 days). (2) "Paid" on Today counts every settled player: at the door, online elsewhere,
+comped and store credit; the per-method split stays on the roster and in results. (3) Store info stays out of admin
+nav until P2.3 builds the store-facts editor. (4) The weekly-nights list runs Monday to Sunday, like the hours table.
+**Why:** 14 days covers the next two weeks of draft nights plus an upcoming prerelease without inflating "short";
+"Paid" answers "who still owes?" at the counter; no nav item for a screen that doesn't exist; one week order site-wide.
+
+### D20. No HTML injection: how the build renders data (2026-10-26)
+Owner rule, for P2.2 onward. Server pages: Astro `{}` expressions only (they escape); `set:html` only on constant
+markup or JSON-LD built with `JSON.stringify` and `<` escaped as `<`. Client JS: build DOM with `createElement` +
+`textContent` / attributes; `innerHTML` / `insertAdjacentHTML` / `outerHTML` only with constant strings (no data,
+escaped or not). Links from stored data go through one `safeUrl` (allow `https:`, `http:`, `tel:`, `mailto:`) on save
+and on output. SQL is parameterised only (`?` placeholders), never built from strings. Keep the prototype's hostile-name
+tests as build tests. The prototype is not changed: it is a throwaway concept, every value goes through `MG.esc` /
+`MG.safeUrl`, and its injection tests pass; nothing is copied from it into the build without converting to the above.
+**Why:** escaping inside `innerHTML` strings works until one value is missed (P1.3 found two); text APIs can't miss.

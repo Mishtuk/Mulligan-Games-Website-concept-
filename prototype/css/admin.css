@@ -67,12 +67,13 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
 .today-open .ob-dot { border-color: var(--ink-2); }
 .reminders { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s4); }
 .reminders:empty { display: none; }
+@media (max-width: 599px) { .today-open { display: none; } /* the top bar already says it */ .reminders { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter); } .rem { flex: none; white-space: nowrap; } }
 .rem { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 3rem; padding: 0 var(--s3); border-radius: var(--r-pill); border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink); font-weight: 700; font-size: var(--t-sm); text-decoration: none; }
 .rem:hover { border-color: var(--ink); }
 .rem-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
 
 /* ---------- Today: event selector ---------- */
-.evsel { list-style: none; margin: 0 calc(-1 * var(--gutter)) var(--s4); padding: var(--s1) var(--gutter) var(--s2); display: flex; gap: var(--s2); overflow-x: auto; scroll-snap-type: x proximity; }
+.evsel { list-style: none; margin: 0 calc(-1 * var(--gutter)) var(--s4); padding: var(--s1) var(--gutter) var(--s2); display: flex; gap: var(--s2); overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter); }
 .evsel li { flex: none; scroll-snap-align: start; }
 .evb { --gc: var(--g-other); display: grid; gap: 0.1rem; min-width: 8.5rem; max-width: 13rem; min-height: var(--tap-admin); padding: 0.4rem var(--s3) 0.5rem; text-align: left; border: 2px solid var(--line); border-top: 6px solid var(--gc); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
 .evb[data-game="magic"] { --gc: var(--g-magic); } .evb[data-game="cedh"] { --gc: var(--g-cedh); } .evb[data-game="pokemon"] { --gc: var(--g-pokemon); }
@@ -113,7 +114,7 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
 .chk56 .ic { width: 1.7rem; height: 1.7rem; stroke-width: 3; }
 .chk56[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: var(--paper); }
 .chk-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-@media (min-width: 768px) { .chk56[aria-pressed="true"] .chk-t, .chk-t { position: static; width: auto; height: auto; clip-path: none; } .chk56 { width: 4.5rem; gap: 0.1rem; color: var(--ink-2); font-size: 0.7rem; font-weight: 800; } .chk56 .ic { width: 1.4rem; height: 1.4rem; opacity: 0.35; } .chk56[aria-pressed="true"] { color: var(--paper); } .chk56[aria-pressed="true"] .ic { opacity: 1; } }
+@media (min-width: 768px) { .chk56[aria-pressed="true"] .chk-t, .chk-t { position: static; width: auto; height: auto; clip-path: none; } .chk56 { width: 5.5rem; gap: 0.1rem; color: var(--ink-2); font-size: var(--t-xs); font-weight: 800; line-height: 1.1; } .chk56 .ic { width: 1.4rem; height: 1.4rem; opacity: 0.35; } .chk56[aria-pressed="true"] { color: var(--paper); } .chk56[aria-pressed="true"] .ic { opacity: 1; } }
 .rr-who { grid-area: who; display: flex; flex-wrap: wrap; gap: 0 var(--s3); align-items: baseline; min-width: 0; }
 .rr-name { font-size: 1.15rem; font-weight: 800; overflow-wrap: anywhere; }
 .rr-meta { font-size: var(--t-xs); font-weight: 600; color: var(--ink-2); }
@@ -245,6 +246,7 @@ details.past > summary { display: flex; align-items: center; min-height: 3rem; f
 .fgrid { display: grid; gap: 0 var(--s3); }
 @media (min-width: 768px) { .fgrid { grid-template-columns: 1fr 1fr; } .fgrid .wide { grid-column: 1 / -1; } }
 .say { margin: 0 0 var(--s3); padding: var(--s2) var(--s3); border-radius: var(--r-ctl); background: var(--highlight); color: var(--on-highlight); font-weight: 700; }
+.radios-h { margin: var(--s2) 0 0.3rem; font-size: var(--t-sm); font-weight: 650; }
 .radios { display: grid; gap: var(--s2); margin-bottom: var(--s3); }
 .rcard { display: grid; grid-template-columns: auto 1fr; gap: 0 var(--s3); align-items: center; padding: var(--s3); border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); cursor: pointer; }
 .rcard:has(input:checked) { border-color: var(--ink); background: var(--surface-2); box-shadow: inset 4px 0 0 var(--act); }
