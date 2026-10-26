@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <script>try { var s = localStorage.getItem('mg-scheme'); if (s) document.querySelector('meta[name="color-scheme"]').content = s; } catch (e) {}</script>
+  <title>Inventory, Mulligan Games shop admin</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/site.css">
+  <link rel="stylesheet" href="../css/ui.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="../data/sample.js" defer></script>
+  <script src="../data/templates.js" defer></script>
+  <script src="../js/mg.js" defer></script>
+  <script src="../js/rules.js" defer></script>
+  <script src="../js/stock.js" defer></script>
+  <script src="../js/state.js" defer></script>
+  <script src="../js/actions.js" defer></script>
+  <script src="../js/ui.js" defer></script>
+  <script src="../js/event-views.js" defer></script>
+  <script src="../js/admin-views.js" defer></script>
+  <script src="../js/admin-shell.js" defer></script>
+  <script src="../js/admin-inventory.js" defer></script>
+</head>
+<body class="adm" data-page="inventory">
+  <a class="skip" href="#main">Skip to the main part</a>
+  <div class="adm-app">
+    <aside class="adm-side" id="side"></aside>
+    <div class="adm-col">
+      <header class="adm-top" id="top"></header>
+      <aside id="demo" class="demo-host"></aside>
+      <main id="main" class="adm-main" tabindex="-1">
+        <div class="wrap-adm" id="view"><p class="loading"><span class="spin" aria-hidden="true"></span>Loading stock...</p></div>
+      </main>
+    </div>
+    <nav class="adm-tabs" id="tabs" aria-label="Sections"></nav>
+  </div>
+  <noscript><p class="noscript">The admin concept needs JavaScript. The real admin is built with the Phase 2 server.</p></noscript>
+</body>
+</html>

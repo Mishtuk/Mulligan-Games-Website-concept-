@@ -1,0 +1,42 @@
+/* Mulligan Games concept: the events page (events.html). Reuses site.css (chips, day heads, slots, event card). */
+.ep { padding-block: var(--s5) var(--s7); }
+.ep-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3) var(--s5); margin-bottom: var(--s4); }
+.ep-head h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
+.ep-format { display: flex; align-items: center; gap: var(--s3); margin: 0 0 var(--s5); }
+.ep-format label { font-weight: 750; }
+.ep-format select { min-height: var(--tap); padding: 0 2rem 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 650; max-width: 100%; }
+.ep-sec { margin-top: var(--s6); }
+.ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 3px solid var(--ink); }
+.ep .chips { margin-bottom: var(--s3); }
+
+/* add to calendar */
+.cal-menu { position: relative; }
+.cal-menu summary { list-style: none; cursor: pointer; }
+.cal-menu summary::-webkit-details-marker { display: none; }
+.cal-pop { position: absolute; right: 0; top: calc(100% + 0.4rem); z-index: 10; min-width: 14rem; padding: var(--s2); background: var(--surface); border: 2px solid var(--ink); border-radius: var(--r-card); box-shadow: var(--lift); }
+.cal-pop .btn { width: 100%; justify-content: flex-start; }
+
+/* special events: the day groups come from site.css (.day, .slot) */
+.ep .day { padding-block: var(--s4) var(--s5); }
+.ev-also, .ev-next { margin: 0; color: var(--ink-2); font-size: var(--t-sm); font-weight: 600; }
+.ev-next { color: var(--ink); font-weight: 700; }
+
+/* every week: one block per weekday, cards side by side */
+.wk { display: grid; gap: var(--s3); padding-block: var(--s4) var(--s5); border-top: 2px solid var(--line); }
+.wk:first-child { border-top: 0; }
+.wk-name { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; display: flex; align-items: center; gap: var(--s3); }
+.wk-cards { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+.wk-closed { padding-block: var(--s3); }
+.wk-closed .wk-name { font-size: 1.35rem; color: var(--ink-2); }
+@media (min-width: 1024px) {
+  .wk { grid-template-columns: 12.5rem minmax(0, 1fr); column-gap: var(--s6); align-items: start; }
+  .wk-closed { align-items: center; }
+  .wk-name { padding-top: var(--s2); font-size: 2.1rem; }
+  .wk-closed .wk-name { font-size: 1.5rem; padding-top: 0; }
+}
+.ep .day-h { position: static; }
+@media (min-width: 1024px) { .ep .day-h { position: sticky; } }
+.ep .ev-title a { text-decoration: none; }
+
+/* the demo bar is a block above the strip on the events page */
+.demo-host:empty { display: none; }

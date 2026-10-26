@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>try { var s = localStorage.getItem('mg-scheme'); if (s) document.querySelector('meta[name="color-scheme"]').content = s; } catch (e) {}</script>
+  <title>Events and sign-ups, Mulligan Games, Warminster PA</title>
+  <meta name="description" content="Every event at Mulligan Games in Warminster, PA: Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer. See the fee and open seats, sign up or join the waitlist, add it to your calendar.">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <link rel="stylesheet" href="css/ui.css">
+  <link rel="stylesheet" href="css/events.css">
+  <script src="data/sample.js" defer></script>
+  <script src="data/templates.js" defer></script>
+  <script src="js/mg.js" defer></script>
+  <script src="js/rules.js" defer></script>
+  <script src="js/stock.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/actions.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/event-views.js" defer></script>
+  <script src="js/events-page.js" defer></script>
+</head>
+<body class="events-page">
+  <a class="skip" href="#main">Skip to the events</a>
+  <aside id="demo" class="demo-host"></aside>
+
+  <div class="openbar">
+    <div class="wrap openbar-in">
+      <p class="ob-status" id="ob-status"><span class="ob-dot" aria-hidden="true"></span><span>Hours: Wednesday to Sunday</span></p>
+      <p class="ob-addr">445 York Rd, Warminster</p>
+      <a class="ob-link" href="tel:+12157893299"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h3.5l1.5 4.5-2.3 1.5a11 11 0 0 0 6.8 6.8l1.5-2.3 4.5 1.5V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/></svg><span class="ob-long">(215) 789-3299</span><span class="ob-short">Call</span></a>
+      <a class="ob-link" href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions<span class="vh"> (opens Google Maps)</span></a>
+    </div>
+  </div>
+
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="index.html" aria-label="Mulligan Games, home">
+        <svg class="mark" viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
+          <rect x="7" y="5" width="21" height="30" rx="3.5" transform="rotate(-13 17.5 20)" fill="none" stroke="var(--sign)" stroke-width="2.5"/>
+          <rect x="15" y="9" width="21" height="30" rx="3.5" fill="var(--flyer-red)"/>
+          <path d="M25.5 15.5 31 24l-5.5 8.5L20 24z" fill="#fff"/>
+        </svg>
+        <span class="brand-name">Mulligan<small>Games</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html#week">This week</a></li>
+          <li><a href="index.html#cedh">cEDH</a></li>
+          <li><a href="index.html#new">New and preorders</a></li>
+          <li><a href="index.html#visit">Visit</a></li>
+          <li><a href="events.html" aria-current="page">All events</a></li>
+        </ul>
+      </nav>
+      <button class="theme-btn" id="theme-btn" type="button">
+        <svg class="ic i-moon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        <svg class="ic i-sun" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        <span class="vh t-dark">Switch to dark theme</span><span class="vh t-light">Switch to light theme</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="wrap ep">
+      <div class="ep-head">
+        <h1>Events</h1>
+        <details class="cal-menu" id="cal-menu">
+          <summary class="btn btn-2"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Add to my calendar</summary>
+          <div class="cal-pop"><button type="button" class="btn btn-2" id="cal-all"><span id="cal-game">All events</span><span class="vh"> (saves a calendar file)</span></button></div>
+        </details>
+      </div>
+      <nav class="chips" id="chips" aria-label="Show one game"></nav>
+      <div class="ep-format"><label for="fmt">Format</label><select id="fmt"><option value="">All formats</option></select></div>
+      <p class="loading" id="loading"><span class="spin" aria-hidden="true"></span>Loading the events...</p>
+
+      <section class="ep-sec" id="special-wrap" aria-labelledby="special-h" hidden>
+        <h2 id="special-h">Special events and tournaments</h2>
+        <div id="special"></div>
+      </section>
+      <section class="ep-sec" id="weekly-wrap" aria-labelledby="weekly-h" hidden>
+        <h2 id="weekly-h">Every week</h2>
+        <div id="weekly"></div>
+      </section>
+      <div id="ep-empty" hidden></div>
+    </div>
+  </main>
+
+  <dialog id="det-dlg" class="dlg dlg-det" aria-label="Event details">
+    <div class="dlg-in">
+      <div class="dlg-top"><h2 class="dlg-h">Event details</h2>
+        <button type="button" class="dlg-x" id="det-x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div class="dlg-body" id="det-body"></div>
+    </div>
+  </dialog>
+
+  <footer class="site-foot">
+    <div class="wrap foot-in">
+      <div>
+        <p class="foot-name">Mulligan Games</p>
+        <p>445 York Rd, Warminster, PA 18974<br><a href="tel:+12157893299">(215) 789-3299</a></p>
+      </div>
+      <p id="foot-hours">Wed and Thu 2 to 10 PM. Fri and Sat 2 PM to midnight. Sun 1 to 10 PM. Closed Mon and Tue.</p>
+      <p class="foot-small">A concept for the owners of Mulligan Games. Sample data; not the store's official site. <a id="adm-link" href="admin/index.html">Shop admin (concept)</a></p>
+    </div>
+  </footer>
+  <noscript><p class="noscript">This concept loads its sample events with JavaScript. The real site renders them on the server.</p></noscript>
+</body>
+</html>

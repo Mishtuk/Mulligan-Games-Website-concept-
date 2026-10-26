@@ -459,3 +459,8 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
 }
+
+/* ---------- P1.2 fix: keep the visually hidden text inside sideways-scrolling rows ----------
+ * .vh is position:absolute; inside an overflow:auto row that is not positioned it escapes the clip and
+ * makes the whole page scroll sideways (about 1,400px wide at 360px). */
+.chips, .site-nav, .deck ol, .rel-list { position: relative; }

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests running...</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 1rem 1.25rem 4rem; background: #fff; color: #131A3A; max-width: 60rem; }
+    h1 { margin: 0 0 .25rem; }
+    #summary { display: inline-block; padding: .25rem .75rem; border-radius: 6px; font-weight: 800; background: #eee; }
+    #summary.pass { background: #E3F4EA; color: #1C6B3F; } #summary.fail { background: #FCE6E7; color: #B3141D; }
+    h2 { margin: 1.5rem 0 .25rem; font-size: 1.1rem; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    li { padding: .2rem 0; border-bottom: 1px solid #eee; }
+    .mark { display: inline-block; width: 3.2rem; font-weight: 800; font-size: .8rem; }
+    .pass .mark { color: #1C6B3F; } .fail .mark { color: #B3141D; } li.fail { background: #FCE6E7; }
+    pre { margin: .25rem 0 0 3.2rem; white-space: pre-wrap; color: #B3141D; }
+    #sandbox { position: absolute; left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden; }
+  </style>
+  <script>window.MG_NO_PERSIST = true; window.__xss = 0;</script>
+  <script src="data/sample.js" defer></script>
+  <script src="data/templates.js" defer></script>
+  <script src="js/mg.js" defer></script>
+  <script src="js/rules.js" defer></script>
+  <script src="js/stock.js" defer></script>
+  <script src="js/state.js" defer></script>
+  <script src="js/actions.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/event-views.js" defer></script>
+  <script src="js/admin-views.js" defer></script>
+  <script src="js/admin-editor.js" defer></script>
+  <script src="js/admin-roster.js" defer></script>
+  <script src="js/tests-lib.js" defer></script>
+  <script src="js/tests-rules.js" defer></script>
+  <script src="js/tests-ui.js" defer></script>
+  <script src="js/tests-boot.js" defer></script>
+</head>
+<body>
+  <h1>Mulligan Games concept: tests</h1>
+  <p>Rules for capacity and waitlist, minimum to run, recurrence, .ics, stock, reservations, low-stock and preorders, plus checks that typed text is shown as text. <span id="summary">running...</span></p>
+  <div id="results"></div>
+  <div id="sandbox" aria-hidden="true"></div>
+</body>
+</html>

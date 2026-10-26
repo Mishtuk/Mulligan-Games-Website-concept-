@@ -79,6 +79,10 @@
   // Dates (and per-date start) of one series between two YMD strings, inclusive.
   function rawDates(s, from, to) {
     var r = s.recurrence, out = [];
+    // P1.2: optional first date and last date of a repeating series (editor "starting" and "Ends on")
+    if (r.startDate && from < r.startDate) from = r.startDate;
+    if (r.until && to > r.until) to = r.until;
+    if (from > to) return out;
     if (r.type === 'none') { if (r.date >= from && r.date <= to) out.push({ date: r.date, start: s.start }); return out; }
     if (r.type === 'dates') { r.dates.forEach(function (x) { if (x.date >= from && x.date <= to) out.push({ date: x.date, start: x.start || s.start }); }); return out; }
     var d = MG.parseYmd(from), end = MG.parseYmd(to);
@@ -140,8 +144,17 @@
   };
   /* The card state machine. DESIGN.md "Event card: states" is the spec; keep them in sync.
    * Returns { state, taken, waiting, cap, left, min, onNow, past } */
+  // P1.2: a one-date exception can change the seats (exception.capacity); sign-ups can close N hours before the start (series.cutoffHours)
+  MG.capOf = function (occ) {
+    var ex = occ.exception;
+    return (ex && ex.capacity != null ? ex.capacity : occ.series.capacity) || null;
+  };
+  MG.cutoffAt = function (occ) {
+    var h = occ.series.cutoffHours;
+    return h ? new Date(occ.startAt.getTime() - h * 3600e3) : occ.startAt;
+  };
   MG.seatState = function (occ, now) {
-    var s = occ.series, out = { state: 'open', taken: 0, waiting: 0, cap: s.capacity || null, left: null, min: s.minPlayers || null };
+    var s = occ.series, out = { state: 'open', taken: 0, waiting: 0, cap: MG.capOf(occ), left: null, min: s.minPlayers || null };
     out.onNow = !occ.cancelled && now >= occ.startAt && now < occ.endAt;
     out.past = now >= occ.endAt;
     if (occ.cancelled) { out.state = 'cancelled'; return out; }
@@ -152,7 +165,7 @@
     out.taken = regs.filter(function (r) { return r.status === 'in'; }).length;
     out.waiting = regs.filter(function (r) { return r.status === 'waitlist'; }).length;
     out.left = out.cap ? Math.max(0, out.cap - out.taken) : null;
-    if (now >= occ.startAt) { out.state = 'closed'; return out; }               // cutoff "start"
+    if (now >= MG.cutoffAt(occ)) { out.state = 'closed'; return out; }          // cutoff: the start, or N hours before
     if (out.cap && out.left === 0) { out.state = s.waitlist ? 'waitlist' : 'full'; return out; }
     if (out.min && out.taken < out.min) { out.state = 'needs'; return out; }
     if (out.cap && out.left <= Math.max(3, Math.ceil(out.cap * 0.15))) { out.state = 'few'; return out; }
@@ -229,6 +242,9 @@
     chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/>',
     chevron: '<path d="m9 5 7 7-7 7"/>'
   };
+  // links from data are shown only when they are http(s) (owner rule: no javascript: or data: links)
+  MG.safeUrl = function (u) { return /^https?:\/\//i.test(String(u || '')) ? String(u) : '#'; };
+  MG.iconPaths = P; // P1.2: other scripts add their own icons (js/ui.js)
   MG.icon = function (name, cls) {
     return '<svg class="ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" ' +
       'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + (P[name] || '') + '</svg>';
@@ -288,7 +304,7 @@
         act = '<p class="ev-how">' + MG.icon('door') + 'Pre-register at the counter.</p>' +
           '<a class="btn btn-2" href="' + e(D.store.phoneHref) + '">' + MG.icon('phone') + 'Call the shop</a>'; break;
       case 'external':
-        act = tool.url ? '<a class="btn btn-act" href="' + e(tool.url) + '" target="_blank" rel="noopener">' + e(tool.cta || 'Sign up on ' + tool.name) + ext + '</a>'
+        act = tool.url ? '<a class="btn btn-act" href="' + e(MG.safeUrl(tool.url)) + '" target="_blank" rel="noopener">' + e(tool.cta || 'Sign up on ' + tool.name) + ext + '</a>'
           : '<p class="ev-how">Sign up on ' + e(tool.name) + '.</p>';
         if (st.count) stat = statBox(st.count, 'registered', 'on ' + tool.name, 'users'); break;
       case 'cancelled':
