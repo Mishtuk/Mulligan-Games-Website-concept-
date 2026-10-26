@@ -5,7 +5,7 @@ write the answer and date under the question and, if it changes a ruling, add an
 "Blocks" says which task waits on it. Started 2026-10-26.
 
 ## Store facts (block P3.1 content and any public deploy)
-1. **Address: 455 or 445 York Rd?** The Wizards locator says 455; Apple Maps, TopDeck, KeepUpCards and AllEvents say 445.
+1. **Address: settled, 445 York Rd** (Facebook About page, 2026-10-26; the Wizards locator's "455" is a typo the owners may want fixed there). Only confirm it if anything changed.
    Whichever it is, should the other listings be corrected?
 2. **Hours:** are Wed-Thu 2-10 PM, Fri-Sat 2 PM-midnight, Sun 1-10 PM, closed Mon-Tue still right? Any holiday closures
    coming up?
