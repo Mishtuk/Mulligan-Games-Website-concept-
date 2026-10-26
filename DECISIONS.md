@@ -117,3 +117,10 @@ Yu-Gi-Oh!). Warhammer events carry points, round length, list deadline and a BCP
 until the owner confirms they run 40k (Q5). New games show as dated "coming soon / preorder" tiles.
 **Why:** sites takeaways 2, 6, 7; pub "Games and products" (Warhammer claimed but no events found; Riftbound, One Piece,
 Hololive planned).
+
+### D15. One recurrence shape: nested `recurrence` (2026-10-26)
+Seed, prototype and the P2.2 schema use `recurrence: { type: none | weekly | nth | dates, ... }` (D7's "as VFW" meant
+the behaviour, not the flat fields). The flat VFW `date + recurring` model can't express multi-date blocks (prerelease
+slots, RCQ dates). P2.2's `events.js` expands the nested shape directly; the adapter in `test/content.test.js` is
+deleted then.
+**Why:** one model, no adapter in production; the flat model loses the `dates` case.

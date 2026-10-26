@@ -1,0 +1,37 @@
+{
+  "name": "Mulligan Games",
+  "tagline": "A local card and gaming shop in Warminster. Stop in and stay for a game.",
+  "address": { "street": "445 York Rd", "city": "Warminster", "region": "PA", "zip": "18974" },
+  "phone": "(215) 789-3299",
+  "phoneHref": "tel:+12157893299",
+  "email": null,
+  "closedNote": "Closed Monday & Tuesday",
+  "freePlay": "Free Play All Day, Everyday",
+  "parking": "Do not park in the adjacent RISE lot; other adjacent lots are fine.",
+  "kids": "Children are welcome at Pokemon Learn to Play.",
+  "hours": null,
+  "hoursTodo": "OWNER-QUESTIONS Q2: owner has not confirmed hours. Do not publish the fallback below as fact.",
+  "hoursFallbackUnconfirmed": [
+    { "day": 0, "open": "13:00", "close": "22:00" },
+    { "day": 1, "closed": true },
+    { "day": 2, "closed": true },
+    { "day": 3, "open": "14:00", "close": "22:00" },
+    { "day": 4, "open": "14:00", "close": "22:00" },
+    { "day": 5, "open": "14:00", "close": "24:00" },
+    { "day": 6, "open": "14:00", "close": "24:00" }
+  ],
+  "hoursFallbackSource": "UNCONFIRMED. Apple Maps + KeepUpCards, docs/research/mulligan-public.md 'Hours', checked 2026-10-26",
+  "links": {
+    "facebook": "https://www.facebook.com/profile.php?id=100085975454414",
+    "instagram": "https://www.instagram.com/mulligangames",
+    "tiktok": "https://www.tiktok.com/@mulligangames",
+    "x": "https://x.com/MulliganGames",
+    "topdeck": "https://topdeck.gg/mulligangames",
+    "topdeckCircuit": "https://topdeck.gg/circuit/mulligans",
+    "wizards": "https://locator.wizards.com/store/15986",
+    "patreon": "https://www.patreon.com/MulliganGames",
+    "discord": null
+  },
+  "linksTodo": "Instagram/TikTok/X URLs built from the handles in the Facebook research (@mulligangames, @mulligangames, @MulliganGames). Discord: two different invites found (OWNER-QUESTIONS Q3), left null. Email unverified (Q3), left null.",
+  "source": "Facebook page About (docs/research/mulligan-facebook.md 'Store basics', 2026-10-26); parking: TopDeck circuit page (docs/research/mulligan-public.md); phone and 445 York Rd: Apple Maps, TopDeck, Facebook"
+}

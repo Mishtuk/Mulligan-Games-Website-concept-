@@ -1,0 +1,10 @@
+[
+  { "id": "magic", "name": "Magic: The Gathering", "short": "Magic", "shown": true },
+  { "id": "cedh", "name": "cEDH (competitive Commander)", "short": "cEDH", "family": "magic", "shown": true },
+  { "id": "pokemon", "name": "Pokemon TCG", "short": "Pokemon", "shown": true },
+  { "id": "onepiece", "name": "One Piece Card Game", "short": "One Piece", "shown": true },
+  { "id": "riftbound", "name": "Riftbound", "short": "Riftbound", "shown": true },
+  { "id": "hololive", "name": "Hololive OCG", "short": "Hololive", "shown": true },
+  { "id": "warhammer", "name": "Warhammer and tabletop", "short": "Warhammer", "shown": true },
+  { "id": "other", "name": "D&D, trade nights and more", "short": "Other", "shown": true }
+]

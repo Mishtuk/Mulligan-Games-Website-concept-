@@ -32,7 +32,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** P1.1 designer (`DESIGN.md`, `prototype/`).
-- **Desktop:** #9 content seed (`src/content/`, `test/content.test.js`); Dependabot PRs #6-8.
+- **Desktop:** Dependabot PRs #6-8 (waiting on owner OK to merge).
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported. The design (P1.1) is in progress; every UI task
@@ -60,7 +60,7 @@ waits for it.**
 - **P1.1 designer (Laptop):** `DESIGN.md` + `prototype/` (index.html, tokens/site css, `data/sample.js` with the real
   schedule). Not committed yet. Next: P1.2 prototype of events page and admin (Today / check-in, events, inventory),
   then P1.3 designer review and sign-off. Post on #2 when signed off; that unblocks P2.2 onward.
-- **#9 content seed (Desktop):** real schedule, one-offs and preorders under `src/content/`, each with a source.
+- **#9 content seed: done.** `src/content/` (store, games, 22 series, 2 preorders), every entry sourced, unsourced facts null + `todo`; `test/content.test.js` (https-only links). Recurrence model ruled in D15.
 
 ### Open
 - **Owner questions** (`OWNER-QUESTIONS.md`): hours, POS in use, 40k league app, online payment, logo / photo
