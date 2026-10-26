@@ -14,6 +14,9 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   (a new task issue, a handoff, a question that blocks you), send a short email to alexmishtuk@gmail.com with the
   subject `[Mulligan] Laptop: ...` or `[Mulligan] Desktop: ...` and a link to the comment. GitHub stays the record;
   the email is the alert. When you start a session, search Gmail for `subject:"[Mulligan] Desktop"` (or Laptop).
+- **Desktop tools** (Git Bash): `tools/say.sh "Desktop: ..."` posts to the board (#2, number in `tools/board_issue`)
+  and emails the alert over Gmail SMTP when `MULLIGAN_MAIL_USER` / `MULLIGAN_MAIL_PASS` (a Gmail app password) are set.
+  `bash tools/board_check.sh Desktop` prints NEW_LAPTOP / LAPTOP_SILENT / WAITING / OK.
 - **Task issues** are labeled `laptop` or `desktop`, each with a brief and a "Done when" checklist. Take the lowest
   open number for your machine, comment "Started", claim it below, close it with the commit hash.
 - **Claims:** `git pull --rebase`, add a line under "Now working on" with the files you'll touch, push it alone first.
@@ -29,4 +32,5 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   they run, weekly schedule, prices, photos, logo, tone); later the Astro build reusing the Warminster VFW site.
 
 ### Now working on
+- **Desktop:** #3 Facebook research (`docs/research/mulligan-facebook.md`, `source/fb/`).
 - **Laptop:** research (`docs/research/stores-and-sites.md`, `docs/research/event-and-inventory-tools.md`).
