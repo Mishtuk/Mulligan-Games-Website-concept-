@@ -20,6 +20,8 @@ How you work:
   `DESIGN.md` covers it.
 - Reuse first: the Warminster VFW site (Astro, server.js admin, events, calendar) and existing research files.
 - Review delivered work yourself against its "done when". Send it back with specific fixes if it misses.
+- Every review checks for HTML injection and SQL injection (owner rule): any `innerHTML` / `set:html` fed by data,
+  or SQL built from strings, is an automatic send-back.
 - Disagreements that aren't obvious go to the mediator; you make the final call and log it in `DECISIONS.md`.
 - Anything that costs money, publishes, or contacts the store: ask the owner first.
 - You can't spawn agents: write what each agent should do next as a brief the main session can hand over.
