@@ -32,7 +32,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** P1.1 designer (`DESIGN.md`, `prototype/`).
-- **Desktop:** Dependabot PRs #6-8 (waiting on owner OK to merge).
+- **Desktop:** feature-ideas research (`docs/research/feature-ideas.md`); Dependabot PRs #6-8 (waiting on owner OK to merge).
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported. The design (P1.1) is in progress; every UI task
