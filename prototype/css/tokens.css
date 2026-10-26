@@ -1,0 +1,115 @@
+/* Mulligan Games design tokens. DESIGN.md "Tokens" is the spec; this file is the source of truth for values.
+ * Light and dark use light-dark(), keyed off color-scheme. The <meta name="color-scheme"> is mapped back to the
+ * property so the theme toggle works without JS-only classes.
+ * Provisional (may change after the owners see it, P1.4): --flyer and --act hues, --sign, game colours.
+ * Contrast ratios are listed in DESIGN.md "Contrast" (all checked, WCAG AA).
+ */
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('../fonts/archivo.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-display: swap;
+}
+
+:root { color-scheme: light dark; }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
+:root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
+
+:root {
+  /* ---------- raw palette ---------- */
+  --cardstock: #EDF0F5;   /* light page: cool card stock, not cream */
+  --white: #FFFFFF;
+  --ink-navy: #131A3A;    /* text, from a navy card sleeve */
+  --night: #0B1027;       /* dark page: the shop after 10 PM */
+  --night-2: #151C3D;
+  --night-3: #1C2449;
+  --flyer-red: #C8161F;   /* the store's flyer red */
+  --flyer-red-deep: #A3121A;
+  --flyer-red-bright: #FF6B70;
+  --sign-blue: #2A3BD1;   /* the storefront sign lettering (wordmark only) */
+  --foil: #FFE27A;        /* highlighter yellow: Updated, Today */
+
+  /* ---------- semantic colour ---------- */
+  --paper:     light-dark(var(--cardstock), var(--night));
+  --surface:   light-dark(var(--white), var(--night-2));
+  --surface-2: light-dark(#F6F7FA, var(--night-3));
+  --ink:       light-dark(var(--ink-navy), #EEF1FA);
+  --ink-2:     light-dark(#4B546F, #AAB3D4);
+  --line:      light-dark(#C9CFDC, #2E3863);    /* decorative borders */
+  --line-strong: light-dark(#7A849C, #7C88B8);  /* inputs, stat box: 3:1+ */
+
+  --act:       light-dark(var(--flyer-red), var(--flyer-red-bright)); /* the ONE action colour */
+  --act-hover: light-dark(var(--flyer-red-deep), #FF8F93);
+  --on-act:    light-dark(var(--white), var(--night));
+  --flyer:     light-dark(var(--flyer-red), var(--flyer-red-deep));   /* hero field */
+  --on-flyer:  var(--white);
+  --sign:      light-dark(var(--sign-blue), #A3AFFF);
+  --band:      light-dark(var(--ink-navy), #0E1534);                  /* cEDH band */
+  --on-band:   #EEF1FA;
+  --on-band-2: #AAB3D4;
+  --highlight: var(--foil);
+  --on-highlight: var(--ink-navy);
+  --focus:     light-dark(var(--ink-navy), #FFFFFF);
+
+  /* status: always with an icon and words, never colour alone */
+  --ok:   light-dark(#1C6B3F, #6FD49A);
+  --warn: light-dark(#8A5300, #F2B24C);
+  --bad:  light-dark(#B3141D, #FF7A7F);
+  --wait: light-dark(#5B3FB0, #C1A9FF);
+  --warn-bg: light-dark(#FFF3D6, #3A2C10);
+  --ok-bg:   light-dark(#E3F4EA, #12321F);
+  --bad-bg:  light-dark(#FCE6E7, #3D1418);
+
+  /* game colours: band + icon only; the game name is always written in --ink */
+  --g-magic:     light-dark(#B8541A, #F39A5B);
+  --g-cedh:      light-dark(#6A2FB5, #B993F5);
+  --g-pokemon:   light-dark(#A87C00, #F2C230);
+  --g-onepiece:  light-dark(#B02D66, #F07AAE);
+  --g-riftbound: light-dark(#0B7F75, #4FD1C2);
+  --g-hololive:  light-dark(#1F7FC4, #6CC0F5);
+  --g-warhammer: light-dark(#4A6378, #9DB4C8);
+  --g-other:     light-dark(#5E6A7D, #A7B0C0);
+
+  /* ---------- type ---------- */
+  --font: 'Archivo', 'Bahnschrift', 'DIN Alternate', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-cond: 'Archivo', 'Bahnschrift', 'DIN Condensed', 'Roboto Condensed', 'Arial Narrow', sans-serif;
+  --wdth-display: 62%;   /* hero, day names, big numbers */
+  --wdth-head: 72%;      /* section heads, card titles */
+  --wdth-body: 100%;
+  /* scale: 1.25 steps from 17px body; display sizes are fluid */
+  --t-xs: 0.875rem;   /* 14: stat units, footnotes (never body) */
+  --t-sm: 0.9375rem;  /* 15: meta lines */
+  --t-md: 1.0625rem;  /* 17: body */
+  --t-lg: 1.3125rem;  /* 21: card title */
+  --t-xl: 1.75rem;    /* 28: day name, stat number */
+  --t-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);    /* section head */
+  --t-hero: clamp(2.6rem, 1.5rem + 5.6vw, 6.25rem); /* hero headline */
+  --lh-tight: 0.95;
+  --lh-head: 1.1;
+  --lh-body: 1.55;
+
+  /* ---------- space (4px base) ---------- */
+  --s1: 0.25rem; --s2: 0.5rem; --s3: 0.75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem; --s7: 3rem; --s8: 4rem; --s9: 6rem;
+  --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+  --maxw: 77.5rem; /* 1240px */
+
+  /* ---------- radius: by role, not one value everywhere ---------- */
+  --r-card: 14px;   /* trading-card corner (3mm on 63mm) */
+  --r-ctl: 10px;    /* buttons, inputs */
+  --r-box: 6px;     /* stat box, tags */
+  --r-pill: 999px;  /* chips, cost pip */
+
+  /* ---------- elevation ---------- */
+  --lift: 0 1px 0 light-dark(#C9CFDC, #0006), 0 6px 18px -10px light-dark(#131A3A55, #000c);
+
+  /* ---------- motion ---------- */
+  --ease-deal: cubic-bezier(.2, .9, .25, 1.15);
+  --t-fast: 140ms;
+  --t-deal: 520ms;
+
+  /* ---------- sizes ---------- */
+  --tap: 48px;      /* public minimum target */
+  --tap-admin: 56px;/* counter tablet */
+}

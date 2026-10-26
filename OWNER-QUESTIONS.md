@@ -35,3 +35,13 @@ write the answer and date under the question and, if it changes a ruling, add an
 13. **Showing the concept:** how should the owners see Phase 1 (on Mish's laptop, a zip, or a private GitHub Pages
     preview)? A preview link publishes it.
 14. **Hosting and domain** (Phase 3, costs money): any preference or budget? Not needed until the build is done.
+
+## Weekly schedule details (from the design pass, 2026-10-26; block P3.1 content)
+15. **Entry fees for the weekly nights** not on any flyer or listing: Hololive (Thu), One Piece (Thu), Nexus Nights
+    (Fri), Pokemon (Sat), cEDH weekly (Sun), and the Championship Series, 5K and Redemption entries. The concept uses
+    guesses marked in `prototype/data/sample.js`.
+16. **Sunday opening:** public listings say Sunday opens at 1 PM, but the 1st-Sunday cEDH starts at 10 AM. Do you open
+    early that day (the concept shows it as a one-day override)?
+17. **Wizards locator vs your flyer:** the locator still lists Magic Academy (Thu 7 PM, Sun 4 PM) and Commander/EDH open
+    play blocks; your April flyer doesn't. Does Magic Academy still run? Which seat limits are current (Pauper 28, FNM 28,
+    Saturday draft 16)?

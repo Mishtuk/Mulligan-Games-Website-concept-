@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>try { var s = localStorage.getItem('mg-scheme'); if (s) document.querySelector('meta[name="color-scheme"]').content = s; } catch (e) {}</script>
+  <title>Mulligan Games, Warminster PA: events this week</title>
+  <meta name="description" content="Card and game shop in Warminster, PA. Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights every week. Open till midnight Friday and Saturday.">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/site.css">
+  <script src="data/sample.js" defer></script>
+  <script src="js/mg.js" defer></script>
+  <script src="js/front.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#week">Skip to this week's events</a>
+
+  <!-- Concept only: not part of the real site. Lets the owners see the page at different times. -->
+  <aside class="demo" aria-label="About this concept">
+    <div class="wrap demo-in">
+      <p><strong>Concept with sample data.</strong> Some seat counts, one cancellation and one change are made up to show every state.</p>
+      <p class="demo-times">See the page on: <span id="demo-links"></span></p>
+    </div>
+  </aside>
+
+  <!-- 1. Open-now strip -->
+  <div class="openbar">
+    <div class="wrap openbar-in">
+      <p class="ob-status" id="ob-status"><span class="ob-dot" aria-hidden="true"></span><span>Hours: Wednesday to Sunday</span></p>
+      <p class="ob-addr">445 York Rd, Warminster</p>
+      <a class="ob-link" id="ob-call" href="tel:+12157893299"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h3.5l1.5 4.5-2.3 1.5a11 11 0 0 0 6.8 6.8l1.5-2.3 4.5 1.5V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/></svg><span class="ob-long">(215) 789-3299</span><span class="ob-short">Call</span></a>
+      <a class="ob-link" id="ob-map" href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions<span class="vh"> (opens Google Maps)</span></a>
+    </div>
+  </div>
+
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="index.html" aria-label="Mulligan Games, home">
+        <!-- Placeholder wordmark (D13). Not the store's logo. -->
+        <svg class="mark" viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
+          <rect x="7" y="5" width="21" height="30" rx="3.5" transform="rotate(-13 17.5 20)" fill="none" stroke="var(--sign)" stroke-width="2.5"/>
+          <rect x="15" y="9" width="21" height="30" rx="3.5" fill="var(--flyer-red)"/>
+          <path d="M25.5 15.5 31 24l-5.5 8.5L20 24z" fill="#fff"/>
+        </svg>
+        <span class="brand-name">Mulligan<small>Games</small></span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="#week">This week</a></li>
+          <li><a href="#cedh">cEDH</a></li>
+          <li><a href="#new">New and preorders</a></li>
+          <li><a href="#visit">Visit</a></li>
+          <li><a href="events.html">All events</a></li>
+        </ul>
+      </nav>
+      <button class="theme-btn" id="theme-btn" type="button">
+        <svg class="ic i-moon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+        <svg class="ic i-sun" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        <span class="vh t-dark">Switch to dark theme</span><span class="vh t-light">Switch to light theme</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- 2. Hero: the store's own flyer, made live -->
+    <section class="hero" aria-labelledby="hero-h">
+      <div class="wrap hero-in">
+        <div class="hero-copy">
+          <p class="hero-date" id="hero-date">This week at Mulligan Games</p>
+          <h1 class="hero-h" id="hero-h">Card nights five days a week in Warminster.</h1>
+          <p class="hero-sub" id="hero-sub">Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer.</p>
+        </div>
+        <div class="hero-side">
+          <a class="nextup" id="nextup" href="#week">
+            <span class="nextup-dia" aria-hidden="true"></span>
+            <span class="nextup-in">
+              <span class="nextup-k" id="nextup-k">Next up</span>
+              <span class="nextup-time" id="nextup-time">Wed</span>
+              <span class="nextup-what" id="nextup-what">See this week</span>
+            </span>
+          </a>
+          <p class="freeplay">Free play all day, every day we're open</p>
+        </div>
+        <nav class="deck" aria-label="This week, by day">
+          <ol id="deck"></ol>
+        </nav>
+      </div>
+    </section>
+
+    <!-- 3. This week at Mulligan -->
+    <section class="sec week" id="week" aria-labelledby="week-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="week-h">This week at Mulligan</h2>
+          <a class="more" href="events.html">All events and sign-ups<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
+        </div>
+        <nav class="chips" id="chips" aria-label="Show one game"></nav>
+        <p class="vh" id="filter-status" role="status" aria-live="polite"></p>
+        <div class="days" id="days">
+          <p class="loading" id="days-loading"><span class="spin" aria-hidden="true"></span>Loading this week's events...</p>
+        </div>
+        <aside class="later" aria-labelledby="later-h">
+          <h3 id="later-h">Further out</h3>
+          <ul class="later-list" id="later"></ul>
+          <a class="more" href="events.html">See every date<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 4. cEDH strip (D4) -->
+    <section class="cedh" id="cedh" aria-labelledby="cedh-h">
+      <div class="wrap cedh-in">
+        <div class="cedh-copy">
+          <h2 id="cedh-h">cEDH at Mulligan</h2>
+          <p class="cedh-lede">A monthly Championship Series, 5K weekends and a November invitational. Forty to 120 players an event, and a dual land on the line every month.</p>
+          <dl class="cedh-facts">
+            <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
+            <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
+            <div><dt>Standings</dt><dd><a href="https://topdeck.gg/circuit/mulligans" target="_blank" rel="noopener">Circuit points on TopDeck<span class="vh"> (opens TopDeck)</span></a></dd></div>
+            <div><dt>Parking</dt><dd>Any lot next to the shop except the RISE lot.</dd></div>
+          </dl>
+        </div>
+        <div class="cedh-next">
+          <h3>Next cEDH events</h3>
+          <ol class="cedh-list" id="cedh-list"></ol>
+          <p class="cedh-last" id="cedh-last"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. New and preorders -->
+    <section class="sec new" id="new" aria-labelledby="new-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="new-h">New and preorders</h2>
+          <p class="sec-note">Preorders are taken at the counter or by phone.</p>
+        </div>
+        <ul class="rel-list" id="rel-list"></ul>
+      </div>
+    </section>
+
+    <!-- 6. Visit -->
+    <section class="sec visit" id="visit" aria-labelledby="visit-h">
+      <div class="wrap visit-in">
+        <div class="visit-hours">
+          <h2 id="visit-h">Visit</h2>
+          <table class="hours">
+            <caption class="vh">Opening hours</caption>
+            <thead class="vh"><tr><th scope="col">Day</th><th scope="col">Hours</th></tr></thead>
+            <tbody id="hours-body">
+              <tr><th scope="row">Wednesday, Thursday</th><td>2 PM to 10 PM</td></tr>
+              <tr><th scope="row">Friday, Saturday</th><td>2 PM to midnight</td></tr>
+              <tr><th scope="row">Sunday</th><td>1 PM to 10 PM</td></tr>
+              <tr><th scope="row">Monday, Tuesday</th><td>Closed</td></tr>
+            </tbody>
+          </table>
+          <p class="note" id="hours-note"></p>
+        </div>
+        <div class="visit-where">
+          <h3>Find us</h3>
+          <address>445 York Rd<br>Warminster, PA 18974</address>
+          <p class="visit-acts">
+            <a class="btn btn-2" href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions<span class="vh"> (opens Google Maps)</span></a>
+            <a class="btn btn-2" href="tel:+12157893299"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h3.5l1.5 4.5-2.3 1.5a11 11 0 0 0 6.8 6.8l1.5-2.3 4.5 1.5V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/></svg>(215) 789-3299</a>
+          </p>
+          <p><strong>Parking:</strong> park in any lot next to the shop except the RISE lot.</p>
+          <h3>Good to know</h3>
+          <dl class="faq">
+            <dt>Can kids come?</dt>
+            <dd>Yes. Learn to Play Pokemon on Wednesdays at 7 PM is a good first night.</dd>
+            <dt>Do I need to sign up?</dt>
+            <dd>Most weekly nights are walk-in. Drafts and Pauper have a seat limit, so sign up here to hold a seat. Pay at the store.</dd>
+            <dt>Can I just come and play?</dt>
+            <dd>Yes. Free play all day, every day we're open.</dd>
+            <dt>How do preorders work?</dt>
+            <dd>In store or by phone. Each preorder has a last day, shown above.</dd>
+          </dl>
+        </div>
+        <figure class="photo" id="photo">
+          <!-- Only resolves if the owners' photo exists locally in source/fb/ (git-ignored). Fallback shows otherwise. -->
+          <img src="../source/fb/room.jpg" alt="The play area at Mulligan Games, tables full of players" width="1200" height="900" loading="lazy" decoding="async">
+          <figcaption class="photo-fallback">
+            <svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 20 12l-8 9.5L4 12z"/></svg>
+            <span>A photo of the tables on a busy night goes here, once the owners say we can use one.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 7. Community -->
+    <section class="sec community" id="community" aria-labelledby="comm-h">
+      <div class="wrap comm-in">
+        <div class="comm-discord">
+          <h2 id="comm-h">Between events</h2>
+          <p>Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
+          <p><a class="btn btn-act" href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>Join the Discord<span class="vh"> (opens Discord)</span></a></p>
+          <p class="note">Invite link to be confirmed by the owners.</p>
+          <ul class="socials">
+            <li><a href="https://www.facebook.com/profile.php?id=100085975454414" target="_blank" rel="noopener">Facebook</a></li>
+            <li><a href="https://www.instagram.com/mulligangames" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://www.tiktok.com/@mulligangames" target="_blank" rel="noopener">TikTok</a></li>
+            <li><a href="https://x.com/MulliganGames" target="_blank" rel="noopener">X</a></li>
+            <li><a href="https://topdeck.gg/mulligangames" target="_blank" rel="noopener">TopDeck</a></li>
+          </ul>
+        </div>
+        <div class="comm-proof">
+          <h3>What people say</h3>
+          <ul class="proof" id="proof"></ul>
+          <p class="quote-slot">Two or three real reviews, with first names, go here once the owners choose them.</p>
+        </div>
+        <div class="comm-lately">
+          <h3>Lately at the shop</h3>
+          <ul class="lately" id="lately"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap foot-in">
+      <div>
+        <p class="foot-name">Mulligan Games</p>
+        <p>445 York Rd, Warminster, PA 18974<br><a href="tel:+12157893299">(215) 789-3299</a></p>
+      </div>
+      <p id="foot-hours">Wed and Thu 2 to 10 PM. Fri and Sat 2 PM to midnight. Sun 1 to 10 PM. Closed Mon and Tue.</p>
+      <p class="foot-small">A concept for the owners of Mulligan Games. Sample data; not the store's official site.</p>
+    </div>
+  </footer>
+
+  <noscript><p class="noscript">This concept loads its sample events with JavaScript. The real site renders them on the server.</p></noscript>
+</body>
+</html>
