@@ -32,4 +32,5 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   they run, weekly schedule, prices, photos, logo, tone); later the Astro build reusing the Warminster VFW site.
 
 ### Now working on
+- **Desktop:** #5 screenshot pass (docs/research/shots/, Rendered look section of stores-and-sites.md)
 - **Laptop:** research (`docs/research/stores-and-sites.md`, `docs/research/event-and-inventory-tools.md`).
