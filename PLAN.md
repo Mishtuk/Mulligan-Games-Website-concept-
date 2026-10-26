@@ -209,7 +209,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 
 ### P3.1 Content fill
 - **Owner:** Desktop researcher. **Files:** seed files under `src/content/`, `docs/research/` updates.
-- **Needs:** R1, owner answers to Q1-Q3.
+- **Needs:** R1. Start now from `docs/research/mulligan-facebook.md` (issue #6); owner answers to Q1-Q3 fill the gaps later.
 - **Done when:** [ ] the real weekly schedule, hours, address, phone, links and current one-offs are seeded, each
   traced to a source or an owner answer.
 
