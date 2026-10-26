@@ -170,3 +170,94 @@ Events page
 - https://seller.tcgplayer.com/hsoy-2025-finalists and web search on Hobby Shop of the Year 2024-2026
 - https://wpn.wizards.com/en/wpn-premium-showcase-gallery (curl)
 - Not fetched: Labyrinth Games, Rain City Games, Brick City (TLS errors)
+
+## Rendered look (Desktop, headless Chrome, 2026-10-26)
+
+Shots: `docs/research/shots/<site>-<page>-<desktop|phone>.webp` (desktop 1440 wide, phone 390 wide, first ~2 screens).
+**Phone caveat:** headless Chrome enforces a minimum window width, so some phone shots (Dreamers Vault, Game Kastle, Mox)
+are cropped on the right; judge phone quality from the stacking and tap-target sizes, not the cropping. Colours are read by
+eye from the renders. Not captured: Hairy T's event list (the calendar embed rendered empty in headless), Pandemonium's
+`/pages/events` (404; its events live in the home-page widget), WPN Premium showcase (headless gave no image; not worked
+around), Labyrinth Games and Brick City (not retried; TLS errors earlier). Extra shots: home pages of Dreamers Vault,
+Game Kastle and Hairy T.
+
+### Dreamers Vault - `dv-events-*`, `dv-home-*`
+- **Colours:** royal blue header and buttons, dark chocolate-brown cards with cream text, stone-texture page background.
+- **Type:** condensed all-caps white titles, a serif section heading in blue, tiny cream body text.
+- **Imagery:** official game key art as a banner on every card (Pokemon, Gundam, Star Wars, Warhammer Halloween); readable at a glance.
+- **Phone:** one card per column, full-width blue Preregister button; fine, but the small description is hard to read on dark brown.
+- **Steal:** big banner image, day number plus weekday and price on one line, one blue button. You can tell the game from across the room.
+- **Avoid:** the texture and brown-on-brown body text; the same event repeated per store; a home page that is only three tiles.
+
+### Game Kastle - `gk-events-*`, `gk-home-*`
+- **Colours:** black header, electric blue feature band, grey cards, cyan top rule on each card.
+- **Type:** wide techno display face, letter-spaced caps for headings; small light body text.
+- **Imagery:** moody miniature photography and card art as full-bleed heroes; very game-store.
+- **Phone:** filter collapses to one button, large single-column cards; grey-on-grey card text is low contrast.
+- **Steal:** the three-icon proof strip ("Impressive Gaming Spaces / Daily Scheduled Events / Knowledgeable Staff") and the Subscribe + list/grid toggle above the grid.
+- **Avoid:** a tall hero that pushes events below the fold; image-less cards leave huge empty grey boxes.
+
+### Hairy Tarantula - `hairyt-home-*`, `hairyt-events-*`
+- **Colours:** saturated purple everywhere, yellow and magenta promo banners, white product panels.
+- **Type:** graffiti logo, bold sans nav, serif headings.
+- **Imagery:** promo banners (set launch, "We'll buy your cards +30% store credit"); products on white.
+- **Phone:** solid Shopify-theme stacking; the events page was blank without its calendar script.
+- **Steal:** a store-credit trade-in banner with a number in it (+30%) as a hero.
+- **Avoid:** an events page that is an empty shell until a script loads; Events is one of eight nav items.
+
+### Face to Face Games - `f2f-home-*`
+- **Colours:** near-black shell, orange CTA buttons and marquee strip, Riftbound key-art hero.
+- **Type:** condensed uppercase nav and tile labels, plain sans body.
+- **Imagery:** set hero, game tiles with "Shop all", event tiles that are branded city cards ("HALIFAX Oct 31").
+- **Phone:** good stacking, but the newsletter modal opens over the hero on first load.
+- **Steal:** upcoming events right on the home page as branded tiles with a single "Sign Up Now"; the orange marquee ticker for a standing message.
+- **Avoid:** a modal on first paint; several stacked promo rows before the events.
+
+### Mox Boarding House - `mox-home-*`
+- **Colours:** charcoal, burgundy and gold (from the crest logo), warm photo tones.
+- **Type:** tall condensed caps in cream and gold; confident and short.
+- **Imagery:** full-bleed photo of real people playing at a table with beer; the best "this is a place" image in the set.
+- **Phone:** hero scales well, text is large; body copy is a long centred paragraph.
+- **Steal:** one real photo of the room, a three-word tagline and a crest logo; it sells atmosphere before product.
+- **Avoid:** nothing event-related above the fold; the first screens have no schedule.
+
+### Pandemonium Books and Games - `pandemonium-home-*`, `pandemonium-events-*`
+- **Colours:** white with one forest green (header bar, footer, buttons); very restrained.
+- **Type:** rounded Poppins-style sans throughout.
+- **Imagery:** a washed-out slideshow; little photography.
+- **Phone:** Shopify Dawn defaults, clean and readable.
+- **Steal:** the "Upcoming Events" panel beside the hero listing the next 9 events as name and date/time, plus "View full calendar" and an email box. The plainest and most useful home-page schedule I saw.
+- **Avoid:** tiny widget text and a slideshow competing with it; the `/pages/events` link 404s.
+
+### TKO Toy Co - `tko-home-*`
+- **Colours:** black, white, yellow and teal paint-splatter accents; hand-drawn X-eyed smiley logo.
+- **Type:** hand-lettered marker style in tiles, condensed caps in nav.
+- **Imagery:** set hero with paint splatter, illustrated tiles ("Knockout Deals", "Underdog Prospects").
+- **Phone:** standard Shopify stacking, fine.
+- **Steal:** one strong illustrated identity that makes a small shop feel like a brand; custom lettering instead of stock fonts.
+- **Avoid:** Events is near the end of the nav; most of the home page is singles with "SAMPLE" watermarks.
+
+### TopDeck.gg (platform, bonus) - `topdeck-mcs-*`
+- **Colours:** dark navy surfaces, sky-blue accent, bright blue border on "Platinum" events.
+- **Type:** clean modern sans, dense but tidy.
+- **Imagery:** each organiser's own flyer art, so the page is a wall of flyers.
+- **Phone:** the best of the set: filter row scrolls sideways, horizontal card rails, large tap targets.
+- **Steal:** a facet row (distance, game chips with counts) above rails of cards; each card has name, format, date, place, "N registered".
+- **Avoid:** nothing for a store; as a platform it has no hours or address.
+- **Note for Mulligan:** the render shows "Mulligan's 5K cEDH Tournament" (Nov 7, 2026, Warminster PA, 120 registered, Platinum) under Trending, and "Mulligan Games, Warminster, PA" under Stores Near You. Players already see us here, with a flyer image we do not control.
+
+### Good vs great
+- **Great sites show the schedule on the first screen.** Pandemonium and Face to Face put dated events on the home page; the merely good (Game Kastle, Mox, Hairy T) lead with a hero or a shop.
+- **Every great event card is the organiser's art plus five facts** (game, date, time, place, price or count). The merely good have grey boxes or text-only rows.
+- **One real photo beats ten stock banners.** Mox's table shot sells the room; publisher key art sells the publisher.
+- **One accent colour, used for the action.** Pandemonium's single green and TopDeck's single blue make the sign-up button obvious; Hairy T's purple everywhere does not.
+- **Phone is a different layout, not a squeezed one.** TopDeck's sideways chip row and card rails beat stacked desktop pages.
+- **No script needed to see the schedule.** Hairy T's events page is empty without its calendar embed.
+
+### For Mulligan
+- **Home first screen = "This week at Mulligan".** A dated list (day, time, game and format, price) like Pandemonium's panel but bigger, then hours, address and open-now; the weekly schedule is the hero, not a slideshow. Server-render it so it is never blank.
+- **Events as flyer cards.** Keep the red/white-diamond look: red card, white diamond day number, heavy serif game name, price and seats left, one button. Show the owner's flyer as an optional image, but put time, price and cap in text so they are searchable (they are image-only on Facebook today).
+- **A game chip row with counts** (Magic, cEDH, Pokemon, Warhammer, Riftbound, One Piece, Other) that scrolls sideways on a phone, as TopDeck does; cEDH gets its own highlighted chip and a "next pod night" strip.
+- **One real photo of the room** (with permission) behind the tagline, Mox style; the Facebook crowd and prize photos are the source.
+- **One accent colour for actions.** Mulligan red only for Sign up / Preregister and the date block; the rest white and charcoal so buttons read; light and dark mode.
+- **Link to TopDeck for the Mulligan cEDH series** (Nov 7 listing) from the cEDH strip and show "N registered" so the page matches what players see there.
