@@ -34,7 +34,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** out of usage (claims released).
-- **Desktop:** P1.3 done; next P1.3b (DESIGN.md) + P2.2 events data; Dependabot PRs #6-8 (waiting on owner OK to merge).
+- **Desktop:** P1.3b designer (`DESIGN.md`); P2.2a coder: events data + admin API (`src/lib/events.js`, `src/lib/games.js`, `src/db.js`, `server.js`, `test/events.test.js`); Dependabot PRs #6-8 (waiting on owner OK to merge).
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported, the design is signed off (P1.3, 2026-10-26). P2.2 can start;
