@@ -63,6 +63,9 @@ Tick or write a short answer next to each. **(BLOCKS LAUNCH)** marks the five we
 - [ ] Is the Sunday cEDH on the 1st at 10 AM, before the usual 1 PM opening?
 - [ ] Public email, current Discord invite, Instagram, Spicerack, and TCGplayer store: which are yours? **(BLOCKS LAUNCH)**
 - [ ] May we use your logo and Facebook photos (now, and on the public site)? **(BLOCKS LAUNCH)**
+- [ ] A short shop video: could you send 2 or 3 of your own phone clips (10-15 seconds) of the room, the tables on a
+      busy night and the shelves, ideally with no faces? We clean them up for a quiet looping picture behind the top
+      of the front page. Clips with customers in them need those customers' OK. Until then the site shows a photo.
 
 **Events and sign-ups**
 - [ ] Entry fees for Hololive, One Piece, Nexus Nights, Pokemon, cEDH weekly, Championship Series, 5K, Redemption. **(BLOCKS LAUNCH)**

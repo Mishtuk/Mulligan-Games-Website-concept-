@@ -5,7 +5,7 @@ Owner: Laptop designer (P1.3 review: Desktop designer). Status: **P1.1 draft, re
 The front page prototype (`prototype/index.html`) is the reference build of this spec: when the two disagree, fix one
 and note it here.
 
-Contents: 1 Concept · 2 Tokens · 3 Type · 4 Layout system · 5 Components · 6 Front page · 7 Events page and event detail ·
+Contents: 1 Concept · 2 Tokens · 3 Type · 4 Layout system · 5 Components · 6 Front page (6.1 hero video slot) · 7 Events page and event detail ·
 8 Sign-up · 9 Admin · 10 Loading, empty, error · 11 Accessibility · 12 VFW reuse and divergence · 13 Prototype files
 and data · 14 What may change · 15 Boss-ranking additions (D16 to D18: event fields, post text, per-date page, New
 here?, No-show)
@@ -359,6 +359,99 @@ day starts right under the chips.
 
 **Copy that is fixed text** (in the HTML, edited by the owners later through Store info): cEDH lede and facts, Good to
 know (kids, sign-up, free play, preorders: the questions customers asked in Facebook comments, fb takeaway 9), parking.
+
+### 6.1 Hero video slot (build with P2.3; issue #12; owner questions Q12, Q21)
+
+A muted loop of the shop sits **behind** the red hero as a texture, never in front of it. The hero is still the flyer:
+red field, white next-up diamond, white day cards, black free-play circle. The video only shows through the red.
+It is built only when a clip exists and the owners have said yes; until then the hero ships exactly as section 6 draws it.
+
+**What shows, in order (each step is the fallback of the one above)**
+1. Video playing (clip exists, motion allowed, connection fine).
+2. The clip's poster (reduced motion, Save-Data, slow link, autoplay blocked, or the file still loading).
+3. The room photo (the photo slot from admin, P2.3b, Q12) used as the poster, with the same crop and scrim.
+4. The plain `--flyer` red field (today's hero). Never an empty box, a spinner or a broken-player icon.
+
+**Layers.** `.hero` stays the positioning box. Add `.hero-media` (`position:absolute; inset:0; z-index:0; overflow:hidden;
+aria-hidden="true"`) holding a `<picture>` poster and the `<video>`, then `.hero-scrim`, then the existing `.hero-in`
+(`position:relative; z-index:1`). The diamond, deck and free-play circle are untouched and opaque. The video is
+decoration: no audio track, no captions needed, no accessible name; the pause button is its only control.
+
+**The video element.** `muted loop playsinline preload="none"`, no `controls`, no `autoplay` attribute (the script starts
+it, so nothing downloads early). `<source>` order: `.webm` first (smaller), `.mp4` second (Safari, everything else).
+`tools/enhance-video.sh <in> <name> [height=1080] [seconds=12]` writes `media/<name>.mp4` (H.264, CRF 20, faststart),
+`media/<name>.webm` (VP9, CRF 33) and `media/<name>.jpg` (first frame = poster source); no audio. The script does not
+make the AVIF/WebP posters, a vertical cut, or a smaller rendition: the coder adds those (poster formats through the
+site's photo pipeline with the jpg as the `<picture>` fallback; run the script again with `height=720`, or a cropped
+input, for the other sizes).
+
+**Start after load (reuse of the Warminster VFW `Hero.astro` approach).** The poster paints first and is the LCP image
+(`fetchpriority=high`, explicit `width` and `height`). A small inline script chooses a source and calls `play()` 300ms
+after `window.load`, and adds `.is-on` on the `playing` event, so the video fades in over the poster (600ms, opacity
+only; the poster stays underneath, so there is never a black frame). Poster only, no download, when any of these is true:
+- `prefers-reduced-motion: reduce` matches (also live: if it flips to reduce, pause and show the poster);
+- `navigator.connection.saveData` is on, or `effectiveType` is `slow-2g`, `2g` or `3g`;
+- no clip is configured (no `<source>` is written, as VFW only writes sources for files that exist).
+If `play()` is rejected (low-power mode), retry once on the first touch or click, then give up silently. Without
+JavaScript the poster shows and the schedule is unaffected (server-rendered, section 11).
+
+**Pause control (WCAG 2.2.2).** The loop plays for more than 5 seconds beside content, so a control is required. A
+visible button in the hero, bottom right (above the deck on phone, never over the diamond): "Pause video" / "Play
+video" (icon + words, 48px tall, white text on a solid `--band` fill, white focus ring); the label changes, no
+`aria-pressed`. It exists whenever there is a video file. When the clip is held back (reduced motion, Save-Data, slow
+link) it reads "Play video" so a visitor can opt in; pressing it fetches and starts the clip. The choice lasts for the
+visit (`sessionStorage`, try/catch), not across visits. Paused keeps the current frame on screen (the poster is not
+swapped back in).
+
+**No layout shift.** The media never sets the hero's height: `.hero-media` is `inset:0`, so the hero is sized by its
+content alone. The poster and video fill the identical box with `object-fit:cover`; both carry `width`, `height` and an
+`aspect-ratio` matching their crop. Nothing is inserted into the flow after load: the pause button is in the markup
+(`visibility:hidden` until the script confirms a source, its space reserved).
+
+**Crops (phone and desktop; vertical and horizontal clips).** Never stretch; always `cover`.
+| Viewport | Clip used | Box and crop |
+|---|---|---|
+| Phone portrait (under 700px) | the vertical clip if there is one; else the landscape clip, centre 9:16 band | tall hero: `object-position` centre 40% (keep tables and shelves, not the ceiling) |
+| Tablet and desktop | the landscape clip, 16:9, 1080p (720p under 1280px wide) | wide, short hero: `cover` trims top and bottom; `object-position` centre 55% |
+| Desktop, owners sent only vertical clips | not used; the room photo (step 3) stays | a 9:16 clip cropped to a wide band is mostly blur |
+Frame the shot so the middle third survives both crops (door, tables, shelf in the centre band). If pre-cropping with
+ffmpeg, crop first, then run the script (it scales by height only). Name the files `<name>` (landscape) and `<name>-m`
+(portrait); the inline script picks by viewport and orientation.
+
+**Legibility over video (scrim).** New tokens in `tokens.css`: `--scrim` = `--flyer` (the field stays flyer red: light
+`#C8161F`, dark `#A3121A`); `--scrim-text` 0.90 alpha behind any text; `--scrim-edge` 0.60 where nothing sits. Phone:
+one uniform `--scrim-text` layer. Tablet and desktop: a left-to-right gradient, `--scrim-text` under the headline and
+sub line (left 60%) easing to `--scrim-edge` at the far right behind the opaque diamond, plus a bottom band at
+`--scrim-text` under the deck captions. Worst case checked (a pure white video pixel under the scrim, the harshest
+possible frame, WCAG formula, 2026-10-26): white text on the 90% scrim is 5.2:1 light and 6.7:1 dark (AA needs 4.5;
+88% gives 5.1 and 6.5; 80% fails at 4.45 in light, so never go below 88% behind text). The "Today" caption is foil
+text and only 4.1:1 at 90% over white, so while video is on it sits on a solid `--flyer` pill (foil on flyer 4.6,
+section 2.3). Focus ring stays white (section 11). Each real clip is checked on its brightest frames under the
+scrim; clips with large white areas (windows, white walls) are graded down or re-cut. No `mix-blend-mode`, backdrop
+blur or text shadows to fake contrast. One clip serves both themes (the dark scrim is simply deeper).
+
+**File size budgets (hard limits; over budget means re-encode, not ship).**
+| File | Budget |
+|---|---|
+| Poster, phone portrait (AVIF / WebP) | 35 KB / 60 KB |
+| Poster, landscape (AVIF / WebP) | 130 KB / 200 KB |
+| Landscape 1080p mp4, 12s | 3.0 MB (script default CRF 20 will likely go over: raise CRF or cut seconds until under) |
+| Landscape 720p mp4 (tablet, small desktop) | 1.5 MB |
+| Portrait phone mp4 (about 540x960) | 1.2 MB |
+| webm | no larger than its mp4 |
+| Clip length | 10 to 15 s, seamless loop (matching first and last frame, or a cross-fade in the edit) |
+Nothing downloads before `load`, so only the poster counts against LCP: an oversize poster is the blocker, not the
+video. A phone fetches one poster plus at most one portrait clip, about 1.3 MB.
+
+**Repo and rights.** `media/` and `source/` are gitignored: no store video file (originals, enhanced mp4/webm, or
+posters cut from them) goes into the public repo until the owners answer **Q12** (logo and photos) and **Q21** (they
+send their own clips, with customers' OK where people appear). Until then the page works with no clip (fallback steps
+3 and 4), and the build reads the clip from a setting, not a hard-coded path. Clips are the owners' own files, not
+reposts (the social archive is licensed audio and graded-card close-ups: `docs/research/store-videos.md`). No faces by
+preference; any identifiable customer needs consent.
+
+**Added to section 10 (states):** clip missing > the fallback list above; autoplay blocked > poster + "Play video";
+network error mid-play > the current frame stays, no message, the button reads "Play video".
 
 ---
 
