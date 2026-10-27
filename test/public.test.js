@@ -141,7 +141,7 @@ test('F3: editing a series so a saved cancellation no longer matches asks first;
 test('the date page: default picture per game, Other dates with seat words and the series calendar, Also on the same day', async () => {
   const html = await text(page('fnm', '2026-11-13'));
   assert.ok(html.includes('src="/img/social/event-magic-night.webp"') && html.includes('event-magic-night-800.webp 800w') && /width="1600" height="1200"/.test(html));
-  assert.ok((await text(page('evil', DATE))).includes('/img/social/dnd-table.webp')); // other -> D&D table
+  assert.ok((await text(page('evil', DATE))).includes('/img/social/event-full-room.webp')); // other (not D&D) -> the full room
   assert.ok(html.includes('<h2 id="od-') && html.includes('Nov 20') && html.includes('Walk in') && html.includes('Add every Friday to my calendar'));
   assert.ok(html.includes('Getting here') && html.includes('class="dp-kick"'));
   const ics = await get('/events/fnm.ics');

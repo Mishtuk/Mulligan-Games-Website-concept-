@@ -96,6 +96,9 @@ test('M4 security headers on pages, the admin page and error replies; CSP hashes
   assert.ok(csp.includes("'sha256-") && csp.includes("'unsafe-hashes'"));
   assert.ok(/script-src 'self' 'sha256-/.test(csp), 'inline script blocks must be hashed into script-src');
   assert.ok(!/script-src[^;]*'unsafe-inline'/.test(csp));
+  const dir = (n) => (csp.split('; ').find((d) => d.startsWith(n + ' ')) ?? '').split(' ').slice(1);
+  assert.deepEqual(dir('frame-src'), ['https://www.tiktok.com'], 'the TikTok player is the only frame source (D47)');
+  assert.ok(![...dir('script-src'), ...dir('img-src'), ...dir('connect-src'), ...dir('media-src')].some((v) => /^https?:|\*/.test(v)), 'nothing third-party can load scripts, images or media');
   check(await call('GET', '/admin/'));
   check(await call('GET', '/nope'));
   check(await call('GET', '/api/nothing'));

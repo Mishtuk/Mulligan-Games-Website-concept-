@@ -8,6 +8,7 @@ import { expand, occurrences, safeUrl } from './events.js';
 import { endM, seatState, startM } from './seats.js';
 import { hoursFor, openStatus } from './store-hours.js';
 import { MAX, RETENTION_DAYS, playerIdLabel } from './registrations.js';
+import { photoFor, photosForDay, photoName, photoPos } from './photos.js';
 
 // ---------- the escaping template tag ----------
 class Html { constructor(s) { this.s = s; } toString() { return this.s; } }
@@ -138,8 +139,13 @@ function actionArea(ctx, o, st, href, page = false) {
   return h`${act}${stat}`;
 }
 
+// ---------- photos (constant map in photos.js; decorative, so alt is empty and the box is aria-hidden) ----------
+// Bands (big) get the 1600 copy on dense screens; thumbs and strip caps (48-150px) stay on -800.
+const photoImg = (p, big = false) => h`<img src="/img/social/${p.file}-800.webp"${big ? h` srcset="/img/social/${p.file}-800.webp 800w, /img/social/${p.file}.webp 1600w" sizes="(min-width: 1024px) 30rem, 100vw"` : ''} width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:${photoPos(p)}">`;
+const tintAttr = (p) => (p.tint ? h` data-tint` : '');
+
 // ---------- the event card ----------
-/** opts: { compact } hide the description; { every } collapsed weekly card: "7 PM to 10 PM" + a "Next: ..." line only when the next date is cancelled or changed (nextNote). */
+/** opts: { photo } a photo band above the title (front page, today and the next day); { compact } hide the description; { every } collapsed weekly card: "7 PM to 10 PM" + a "Next: ..." line only when the next date is cancelled or changed (nextNote). */
 export function card(ctx, o, opts = {}) {
   const st = seatState(o, ctx.now.m, regsOf(ctx, o)), href = eventHref(ctx, o), key = (opts.again ? 'tt' : '') + idKey(o), g = gameOf(ctx, o.game);
   const time = opts.every ? `${fmtTime(o.baseStart ?? o.start)}${o.end ? ` to ${fmtTime(o.end)}` : ''}` : timeLine(o); // under its weekday heading a weekly card says just "7 PM to 10 PM"
@@ -151,7 +157,7 @@ export function card(ctx, o, opts = {}) {
   }
   const foot = o.cancelled ? '' : actionArea(ctx, o, st, href);
   return h`<article class="ev" data-game="${o.game}" data-fgame="${o.game}" data-ffam="${g.family ?? o.game}" data-state="${st.state}"${st.onNow ? ' data-now' : ''} id="c-${key}" aria-labelledby="t-${key}">
-<div class="ev-bar"><h4 class="ev-title" id="t-${key}"><a href="${href}">${o.title}</a></h4>${costPip(o)}</div>
+${opts.photo ? h`<figure class="ev-ph ph" aria-hidden="true"${tintAttr(opts.photo)}>${photoImg(opts.photo, true)}</figure>` : ''}<div class="ev-bar"><h4 class="ev-title" id="t-${key}"><a href="${href}">${o.title}</a></h4>${costPip(o)}</div>
 <p class="ev-type">${gameBadge(ctx, o.game)}${o.format ? h`<span class="ev-fmt">${o.format}</span>` : ''}</p>
 <div class="ev-text"><p class="ev-when">${icon('clock')}<span>${time}</span>${tagRow(o, st)}</p>${opts.nextNote ? h`<p class="ev-next">${opts.nextNote}</p>` : ''}${opts.also ? h`<p class="ev-also">${opts.also}</p>` : ''}${arriveLine(o, st)}${body}</div>
 ${o.cancelled ? h`<p class="ev-stamp">${icon('cancel')}Cancelled</p>` : ''}${foot.s ? h`<div class="ev-foot">${foot}</div>` : ''}
@@ -159,7 +165,7 @@ ${o.cancelled ? h`<p class="ev-stamp">${icon('cancel')}Cancelled</p>` : ''}${foo
 }
 
 /** The cards of one list, in time order. Each card shows its own time, so there are no time labels or groups (round 4, F5). */
-const cardList = (ctx, items, cardOpts = {}) => items.map((x) => (x.o ? card(ctx, x.o, { ...cardOpts, ...x.opts }) : card(ctx, x, cardOpts)));
+const cardList = (ctx, items, { photo, ...cardOpts } = {}) => items.map((x) => (x.o ? card(ctx, x.o, { ...cardOpts, ...x.opts, photo: photo?.(x.o) }) : card(ctx, x, { ...cardOpts, photo: photo?.(x) })));
 
 // ---------- strip, hero ----------
 function openText(ctx) {
@@ -176,14 +182,14 @@ export function strip(ctx) {
   return h`<p class="ob-status" id="ob-status"${s.open ? h` data-open=""` : ''}><span class="ob-dot" aria-hidden="true"></span><span>${s.body}</span></p>`;
 }
 
-function headline(ctx, st) {
+function hoursStatus(ctx, st) {
   const { now } = ctx;
-  if (!st.known) return 'Card and game nights every week in Warminster.';
-  if (st.open) return st.closeHm === '24:00' ? 'Open till midnight tonight.' : `Open till ${fmtTime(st.closeHm)} tonight.`;
-  if (!st.next) return st.laterUnknown ? (st.today.closed ? 'Closed today.' : 'Closed for the night.') : 'Closed this week.';
+  if (!st.known) return '';
+  if (st.open) return st.closeHm === '24:00' ? 'Open till midnight tonight' : `Open till ${fmtTime(st.closeHm)} tonight`;
+  if (!st.next) return st.laterUnknown ? (st.today.closed ? 'Closed today' : 'Closed for the night') : 'Closed this week';
   const rel = relDay(st.next.date, now.ymd), t = fmtTime(st.next.hm);
-  if (rel === 'today') return `Open today from ${t}.`;
-  return st.today.closed ? `Closed today. Back ${rel} at ${t}.` : `Closed for the night. Back ${rel} at ${t}.`;
+  if (rel === 'today') return `Open today from ${t}`;
+  return st.today.closed ? `Closed today, back ${rel} at ${t}` : `Closed for the night, back ${rel} at ${t}`;
 }
 const groupByStart = (list) => {
   const out = [];
@@ -213,16 +219,28 @@ export function hero(ctx) {
     const shown = slot.items.slice(0, 2).map((o) => o.title), more = slot.items.length - shown.length, rel = relDay(slot.date, now.ymd);
     next = h`<a class="next" id="nextup" href="#d-${slot.date}"><span class="next-time">${fmtTime(slot.start)}</span><span class="next-in"><span class="next-k">${slot.on ? 'On now' : rel === 'today' ? 'Next up' : `Next up ${rel}`}</span><span class="next-what">${shown.join(', ')}${more ? ` and ${more} more` : ''}</span></span></a>`;
   } else next = h`<a class="next" id="nextup" href="#week"><span class="next-time">Soon</span><span class="next-in"><span class="next-k">Next up</span><span class="next-what">See this week</span></span></a>`;
-  return h`<div class="phero-copy"><p class="phero-date" id="hero-date">${fmtLong(now.ymd)}</p><h1 class="phero-h" id="hero-h">${headline(ctx, st)}</h1><p class="phero-sub" id="hero-sub">${parts.join(' ')}</p><div class="phero-acts">${next}<a class="btn btn-act" href="#week">This week’s events</a></div></div>`;
+  return h`<div class="phero-copy"><p class="phero-date" id="hero-date">${[fmtLong(now.ymd), hoursStatus(ctx, st)].filter(Boolean).join(' · ')}</p><h1 class="phero-h" id="hero-h">Welcome to Mulligan Games.</h1><p class="phero-lede">A friendly game store in Warminster with a big play room, free play every day we’re open, and card nights all week. Come say hi.</p><p class="phero-sub" id="hero-sub">${parts.join(' ')}</p><div class="phero-acts">${next}<a class="btn btn-act" href="#week">This week’s events</a></div></div>`;
 }
 
+/** The day's main event for the strip: featured, then sign-up here / external, then the earliest start. */
+function mainEvent(evs) {
+  let best = null, bs = -1;
+  for (const o of evs) { const sc = (o.featured ? 4 : 0) + (o.signup === 'here' || o.signup === 'external' ? 2 : 0); if (!best || sc > bs || (sc === bs && (o.start || '') < (best.start || ''))) { best = o; bs = sc; } }
+  return best;
+}
+/** The strip shows the main event's card photo unless another tile already shows that file; then the next photo of its list. */
+function stripPhoto(main, p, used) {
+  if (!used[photoName(p)]) { used[photoName(p)] = true; return p; }
+  return photoFor(main, used);
+}
 /** The seven-day strip at the top of "This week": one small card per day with a dot for each event. */
-function deck(ctx, week) {
-  const { now, store } = ctx, items = [];
+function deck(ctx, week, photos) {
+  const { now, store } = ctx, items = [], used = {};
   for (let i = 0; i < 7; i++) {
     const ymd = addDays(now.ymd, i), hrs = hoursFor(store, ymd), evs = week.filter((o) => o.date === ymd && live(o)), closed = hrs.known && hrs.closed && !evs.length;
     const cap = closed ? 'Closed' : `${evs.length} ${evs.length === 1 ? 'event' : 'events'}`;
-    items.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${i === 0 ? 'Today' : dayShort(ymd)} ${dayNum(ymd)}: ${dayName(ymd)} ${fmtDate(ymd)}, ${cap.toLowerCase()}`}"><span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span> <span class="dc-num">${dayNum(ymd)}</span><span class="dc-pips" aria-hidden="true">${evs.slice(0, 8).map((o) => h`<i data-game="${o.game}"></i>`)}</span></a><span class="dc-cap" aria-hidden="true">${cap}</span></li>`);
+    const main = mainEvent(evs.filter(live)), mp = main ? stripPhoto(main, photos.get(ymd).get(idKey(main)), used) : null;
+    items.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${i === 0 ? 'Today' : dayShort(ymd)} ${dayNum(ymd)}: ${dayName(ymd)} ${fmtDate(ymd)}, ${cap.toLowerCase()}`}">${mp ? h`<span class="dc-ph ph" aria-hidden="true" data-game="${main.game}"${tintAttr(mp)}>${photoImg(mp)}</span>` : ''}<span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span> <span class="dc-num">${dayNum(ymd)}</span><span class="dc-pips" aria-hidden="true">${evs.slice(0, 8).map((o) => h`<i data-game="${o.game}"></i>`)}</span></a><span class="dc-cap" aria-hidden="true">${cap}</span></li>`);
   }
   return h`<nav class="wdeck" aria-labelledby="wdeck-k"><p class="wdeck-k vh" id="wdeck-k">The next seven days</p><ol id="deck">${items}</ol></nav>`;
 }
@@ -257,10 +275,11 @@ function seatWords(o, st) {
     default: return signupShort(o);
   }
 }
-/** A later day's event on one line: dot, time, title (the link), then game, fee and seats. */
-function dayLine(ctx, o, bit = '') {
+/** A later day's event on one line: dot (print), photo thumb, time, title (the link), then game, fee and seats. */
+function dayLine(ctx, o, bit = '', photo = null) {
   const st = seatState(o, ctx.now.m, regsOf(ctx, o)), g = gameOf(ctx, o.game);
-  return h`<li class="day-line" data-game="${g.id}" data-fgame="${o.game}" data-ffam="${g.family ?? o.game}" data-state="${st.state}"><span class="dl-dot" aria-hidden="true"></span><span class="dl-time">${o.start ? fmtTime(o.start) : 'TBA'}</span><span class="dl-title"><a href="${eventHref(ctx, o)}">${o.title}</a></span><span class="dl-bits">${[g.short, fmtFee(o.fee), st.state === 'walkin' ? '' : seatWords(o, st), bit].filter(Boolean).join(' · ')}</span></li>`;
+  const main = h`<span class="dl-time">${o.start ? fmtTime(o.start) : 'TBA'}</span><span class="dl-title"><a href="${eventHref(ctx, o)}">${o.title}</a></span><span class="dl-bits">${[g.short, fmtFee(o.fee), st.state === 'walkin' ? '' : seatWords(o, st), bit].filter(Boolean).join(' · ')}</span>`;
+  return h`<li class="day-line" data-game="${g.id}" data-fgame="${o.game}" data-ffam="${g.family ?? o.game}" data-state="${st.state}"><span class="dl-dot" aria-hidden="true"></span>${photo ? h`<span class="dl-ph ph" aria-hidden="true"${tintAttr(photo)}>${photoImg(photo)}</span><span class="dl-main">${main}</span>` : main}</li>`;
 }
 
 /** Consecutive closed days as one quiet line ("Monday and Tuesday · closed"); an empty span per day keeps its #anchor. days = [{ id, name }]. */
@@ -285,6 +304,15 @@ export function week(ctx) {
   const { now } = ctx, chip = validChip(ctx, ctx.query.get('game'));
   const all = upcoming(ctx, now.ymd, addDays(now.ymd, 6)), liveAll = all.filter(live);
   const chips = shownGames(ctx).map((g) => chipLink(ctx, `${keep(ctx, '', { game: g.id === 'all' ? '' : g.id })}#week`, g, liveAll.filter((o) => inGame(ctx, o, g.id)).length, chip === g.id, 'this week'));
+  // One photo per event, picked on the unfiltered week so a chip filter does not reshuffle them. Today and the next day with events (the photo-card
+  // days) share one "used" map so they do not repeat a picture; each one-line day starts fresh.
+  const photos = new Map(), cardUsed = {};
+  let nextCard = false;
+  for (let i = 0; i < 7; i++) {
+    const ymd = addDays(now.ymd, i), dayAll = all.filter((o) => o.date === ymd), card = i === 0 || (!nextCard && dayAll.length > 0);
+    if (i > 0 && card) nextCard = true;
+    photos.set(ymd, photosForDay(dayAll, idKey, card ? cardUsed : {}));
+  }
   const days = [];
   let shownAny = false, nextSeen = false, run = [];
   const flush = () => { if (run.length) days.push(dayOff(run)); run = []; };
@@ -303,17 +331,17 @@ export function week(ctx) {
     }
     shownAny = true;
     if (i > 0 && nextSeen) { // round 3: after today and the next day with events, each day is one line per event
-      days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}">${head}<ul class="day-lines">${evs.map((o) => dayLine(ctx, o))}</ul></section>`);
+      days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}">${head}<ul class="day-lines">${evs.map((o) => dayLine(ctx, o, '', photos.get(ymd).get(idKey(o))))}</ul></section>`);
       continue;
     }
     if (i > 0) nextSeen = true;
-    days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}"${i === 0 ? h` data-today=""` : ''}>${head}<div class="slots">${cardList(ctx, evs, { compact: true })}</div></section>`);
+    days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}"${i === 0 ? h` data-today=""` : ''}>${head}<div class="slots">${cardList(ctx, evs, { compact: true, photo: (o) => photos.get(ymd).get(idKey(o)) })}</div></section>`);
   }
   flush();
   const n = liveAll.filter((o) => inGame(ctx, o, chip)).length, g = chip === 'all' ? null : gameOf(ctx, chip);
   const empty = !shownAny && chip !== 'all' ? emptyPanel(ctx, chip, g) : '';
   const rows = laterRows(ctx, chip);
-  return h`<p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>${deck(ctx, all)}<nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
+  return h`<p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>${deck(ctx, all, photos)}<nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
 <p class="vh" id="filter-status" role="status" aria-live="polite">${g ? `Showing ${g.short}: ` : 'Showing all games: '}${n} ${n === 1 ? 'event' : 'events'} this week.</p>
 <div class="days" id="days">${empty}${days}</div>
 <div class="empty lattice" id="filter-empty" role="note" hidden><p class="empty-h">Nothing for this game this week.</p><p>Try another game, or look at every date.</p><a class="btn btn-2" href="${keep(ctx, '', {})}#week" data-chip="all">Show all games</a></div>
@@ -497,14 +525,6 @@ ${feeLine(o) ? h`<p class="hint">${feeLine(o)}</p>` : ''}<button class="btn btn-
 </form>`;
 }
 
-/** Default picture per game (constants, never user data): [file in /img/social, alt]. Each has a -800 copy. No series photo field exists yet. */
-const EVENT_PICS = {
-  magic: ['event-magic-night', 'Players at Magic tables in the Mulligan Games play room'],
-  cedh: ['event-cedh-tables', 'Commander games under way at the tables in the play room'],
-  warhammer: ['warhammer-table', 'A Warhammer battle set up on a table with terrain'],
-  other: ['dnd-table', 'A group around a table playing a tabletop role-playing game'],
-  default: ['event-full-room', 'The play room full of players on an event night'],
-};
 export function eventPage(ctx, o, form = {}) {
   const st = seatState(o, ctx.now.m, regsOf(ctx, o)), store = ctx.store, key = idKey(o), g = gameOf(ctx, o.game), href = eventHref(ctx, o);
   const s = ctx.series.find((x) => x.id === o.seriesId);
@@ -530,7 +550,7 @@ export function eventPage(ctx, o, form = {}) {
   const where = h`<section aria-labelledby="gh-${key}"><h2 id="gh-${key}">Getting here</h2><p class="det-where">${store.address.street}, ${store.address.city}, ${store.address.region} ${store.address.zip}.${store.parking ? ` ${store.parking}` : ''}</p>${o.beginnerFriendly ? h`<p class="det-where">First time at Mulligan? <a href="/new-here/">Read New here?</a></p>` : ''}<p class="det-acts dp-two"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>${tel ? h`<a class="btn btn-2" href="${tel}">${icon('phone')}Call</a>` : ''}</p>${others.length ? '' : h`<p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics?date=${encodeURIComponent(o.slot)}`}">${icon('calendar')}Add to my calendar</a></p>`}</section>`;
   const same = upcoming(ctx, o.date, o.date).filter((x) => live(x) && x.seriesId !== o.seriesId).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
   const alsoOn = same.length ? h`<section class="dp-also" aria-labelledby="ao-${key}"><h2 id="ao-${key}">Also on ${dayName(o.date)}</h2><ul class="day-lines">${same.map((x) => dayLine(ctx, x))}</ul></section>` : '';
-  const pic = EVENT_PICS[o.game] ?? EVENT_PICS.default, rel = relDay(o.date, ctx.now.ymd);
+  const pic = photoFor(o), rel = relDay(o.date, ctx.now.ymd);
   const kicker = `${fmtLong(o.date)}${rel === 'today' ? (o.start && toMin(o.start) >= 17 * 60 ? ' · Tonight' : ' · Today') : rel === 'tomorrow' ? ' · Tomorrow' : ''}`;
   const foot = o.cancelled || st.past ? '' : actionArea(ctx, o, st, `${href}#signup`, true);
   const formOpen = o.signup === 'here' && !o.inviteOnly && !o.cancelled && !st.past && ['open', 'few', 'needs', 'waitlist'].includes(st.state);
@@ -539,7 +559,7 @@ export function eventPage(ctx, o, form = {}) {
   return h`<div class="wrap dp-wrap"><p class="dp-back"><a href="${keep(ctx, '/events/', {})}">${icon('chevron', 'ic-back')}All events</a></p>
 <article class="dp" aria-labelledby="t-${key}">
 <div class="dp-top">
-<figure class="dp-pic" data-game="${o.game}"><img src="/img/social/${pic[0]}.webp" srcset="/img/social/${pic[0]}-800.webp 800w, /img/social/${pic[0]}.webp 1600w" sizes="(min-width: 1024px) 58vw, 100vw" width="1600" height="1200" alt="${pic[1]}" fetchpriority="high"></figure>
+<figure class="dp-pic" data-game="${o.game}"><img src="/img/social/${pic.file}.webp" srcset="/img/social/${pic.file}-800.webp 800w, /img/social/${pic.file}.webp 1600w" sizes="(min-width: 1024px) 58vw, 100vw" width="1600" height="1200" alt="${pic.alt}" fetchpriority="high" style="object-position:${photoPos(pic)}"></figure>
 <div class="dp-head ev" data-game="${o.game}" data-state="${st.state}"><p class="dp-kick"><time datetime="${o.date}">${kicker}</time></p><div class="dp-name"><h1 class="ev-title" id="t-${key}">${o.title}</h1>${costPip(o)}</div>
 <p class="ev-type">${gameBadge(ctx, o.game)}${o.format ? h`<span class="ev-fmt">${o.format}</span>` : ''}</p>
 <p class="ev-when">${icon('clock')}<span>${timeLine(o)}</span></p>${banner}<p class="dp-tags">${tagRow(o, st)}</p>

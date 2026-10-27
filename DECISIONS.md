@@ -577,3 +577,21 @@ share one "used" map, strip tiles avoid repeats, tinted stand-ins no longer use 
 video (seen once at 400px; the same clip played on retry); the dialog's "Open on TikTok" covers it. The 240px posters
 read soft but acceptable at 164-192px; the IG poster frame is mostly black (Q21 stills). Round 6 was first logged
 as D41/D42, numbers the Desktop had already used for P2.5 (stock ledger); renumbered to D47/D48. Port list: `docs/review/round-6-port.md`.
+
+### D49. Round 6 port + welcome hero: PASS with boss fixes (2026-10-27, boss)
+**Owner request folded in:** the hero opens "Welcome to Mulligan Games." + the lede "A friendly game store in Warminster with
+a big play room, free play every day we're open, and card nights all week. Come say hi."; the hours moved into the eyebrow
+"<date> · <status>" (`hoursStatus()`: open till / open today from / closed today or for the night, back ... / closed this
+week; date alone when hours are unknown). **Checked (headless Chrome, CDP, 1280 and 500):** no third-party request on load
+or after scrolling the whole page; no iframe/dialog before a click; clips.js is an external self script; one click = one
+TikTok iframe; Esc and backdrop remove it, no TikTok request after close, focus returns to the card. Captions/credits go
+through Astro escaping and textContent; photo alt text is constant. **Boss fixes:** (1) the player iframe is now sandboxed
+`allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox` (tested: the player loads
+and plays, video readyState 4, at 1280 and 500; no top navigation, forms, modals or downloads) - supersedes "no sandbox" in
+D48/round-6-port. (2) Photo bands get `srcset` 800w/1600w (`sizes="(min-width: 1024px) 30rem, 100vw"`); thumbs and strip
+caps stay on -800. (3) Print hides the bands, the clips section and the clip dialog. (4) Hero "Watch clips from the shop"
+link is 44px tall. (5) Privacy page: the clip-video sentence (port item 7) was missing; added. (6) Deleted unused
+`interior-welcome-banner*` and `shop-corgi*` from public/img/social (prototype keeps its own copies). (7) Tests: hero copy
+and every eyebrow state, band srcset, sandbox tokens. **Noted:** with three Magic photos, a busy two-day stretch reuses
+Magic photos on the next card day, and a tinted stand-in can share a base photo with a plain card the same day (D48 rule).
+Tests 200/0.

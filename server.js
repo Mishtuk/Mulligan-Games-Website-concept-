@@ -100,7 +100,7 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
 const TEXT = /^(text\/|application\/(json|xml|manifest)|image\/svg)/;
 
 // Security headers go on EVERY response, errors included. The CSP lists a hash for each inline script (and inline on*= handler) found in the
-// page being sent, so Astro's inline scripts run but injected script text would not. Inline styles stay allowed (style-src 'unsafe-inline').
+// page being sent, so Astro's inline scripts run but injected script text would not. Inline styles stay allowed (style-src 'unsafe-inline'). frame-src is only the TikTok player, which a visitor opens with a click (public/js/clips.js).
 const sha = (t) => `'sha256-${createHash('sha256').update(t).digest('base64')}'`;
 const unent = (t) => t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 function csp(html = '') {
@@ -108,7 +108,7 @@ function csp(html = '') {
   const attrs = [...html.matchAll(/\son[a-z]+="([^"]*)"/g)].map((m) => sha(unent(m[1])));
   return ["default-src 'self'", `script-src 'self' ${scripts.join(' ')}`.trim(), `script-src-attr ${attrs.length ? `'unsafe-hashes' ${attrs.join(' ')}` : "'none'"}`,
     "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "media-src 'self'", "font-src 'self'", "connect-src 'self'", "object-src 'none'", "base-uri 'self'",
-    "form-action 'self'", "frame-ancestors 'self'"].join('; ');
+    "form-action 'self'", "frame-src https://www.tiktok.com", "frame-ancestors 'self'"].join('; ');
 }
 function baseHeaders(url, html) {
   const h = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN',

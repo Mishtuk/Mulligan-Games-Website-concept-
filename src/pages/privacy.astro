@@ -7,6 +7,7 @@
 //   Security log          src/audit.js (no player details)
 //   Backups               src/db.js backup (7 daily copies)
 //   Cookies               server.js sessionCookie (staff sign-in only); theme choice in localStorage (Base.astro)
+//   Clip videos           public/js/clips.js (TikTok player iframe only after a click; Instagram cards are links), server.js csp frame-src
 //   Payments              D3: no online payment; staff mark how you paid by hand
 import Base from '../components/Base.astro';
 import store from '../content/store.json';
@@ -47,7 +48,8 @@ const tel = safeUrl(store.phoneHref);
         </section>
         <section aria-labelledby="cookies">
           <h2 id="cookies">Cookies and your device</h2>
-          <p>Visitors get no cookies. Only the staff sign-in uses one. If you pick a light or dark theme, your browser remembers it on your device. We don’t see it.</p>
+          <p>Visitors get no cookies from us. Only the staff sign-in uses one. If you pick a light or dark theme, your browser remembers it on your device. We don’t see it.</p>
+          <p>Videos on the home page load from TikTok only when you press play, and Instagram clips open on Instagram; those sites may set their own cookies.</p>
         </section>
         <section aria-labelledby="payments">
           <h2 id="payments">Payments</h2>

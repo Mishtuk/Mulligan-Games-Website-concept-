@@ -172,10 +172,10 @@ test('F4 + B1: hours not set and a special day: /events/ still renders, the fron
   const ev = await text('/events/?now=2026-11-25T12:00'); // the seven days ahead include the special days
   assert.ok(ev.includes('class="ep-head"') && !ev.includes('PLACEHOLDER'), '/events/ is rendered, not the loading placeholder');
   const closed = await text('/?now=2026-11-26T12:00');
-  assert.ok(closed.includes('<strong>Closed today.</strong>') && closed.includes('id="hero-h">Closed today.</h1>'), 'closed special day');
+  assert.ok(closed.includes('<strong>Closed today.</strong>') && /id="hero-date">[^<]*· Closed today/.test(closed) && closed.includes('id="hero-h">Welcome to Mulligan Games.</h1>'), 'closed special day');
   assert.ok(!closed.includes('Closed this week') && !closed.includes('<strong>Closed</strong>'));
   const after = await text('/?now=2026-11-30T17:00'); // special hours are over; the next day is unknown, so it says nothing about the week
-  assert.ok(after.includes('Closed for the night.') && after.includes('<strong>Closed now.</strong>') && !after.includes('Closed this week'));
+  assert.ok(/id="hero-date">[^<]*· Closed for the night</.test(after) && after.includes('<strong>Closed now.</strong>') && !after.includes('Closed this week'));
   assert.ok((await text('/?now=2026-11-25T12:00')).includes('Hours coming soon.'), 'a day with no special day stays unknown');
   assert.equal((await save({ hours: HOURS, hourOverrides: [] })).status, 200);
 });

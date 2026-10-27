@@ -8,6 +8,8 @@ import store from '../content/store.json';
 import { safeUrl } from '../lib/events.js';
 import proof from '../content/proof.json';
 import { entryText } from '../lib/store-render.js';
+import { validClip, clipPos, NAMES } from '../lib/clips.js';
+import clipData from '../content/clips.json';
 
 const a = store.address;
 const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
@@ -15,6 +17,7 @@ const tel = safeUrl(store.phoneHref);
 const discord = safeUrl(store.links?.discord);
 const rv = proof.reviews, reviewUrl = safeUrl(rv.url);
 const tcg = safeUrl(proof.tcgplayer.url);
+const clips = clipData.filter(validClip), tiktok = safeUrl(store.links?.tiktok);
 const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
 ---
 <Base title="Mulligan Games, Warminster PA: events this week" description="Card and game shop in Warminster, PA. Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights every week. See what's on, sign up and plan your visit." current="home" skip="#week" skipLabel="Skip to this week's events">
@@ -36,12 +39,13 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
         <video id="hero-video" muted loop playsinline preload="none" width="540" height="960" aria-hidden="true" tabindex="-1"></video>
       </div>
       <div class="wrap phero-in">
-        <Fragment set:html={`<!--mg:hero--><div class="phero-copy"><h1 class="phero-h" id="hero-h">Card and game nights every week in Warminster.</h1></div><!--/mg:hero-->`} />
+        <Fragment set:html={`<!--mg:hero--><div class="phero-copy"><h1 class="phero-h" id="hero-h">Welcome to Mulligan Games.</h1><p class="phero-lede">A friendly game store in Warminster with a big play room, free play every day we’re open, and card nights all week. Come say hi.</p></div><!--/mg:hero-->`} />
       </div>
       <div class="phero-strip">
         <div class="wrap phero-strip-in">
           <Fragment set:html="<!--mg:free-play-->" />{store.freePlay && <p class="freeplay2">{store.freePlay}</p>}<Fragment set:html="<!--/mg:free-play-->" />
           <p class="media-cap">On screen: <span class="cap-wide">The shop floor at 445 York Rd</span><span class="cap-narrow">cEDH night at the shop</span></p>
+          {clips.length >= 3 && <a class="clips-link" href="#clips">Watch clips from the shop<Icon name="chevron" /></a>}
           <button class="vid-btn" id="vid-btn" type="button" data-paused>
             <Icon name="pause" class="i-pause" /><Icon name="play" class="i-play" />
             <span id="vid-label">Play video</span>
@@ -50,32 +54,53 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
       </div>
     </section>
 
-    <!-- 3. This week at Mulligan: the seven-day strip first, then the days (all of it is the mg:week marker) -->
+    <!-- 3. This week: the seven-day strip first, then the days (all of it is the mg:week marker) -->
     <section class="sec week" id="week" aria-labelledby="week-h">
       <div class="wrap">
         <div class="sec-head">
-          <h2 id="week-h">This week at Mulligan</h2>
+          <h2 id="week-h">This week</h2>
           <a class="more" href="/events/">All events and sign-ups<Icon name="chevron" /></a>
         </div>
         <Fragment set:html={`<!--mg:week--><p class="day-skip">The schedule is on the <a href="/events/">events page</a>.</p><!--/mg:week-->`} />
       </div>
     </section>
 
-    <!-- 3b. Inside the shop: the store's own photos (D27) -->
-    <section class="sec shop" id="shop" aria-labelledby="shop-h">
+    <!-- 3b. Clips from the shop (round 6, D47): the store's own videos from src/content/clips.json. Each card is a plain link to the post (works with no JS);
+         public/js/clips.js opens the official TikTok player in a dialog only after a click. Instagram cards stay links. Hidden under 3 valid clips. -->
+    {clips.length >= 3 && (
+    <section class="sec clips-sec" id="clips" aria-labelledby="clips-h">
       <div class="wrap">
         <div class="sec-head">
-          <h2 id="shop-h">Inside the shop</h2>
-          <p class="sec-note">A play room full of tables, a singles case and a crew who know the formats.</p>
+          <h2 id="clips-h">Clips from the shop</h2>
+          <p class="sec-note">Short videos from our TikTok and Instagram.</p>
+          {tiktok && <a class="more" href={tiktok} target="_blank" rel="noopener">Follow on TikTok<span class="vh"> (opens TikTok)</span><Icon name="external" /></a>}
+          <div class="clips-nav" id="clips-nav" hidden>
+            <button type="button" class="clips-btn" id="clips-prev" aria-controls="clips-list" aria-label="Earlier clips" disabled><Icon name="chevron" /></button>
+            <button type="button" class="clips-btn" id="clips-next" aria-controls="clips-list" aria-label="More clips"><Icon name="chevron" /></button>
+          </div>
         </div>
-        <ul class="shots">
-          <li class="shot shot-banner"><figure><img src="/img/social/interior-welcome-banner.webp" width="960" height="720" loading="lazy" decoding="async" alt="A Welcome to Mulligan Games banner over the doorway into the play room" /><figcaption>Through this door: the play room</figcaption></figure></li>
-          <li class="shot shot-case"><figure><img src="/img/social/singles-case-lit-800.webp" srcset="/img/social/singles-case-lit-800.webp 800w, /img/social/singles-case-lit.webp 1600w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="A lit glass case of single cards, with Japanese and Korean sections" /><figcaption>The singles case</figcaption></figure></li>
-          <li class="shot shot-corgi"><figure><img src="/img/social/shop-corgi-800.webp" srcset="/img/social/shop-corgi-800.webp 800w, /img/social/shop-corgi.webp 1070w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="1000" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding the shop corgi, game posters behind" /><figcaption>Staff, and a corgi</figcaption></figure></li>
-          <li class="shot shot-crew"><figure><img src="/img/social/event-full-room-800.webp" srcset="/img/social/event-full-room-800.webp 800w, /img/social/event-full-room.webp 1600w" sizes="(min-width: 768px) 50vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="The play room full of players at tables on an event night" /><figcaption>An event night</figcaption></figure></li>
-        </ul>
+        <div class="clips-body">
+          <ul class="clips" id="clips-list" role="list">
+            {clips.map((c) => (
+              <li class="clip">
+                <a class="clip-a" href={c.url} target="_blank" rel="noopener" data-tt={c.platform === 'tiktok' ? c.id : undefined} data-caption={c.caption}>
+                  <span class="clip-ph">
+                    <img src={`/${c.poster}`} width={c.pw} height={c.ph} alt="" loading="lazy" decoding="async" style={`object-position:${clipPos(c)}`} />
+                    <span class="clip-badge"><Icon name={c.platform} />{NAMES[c.platform]}</span>
+                    <span class="clip-play" aria-hidden="true"><Icon name="play" /></span>
+                  </span>
+                  <span class="clip-cap"><span class="vh">{c.platform === 'tiktok' ? 'Play video' : 'Watch on Instagram'}: </span>{c.caption}</span>
+                  {c.credit && <span class="clip-by">{c.credit}</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p class="clips-priv">Videos load from TikTok only when you press play, and Instagram clips open on Instagram; those sites may set their own cookies.</p>
+        </div>
       </div>
+      <script src="/js/clips.js" defer is:inline></script>
     </section>
+    )}
 
     <!-- 4. cEDH strip (D4) -->
     <section class="cedh" id="cedh" aria-labelledby="cedh-h">
