@@ -87,8 +87,38 @@ collabs; their photos are theirs. Flyers (~60%) are event graphics, used only as
 | Platform | What | Saveable | Use |
 |---|---|---|---|
 | TikTok (55) | 31 "Make it or break it" episodes, graded-card close-ups, 2 room clips (monthly cEDH, "amazing turn out") | No (blob stream; not circumventing) | Room clips already in the concept; link the TikTok, ask owners for originals (Q21) |
-| Instagram (15 reels) | Event wins, product, "Event Added" title cards | No (same) | Link out |
-| Facebook | Same as round 1 (`store-videos.md`) | No | — |
+| Instagram (15 reels) | 12 graded Pokemon slabs over the lit singles case, 1 cEDH win (customer collab), 1 "Event Added" card, 1 Pokemon pull | **Yes** (2026-10-27 update: each reel page lists its plain MP4; saved to `source/social/desktop/reels/`) | Singles / graded-cards loop for the Shop section (see below) |
+| Facebook videos (4) | Same as round 1 (`store-videos.md`): storefront walk-up 0:22, slab, sealed packs | Encodes in git at 838e144 | Storefront walk-up for Visit |
+| Facebook reels (22) | More varied: staff at the counter, a group at the counter, the anniversary suits gag, winners talking to camera, storefront walk, slabs | No (streamed in pieces; not reassembled) | Ask the owners for originals (Q21), by reel id below |
+
+### Saved store reels (Instagram), best first
+| Reel | Size | Length | Shows | Fit |
+|---|---|---|---|---|
+| DFlvgahRcUv | 1080x1920 | 8 s | Graded slabs over the lit singles case, no text overlay | **Shop / singles loop** (native 1080p) |
+| DGj5aLXxhPj | 720x1280 | 8 s | Several slabs over the case | Shop loop alt (AI-upscale to 1080p) |
+| DFvlGGySsw9 | 720x1280 | 7 s | Rayquaza slab, case behind | Shop loop alt (AI-upscale) |
+| DPNJplNDI7c, DPHba4_D_HY, DPcDJ7riL3B | 576x1024 | 10 s | Single slabs | b-roll only |
+| DL3Pd5YSt92, DNHpFiEs3Pp, DNoeL5SP0ta, DF_npHmx79d | 576-720 | 5-10 s | Slabs with burned-in red captions | Not used (text overlay) |
+| DTHcsxqjNDL | 720x1280 | 16 s | cEDH win, then standings screenshots with player names | Not used (customer's post, names) |
+| DLkn4jaTjiP | 1080x1080 | 10 s | "Event Added" title card | Not used (graphic) |
+
+### Facebook reels to ask the owners for (Q21), most useful first
+Storefront walk-up 1273030047026539 (known). The grid also shows a group at the counter, the anniversary suits gag,
+staff and winners talking to camera; open each id to match it before asking. All ids:
+1298534645631360 3903892519744058 1330043458580012 1348778640132462 2878095335734610 4278660512365209 1263036641540370
+1183229216802761 1307478107657420 1111543467452651 648092867917345 1047551147170419 1525741938123033 1307604977030505
+1319829805727995 1803978063746328 1995684607541352 1568051400496122 1273030047026539 1888900194917825 1204876387346354
+441947205187668 (facebook.com/reel/<id>).
+
+### Tagged posts (customers' own, not used without their OK)
+@trainercozy Pokemon pull reel, @ferventalchemist "Come to Philly for the cEDH" reel, @charlesplatel win carousel,
+@lua.stardust event carousel, @elekin_tcg tournament posts.
+
+### Enhancement (owner asked, 2026-10-27)
+`tools/upscale-video.sh` runs Real-ESRGAN x4plus (official xinntao release, local `~/tools/realesrgan`, owner OK) frame
+by frame on the GPU, then sizes to 1080x1920 (CRF 18 master in git-ignored `media/`). Result vs plain Lanczos: cleaner
+card edges and text, less blocking; motion blur in the source stays. Upscaled: cedh-players-tables, cedh-monthly-event,
+storefront-exterior, sealed-packs-counter; next the hero loop and the two Instagram slab reels.
 
 ## New owner questions
 - **Q23:** OK to show 3 short Google review quotes on the site (first name + initial, linked to Google)? Which 3?
