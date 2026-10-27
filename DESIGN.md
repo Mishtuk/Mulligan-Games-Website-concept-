@@ -358,8 +358,27 @@ Order (D1 and the brief): open-now strip > header > hero (status + next up + wee
 cEDH band > New and preorders > Visit > Between events (Discord, proof, lately) > footer. The concept-only demo bar
 sits above everything in the prototype and is not built. Phone order (R1): copy, week deck, then the photo box (16:9) so events come first. "This week" (R5): today and the next day with events (after the game filter) are full cards, later days are one line per event with the seat state in words, every day keeps its `d-YYYY-MM-DD` anchor, then "See all N events". Sign up (R7): a card goes straight to the form on the events page (`events.html#su-<key>`); from the detail dialog the form replaces the body with a "Back to details" button. The events page opens with a "Tonight" block (from 5 PM) listing today's dates in time order. The full demo-bar spec is in 2.5.
 
-Look A (D28) keeps this order and grid; the hero is now copy + next-up ticket + week strip on the left and the video
-box on the right (section 2.5), the header is brick with the logo plate, and the bands are `--band` brown, not navy.
+Look A (D28) keeps this order and grid; the header is brick with the logo plate, and the bands are `--band` brown, not navy.
+
+**Round 3 (D36, owner direction 2026-10-27), replaces the hero layout and the phone order above; the sketch below is older.**
+Cleaner and more concise, laid out like the owner's VFW and Riverside sites:
+- **Hero: full-bleed.** The photo/video fills the whole section width (`.phero-media` absolute, `object-fit: cover`,
+  position 50% 38-42%), `min-height: clamp(30rem, 72svh, 48rem)` on phones and `clamp(34rem, 78svh, 50rem)` from
+  900px. Dark in both themes (`color-scheme: dark`). Scrim: phones `to top` 0.94 > 0.8 (42%) > 0.38 (78%); from 900px
+  `90deg` 0.9 > 0.74 (36%) > 0.22 (68%) > 0.08, plus a bottom 0.5 > 0 (30%) so the strip sits on dark. Copy is white,
+  left, max 40rem: date (uppercase, 85% white), h1 `clamp(2.5rem, 1.3rem + 4.8vw, 5.25rem)` with a soft text-shadow,
+  sub (92% white), then the next-up ticket (glass: 10% white fill, 28% white border, accent left rule) and the primary
+  button. Copy is bottom-aligned on phones, centred from 900px.
+- **Hero strip** along the bottom (Riverside pattern): 72% black, `Free play all day...` left, `On screen: ...` caption
+  (from 768px) and the outlined Pause / Play pill right. The pause control is never inside the photo any more.
+- **Week strip** moves out of the hero to the top of "This week" (under the section head). Phone check: headline and
+  next up inside the first 844px, the strip within 220px of the hero's bottom.
+- **This week, wide screens:** day column 12rem; the start time sits above its cards (no third column); cards are two
+  even columns, a lone card keeps that width; days that are only one-line rows get the light header (2.6rem mark,
+  28px name). "Further out" shows 4 rows, each one line (`Fri 6 Nov` inline).
+- **Visit** is one card with three columns divided by hairlines: Hours | Find us (address, Directions, Call, parking +
+  "sign on the roof") | Good to know. The two storefront photos are gone from the front page.
+- **Between events** drops the dashed review placeholder.
 
 ```
 PHONE 360                                   DESKTOP 1280

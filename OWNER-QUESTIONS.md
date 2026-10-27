@@ -60,6 +60,8 @@ write the answer and date under the question and, if it changes a ruling, add an
     mostly close-ups of graded cards, so could you send 2-3 original clips (phone files, not reposts) of the room, the
     tables on a busy night and the shelves, ideally with no faces? We clean them up and upscale them for the site. Clips
     with customers (e.g. the Jan 2026 cEDH reel, a collab with a customer) need their OK too. Until then the site shows a photo.
+    **Round 3 (D36):** the hero now fills the whole screen width, so please film them **sideways (landscape), 1080p or
+    better**. The current loop is a 540 px wide phone reel and looks soft on a laptop or TV.
 
 ## Sign-ups (2026-10-27; D30)
 22. **How long to keep sign-up contact details (D30, owner-confirmable):** we picked 30 days after the event, then email,

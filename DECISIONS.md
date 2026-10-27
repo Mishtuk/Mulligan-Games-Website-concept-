@@ -418,3 +418,16 @@ fixes that change what they see there. Decoration and motion the spec already ru
 - **Next:** **A** keeps the `index.html` nav order (All events first) and adds nothing else. **C** adds the edge fade
   to `.site-nav` in `site.css` (a `mask-image` or pseudo-element gradient on the right, under 900px, hidden when the
   strip is at its end, no motion). Test at 360px: "All events" visible without scrolling.
+
+### D36. Round 3: cleaner, more concise layout; full-bleed hero (2026-10-27, owner)
+- **Owner (Mish):** "a little bit more cleaner, slicker, so things aren't just popping out and everything's just kind
+  of jumbled up... more concise and formatted better", laid out like the Warminster VFW site; the hero picture/video
+  "bigger along the whole screen... like the other websites" with the text "really visible above all else".
+  Formatting problems come before new features.
+- **Ruling:** the hero photo/video fills the full width under a dark scrim with white copy, and a strip along its bottom
+  carries free play, the caption and the pause control (VFW / Riverside pattern). The seven-day strip moves to the top
+  of "This week". On phones the headline and next up stay in the first screen; this replaces R1's "week strip before
+  the photo" order. Wide-screen week: no time column, two even card columns, light headers for one-line days, four
+  "Further out" rows. Visit becomes one three-column card. Spec: DESIGN.md 6 "Round 3".
+- **Why:** the owner's call; it matches the sites they already like and leaves fewer competing boxes on screen.
+- **Known gap:** the only loop is a 540px phone reel, soft at full width; Q21 now asks for landscape 1080p clips.

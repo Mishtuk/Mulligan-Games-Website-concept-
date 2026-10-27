@@ -90,11 +90,17 @@
   });
 
   /* ---------- A3 phone order ---------- */
-  pageTest('at 390 px the headline and the week strip are inside the first screen', 'index.html', function (w, d) {
-    var top = function (s) { return d.querySelector(s).getBoundingClientRect().top + w.scrollY; };
-    ok(top('#hero-h') < 600, 'h1 at ' + top('#hero-h')); ok(top('#deck') < 844, 'strip at ' + top('#deck'));
-    ok(top('#hero-media') > top('#deck'), 'the photo comes after the week strip');
+  // round 3 (D36): a full-bleed photo hero; tonight's headline and "next up" stay in the first screen, the week strip follows the hero
+  pageTest('at 390 px the headline and next up are inside the first screen, the week strip right after the hero', 'index.html', function (w, d) {
+    var box = function (s) { var r = d.querySelector(s).getBoundingClientRect(); return { top: r.top + w.scrollY, bottom: r.bottom + w.scrollY, width: r.width }; };
+    ok(box('#hero-h').top < 600, 'h1 at ' + box('#hero-h').top); ok(box('#nextup').bottom < 844, 'next up ends at ' + box('#nextup').bottom);
+    ok(box('#deck').top - box('.phero').bottom < 220, 'strip ' + (box('#deck').top - box('.phero').bottom) + ' px below the hero');
+    ok(box('#hero-media').width >= d.documentElement.clientWidth - 1, 'the photo spans the full width');
   }, 390);
+  pageTest('at 1280 px the hero photo spans the full width and the headline is white on the scrim', 'index.html', function (w, d) {
+    ok(d.querySelector('#hero-media').getBoundingClientRect().width >= d.documentElement.clientWidth - 1, 'full width');
+    eq(w.getComputedStyle(d.querySelector('#hero-h')).color, 'rgb(255, 255, 255)');
+  }, 1280);
 
   /* ---------- A9 sign-up in one step ---------- */
   pageTest('events.html#su-<key> opens the sign-up form with no detail dialog behind it', 'events.html?now=2026-10-28T16:00#su-pauper%402026-10-28', function (w, d) {

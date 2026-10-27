@@ -265,7 +265,7 @@
       if (seen[o.series.id]) { seen[o.series.id].more++; return; }
       seen[o.series.id] = { o: o, more: 0 }; list.push(seen[o.series.id]);
     });
-    list = list.slice(0, 6);
+    list = list.slice(0, 4); // round 3: the front page shows four; the events page has the rest
     $('#later').innerHTML = list.length ? list.map(function (x) {
       var o = x.o, d = MG.parseYmd(o.date);
       return '<li><p class="later-date" aria-hidden="true">' + MG.dayShort(d) + '<b>' + d.getDate() + '</b>' + MG.monthShort(d) + '</p>' +
