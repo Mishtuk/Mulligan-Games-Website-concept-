@@ -12,16 +12,15 @@ const KINDS = ['open', 'weekly', 'learn', 'cedh', 'prerelease', 'special'];
 const nonEmpty = (s) => typeof s === 'string' && s.trim().length > 0;
 const timeOrNull = (t) => t === null || t === undefined || isTime(t);
 
-test('store: facts are right and hours are unconfirmed', () => {
+test('store: facts are right and hours are set (D39)', () => {
   assert.equal(store.address.street, '445 York Rd'); // never 455
   assert.equal(store.phone, '(215) 789-3299');
   assert.match(store.closedNote, /Monday & Tuesday/);
   assert.match(store.parking, /RISE/);
   for (const k of ['facebook', 'instagram', 'tiktok', 'x']) assert.match(store.links[k], /^https:\/\//);
-  assert.equal(store.hours, null); // TODO Q2: owner must confirm
-  assert.match(store.hoursTodo, /Q2/);
-  assert.equal(store.hoursFallbackUnconfirmed.length, 7);
-  assert.match(store.hoursFallbackSource, /UNCONFIRMED/);
+  assert.equal(store.hours.length, 7); // Google hours, owner OK (D39)
+  assert.ok(store.hours.find((x) => x.day === 1).closed && store.hours.find((x) => x.day === 2).closed);
+  assert.match(store.hoursSource, /D39/);
   assert.ok(nonEmpty(store.source));
 });
 

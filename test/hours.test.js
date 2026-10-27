@@ -39,3 +39,11 @@ test('date overrides win: special hours and a holiday closure', () => {
   assert.equal(t.next.date, '2026-11-27');
   assert.equal(hoursFor(store, '2026-11-26').closed, true);
 });
+
+test('D39: with hours set, a day with no row is closed and never shown open', () => {
+  const store = { hours: [{ day: 5, open: '14:00', close: '22:00' }] }; // only Friday
+  assert.deepEqual([hoursFor(store, '2026-10-29').known, hoursFor(store, '2026-10-29').closed], [true, true]); // Thursday: no row
+  const st = openStatus(store, etNow('2026-10-29T15:00'));
+  assert.equal(st.open, false);
+  assert.equal(st.next.date, '2026-10-30'); // points at Friday, not "unknown"
+});

@@ -176,6 +176,8 @@ test('hostile titles, links and notes stay inert on every public page and file',
 });
 
 test('hours are not claimed while unknown: strip says so and no hours table or JSON-LD hours', async () => {
+  const cur = (await (await fetch(`${base}/api/admin/store`, { headers: { Cookie: cookie } })).json()).store;
+  assert.equal((await admin('PUT', 'store', { ...cur, hours: null })).status, 200); // the seed has hours now (D39); clear them
   const html = await text(`/?now=${NOW}`);
   assert.ok(html.includes('Hours coming soon.') && !html.includes('<table class="hours"') && !html.includes('openingHoursSpecification'));
 });

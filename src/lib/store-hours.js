@@ -1,5 +1,6 @@
 // Open now / hours for a date, from store facts (src/content/store.json shape). Pure, no Node imports.
-// store.hours = null means the owners have not confirmed hours (Q2): every function then answers { known: false } and callers say nothing about hours.
+// store.hours = null means no hours are set at all: every function then answers { known: false } and callers say nothing about hours.
+// With hours set, a day with no row is closed (D39): the site never shows a day as open without hours.
 // store.hours = [{ day: 0-6 (0 = Sunday), open: 'HH:MM', close: 'HH:MM' | '24:00' } | { day, closed: true }]; a close at or before the open runs past midnight.
 // store.hourOverrides = [{ date, closed?: true, open?, close?, note? }] (holidays, special hours); the override wins over the weekly row.
 import { addDays, dayMin, dow, toMin } from './clock.js';
@@ -10,7 +11,7 @@ export function hoursFor(store, ymd) {
   if (o) return { known: true, closed: !!o.closed || !o.open || !o.close, open: o.open ?? null, close: o.close ?? null, note: o.note ?? null, override: true };
   if (!Array.isArray(store?.hours)) return { known: false };
   const w = store.hours.find((x) => x.day === dow(ymd));
-  if (!w) return { known: false };
+  if (!w) return { known: true, closed: true, open: null, close: null, note: null, override: false }; // D39: no row = closed
   return { known: true, closed: !!w.closed || !w.open || !w.close, open: w.open ?? null, close: w.close ?? null, note: null, override: false };
 }
 
@@ -35,7 +36,7 @@ export function openStatus(store, now) {
   }
   for (let i = 0; i < 8; i++) {
     const ymd = addDays(now.ymd, i), s = span(store, ymd);
-    if (!hoursFor(store, ymd).known) return { known: true, open: false, today: todayH, next: null, laterUnknown: true }; // hours not set for that day: say nothing about later
+    if (!hoursFor(store, ymd).known) return { known: true, open: false, today: todayH, next: null, laterUnknown: true }; // no weekly hours at all (only special days): say nothing about later
     if (s && s.a > now.m) return { known: true, open: false, today: todayH, next: { date: ymd, hm: s.h.open, note: s.h.note } };
   }
   return { known: true, open: false, today: todayH, next: null };

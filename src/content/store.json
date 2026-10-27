@@ -9,9 +9,7 @@
   "freePlay": "Free play all day, every day we're open",
   "parking": "Do not park in the adjacent RISE lot; other adjacent lots are fine.",
   "kids": "Children are welcome at Pokemon Learn to Play.",
-  "hours": null,
-  "hoursTodo": "OWNER-QUESTIONS Q2: owner has not confirmed hours. Do not publish the fallback below as fact.",
-  "hoursFallbackUnconfirmed": [
+  "hours": [
     { "day": 0, "open": "13:00", "close": "22:00" },
     { "day": 1, "closed": true },
     { "day": 2, "closed": true },
@@ -20,7 +18,7 @@
     { "day": 5, "open": "14:00", "close": "24:00" },
     { "day": 6, "open": "14:00", "close": "24:00" }
   ],
-  "hoursFallbackSource": "UNCONFIRMED. Apple Maps + KeepUpCards, docs/research/mulligan-public.md 'Hours', checked 2026-10-26",
+  "hoursSource": "Google Maps listing 2026-10-27, owner OK to use (D39); a day with no row is closed",
   "links": {
     "facebook": "https://www.facebook.com/profile.php?id=100085975454414",
     "instagram": "https://www.instagram.com/mulligangames",

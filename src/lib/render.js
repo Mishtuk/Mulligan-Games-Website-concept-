@@ -439,7 +439,7 @@ export function events(ctx) {
         weeklyCount++;
         return { shown, nextNote, bit };
       }).filter(Boolean);
-    const closedDay = hoursFor(ctx.store, addDays(now.ymd, (d - todayDow + 7) % 7)).known && Array.isArray(ctx.store.hours) && !!ctx.store.hours.find((x) => x.day === d)?.closed;
+    const wk = hoursFor({ hours: ctx.store.hours }, addDays(now.ymd, (d - todayDow + 7) % 7)), closedDay = wk.known && wk.closed; // the weekly row, not one date's override
     if (!items.length) {
       if (closedDay && chip === 'all' && !format) off.push({ id: `wk-${d}`, name: DAYS[d] });
       else flushOff();

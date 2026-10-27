@@ -61,15 +61,15 @@ test('clean: phone is formatted, the tel link is built from it, a bad link can n
 });
 
 // ---------- the database ----------
-test('seedStore: copies store.json once, edits stay, hours stay null (owner Q2)', () => {
+test('seedStore: copies store.json once, edits stay, hours come from the file (D39)', () => {
   const db = openDb(':memory:');
   seedStore(db);
-  assert.equal(getStore(db).hours, null);
+  assert.deepEqual(getStore(db).hours, seed.hours);
   assert.equal(getStore(db).address.street, '445 York Rd');
   putStore(db, { ...getStore(db), parking: 'Changed' });
   seedStore(db); // a restart does not put the file back
   assert.equal(getStore(db).parking, 'Changed');
-  assert.equal(seed.hours, null);
+  assert.equal(seed.hours.length, 7);
 });
 
 // ---------- over HTTP ----------
@@ -111,7 +111,7 @@ test('API: signed-out is refused, writes without the site origin are refused (CS
   const r = await api('GET', 'store');
   assert.equal(r.status, 200);
   const j = await r.json();
-  assert.equal(j.store.hours, null);
+  assert.equal(j.store.hours.length, 7); // seeded from the file (D39)
   assert.ok(j.links.some(([k]) => k === 'discord'));
 });
 test('API: bad bodies are refused with per-field errors and nothing is saved; body size is capped', async () => {
@@ -129,6 +129,7 @@ test('API: bad bodies are refused with per-field errors and nothing is saved; bo
   assert.equal((await api('DELETE', 'store')).status, 404);
 });
 test('hours not set: the strip says so and nothing claims hours; JSON-LD has no opening hours', async () => {
+  assert.equal((await save({ hours: null })).status, 200); // the seed has hours now (D39)
   const html = await text(`/?now=${NOW}`);
   assert.ok(html.includes('Hours coming soon.') && !html.includes('openingHoursSpecification'));
 });
