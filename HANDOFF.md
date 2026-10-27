@@ -37,14 +37,55 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** (1) round 4 formatting polish (designer review `docs/review/round-4-formatting.md`, plan `docs/review/round-4-plan.md`): `prototype/`, `DESIGN.md`, `docs/review/`. (2) Owner-asked research, TCGplayer + TopDeck: `docs/research/tcgplayer-topdeck.md`. The Laptop has Node 24 (no gh/python): tests run headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** counter follow-ups done (D50). Next: P2.6 results and prizes. Nothing claimed.
+- **Laptop:** #16 front-page hero video like the VFW / Riverside sites (prototype side) + round 7 from the Desktop's
+  post-port findings: `prototype/`, `DESIGN.md`, `docs/review/`. The Laptop has Node 24 (no gh/python): tests run
+  headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
+- **Desktop:** handed off (owner, 2026-10-27 evening). Nothing claimed. When back: finish the hero montage encode
+  (#16, Desktop part), then P2.6 results and prizes.
 
-## Status (handoff, 2026-10-26)
-**P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;
-store video waits on owner clips (Q21).**
+**Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
+milestone push, not only at handoff. Sessions can end without warning.
 
-### Done
+## Status (handoff, 2026-10-27 evening, Desktop)
+**Build at ce96b00, 206 tests green. Live concept (GitHub Pages = `prototype/`) has rounds 1-6 + the VFW theme button.
+The real build (`src/`, `server.js`) has everything through round 6, the owner's warm welcome, inventory and
+preorders, and the counter follow-ups. Decisions run to D50; owner questions to Q27.**
+
+### Done since 2026-10-26 (newest first)
+- **Counter follow-ups (D50, 61c9754):** Undo for Move in, delete a mistaken walk-in (5 min, purged after), Run it
+  stored on the server per date.
+- **Clips from the shop (e9f7068, c43431c):** 9 store videos; 3 play our own AI-enhanced 720p copies from
+  `public/media/clips/`, 6 use TikTok's official player loaded only after a click in a sandboxed iframe (CSP
+  `frame-src https://www.tiktok.com` only, D49).
+- **Round 6 port + warm welcome (c43431c):** hero h1 "Welcome to Mulligan Games." + friendly lede, hours in the
+  eyebrow; store photos by game on This week (`src/lib/photos.js`).
+- **Theme button (D46, cbd5537; prototype 324d733):** the Warminster VFW round sun/moon button, bottom-right,
+  `src/components/ThemeFab.astro`, on every page and the admin.
+- **Inventory + preorders (P2.5, D41-D45, a041595):** stock ledger, low/short alerts, event stock use, preorders with
+  "Arrived: call these", CSV export, preorder contacts purged 30 days after close.
+- **Round 5 port (afe3d1e):** wide hero still from 900px, Google 4.9/81 row with 3 five-star quotes, cEDH fees and
+  turnout (`src/content/proof.json`), TCGplayer line. Real bug fixed: the phone hero never autoplayed.
+- **Hours (D39, abdee1e):** Google hours in `store.json`; a day with no row is closed.
+- **Media:** 32 shop photos from every Instagram post + carousel and Facebook (`docs/research/social-assets-2.md`);
+  15 Instagram reels saved locally; Real-ESRGAN AI upscaling (`tools/upscale-video.sh`, tool at `~/tools/realesrgan`,
+  owner OK); 1080x1920 masters in git-ignored `media/` (Desktop only).
+- **Earlier:** rounds 3-4 ports, event detail page, #14 look A + admin shell + P2.4b counter screens, P3.2 local checks
+  (Lighthouse 99/100, `docs/review/p3.2-checks.md`), Dependabot bumps (owner OK to apply when tests pass).
+
+### In progress / handed off
+- **#16 hero video (owner: "a video on the front page like the VFW and Riverside sites"):** Desktop wrote
+  `tools/hero-montage.sh` (8 shots: storefront sign, shop floor pan, cEDH tables, packed room pan, graded slabs over the
+  lit case, Warhammer pan, cEDH play, packed room pan; crossfades; loops back to the first frame). Masters build in
+  `media/` (Desktop only). Two shots still need a re-cut (see #16). Laptop: prototype side (video hero on every width
+  like VFW, posters = first frame, pause, reduced motion).
+- **P2.6 results and prizes:** next for the Desktop; asked the Laptop on #2 whether to spec the screens first.
+
+### Open
+- **Owner questions** in `OWNER-QUESTIONS.md` (Q21 original clips, Q22 sign-up retention, Q25-Q27 preorders/staff
+  access, Q4 POS). Answered recently: D39 (hours, reviews, player counts, T-shirt only if for sale).
+- **Mail alerts:** `MULLIGAN_MAIL_USER/PASS` not set on the Desktop, so board posts send no email.
+
+### Done (2026-10-26 and before)
 - **Team setup** (2cdf876): `BRIEF.md` (the goal), agents in `.claude/agents/` (boss opus/high, designer opus/high,
   coder sonnet/high, researcher sonnet/medium, mediator haiku/low). When a session runs from the home folder these
   agents don't load: spawn `general-purpose` with "follow `.claude/agents/<role>.md`" and the role's model/effort.
@@ -62,17 +103,7 @@ store video waits on owner clips (Q21).**
   `OWNER-QUESTIONS.md`.
 - **P2.1 server base** (Desktop, 7123e6d): see Phase 2 status below.
 
-### In progress
-- **P1.1 designer (Laptop):** `DESIGN.md` + `prototype/` (index.html, tokens/site css, `data/sample.js` with the real
-  schedule). Not committed yet. Next: P1.2 prototype of events page and admin (Today / check-in, events, inventory),
-  then P1.3 designer review and sign-off. Post on #2 when signed off; that unblocks P2.2 onward.
-- **#9 content seed: done.** `src/content/` (store, games, 22 series, 2 preorders), every entry sourced, unsourced facts null + `todo`; `test/content.test.js` (https-only links). Recurrence model ruled in D15.
-
-### Open
-- **Owner questions** (`OWNER-QUESTIONS.md`): hours, POS in use, 40k league app, online payment, logo / photo
-  permission, which Discord, hosting. Facebook images can't be downloaded, so the concept uses a placeholder
-  wordmark until the owners supply a logo.
-- **PRs #6-8:** Dependabot bumps (astro, codeql) from the ported base; the Desktop merges them when tests pass.
+- **#9 content seed** (`src/content/`, every entry sourced; recurrence model D15). P1 concept signed off (P1.3).
 
 ### Plugins (Laptop, user scope)
 `frontend-design` and `modern-web-guidance` (claude-plugins-official). Playwright skipped (needs Node).
@@ -89,11 +120,12 @@ After re-arming, read #2's latest comments by hand.
   (cookieless visits), `src/forms.js` (public-form guard with honeypot, for P2.4), `src/lib/state.js` (cleaning helpers,
   `occurrences()` / `expand()` recurrence, markers), `scripts/backup.mjs` / `restore.mjs`, `.github/workflows/checks.yml`
   (tests, npm audit, CodeQL) and `.github/dependabot.yml`.
-- **Pages:** `/` is a placeholder; `/admin` has sign-in, Dashboard (visits, pages, referrers, security summary), Security
-  log and Account (change password). No events, sign-ups, inventory, store facts or public UI yet (P2.2 onward).
+- **Pages now (2026-10-27):** `/` (welcome hero, This week, cEDH, preorders, visit, clips, reviews), `/events/` and a
+  page per date, `/new-here/`, `/privacy/`, `/signup/<token>`, `.ics` feeds, `sitemap.xml`; `/admin` with Today,
+  roster/check-in, Events editor, Stock, Preorders, Store info, Dashboard, Security log, Account.
 - **Left behind from VFW:** hall, inquiries, bar/taps/menu/specials, news, honor, shop, volunteers, help requests, site
   settings, TV, feeds, hero/event photos, email (nodemailer), Post details + site rebuild (`site-build.js`, `post.js`).
   Copy those from VFW when a task needs them (store facts editing needs `site-build.js` + `post.js` + `content.js`).
-- **Run tests:** `npm install && npm test` (41 tests, Node 22.13+). Build: `npm run build`. Serve: `node server.js`.
+- **Run tests:** `npm install && npm test` (206 tests, Node 22.13+). Build: `npm run build`. Serve: `node server.js`.
 - **Local admin:** `ALLOW_DEFAULT_ADMIN=1 DATA_DIR=<temp folder> PORT=<free port> node server.js` after a build, then
   `/admin` with admin / admin (testing only; production refuses it). Stop that server by its PID, never all node.
