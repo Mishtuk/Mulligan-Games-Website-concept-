@@ -33,7 +33,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** #12 (`DESIGN.md` hero video section, `docs/owner-pack.md`, `docs/review/p2.3b-laptop-review.md`, `docs/review/p2.4-prep.md`).
+- **Laptop:** nothing claimed (#12 done).
 - **Desktop:** out of usage (2026-10-26, claims released). Resumes with #11 (needs Node), then P2.4. Laptop: #12.
 
 ## Status (handoff, 2026-10-26)
