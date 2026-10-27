@@ -101,7 +101,7 @@ body:has(.savebar) { --toast-bottom: 7rem; }
 .evb { display: grid; gap: .1rem; min-width: 9rem; max-width: 15rem; min-height: var(--tap-admin); padding: .4rem var(--s3) .5rem; text-align: left; border: 2px solid var(--line); border-top: 3px solid var(--gc, var(--g-other)); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
 .evb:hover { border-color: var(--ink); border-top-color: var(--gc, var(--g-other)); }
 .evb[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); border-top-color: var(--gc, var(--g-other)); }
-.evb-t { font-weight: 800; font-size: var(--t-sm); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.evb-t { font-weight: 800; font-size: var(--t-sm); line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; }
 .evb-t b { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 1.15rem; margin-right: .4rem; }
 .evb-c { font-size: var(--t-xs); font-weight: 650; opacity: .85; }
 @media (min-width: 1024px) { .evsel { margin-inline: 0; padding-inline: 0; flex-wrap: wrap; overflow: visible; } }
@@ -180,7 +180,7 @@ details.off > summary { display: flex; align-items: center; min-height: 3rem; fo
 .counter { display: grid; gap: var(--s3); }
 .cnt { display: flex; align-items: center; gap: var(--s4); }
 .cnt-n { min-width: 4ch; text-align: center; font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.stepper { display: grid; place-items: center; width: 4.25rem; height: 4.25rem; border-radius: var(--r-ctl); border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; padding: 0; }
+.stepper { display: grid; place-items: center; width: 4.25rem; height: 4.25rem; border-radius: var(--r-ctl); border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; padding: 0; flex: none; }
 .stepper:hover { border-color: var(--ink); background: var(--surface-2); }
 .stepper svg { width: 1.6rem; height: 1.6rem; stroke-width: 2.6; }
 dialog.ask { border: 1px solid var(--line-strong); border-radius: var(--r-card); padding: var(--s5); max-width: 28rem; width: calc(100vw - 2rem); background: var(--surface); color: var(--ink); }

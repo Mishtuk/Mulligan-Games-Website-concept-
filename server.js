@@ -143,8 +143,10 @@ function resolveFile(pathname) {
 }
 function notFound(nreq, nres, url) {
   const f = join(DIST, '404.html');
-  const body = existsSync(f) ? readFileSync(f) : undefined;
-  nres.writeHead(404, { ...baseHeaders(url, body?.toString('utf8')), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }); // hashes the 404 page's own inline scripts
+  let body = existsSync(f) ? readFileSync(f) : undefined;
+  const tpl = body?.toString('utf8');
+  if (tpl) { try { body = Buffer.from(injectMarkers(tpl, getState(db), etDay(), liveParts(url))); } catch (e) { log('inject failed, serving the static 404', e.message); } } // opening hours and the open-now strip, like any page
+  nres.writeHead(404, { ...baseHeaders(url, tpl), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' }); // hashes the 404 page's own inline scripts
   nres.end(nreq.method === 'HEAD' ? undefined : body);
 }
 async function serveStatic(nreq, nres, url) {

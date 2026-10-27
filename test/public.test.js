@@ -14,6 +14,7 @@ const frame = (inner) => `<!doctype html><html><head><!--mg:head--><title>t</tit
 put('', frame('<main><!--mg:hero--><!--/mg:hero--><!--mg:week--><!--/mg:week--><!--mg:cedh--><!--/mg:cedh--><ul><!--mg:releases--><!--/mg:releases--></ul><!--mg:hours--><!--/mg:hours--></main>'));
 put('events', frame('<main><!--mg:events--><!--/mg:events--></main>'));
 put('new-here', frame('<main><!--mg:nights--><!--/mg:nights--></main>'));
+writeFileSync(join(dist, '404.html'), frame('<main><!--mg:hours--><!--/mg:hours--></main>'));
 put('event-page', frame('<main><!--mg:event--><!--/mg:event--></main>'));
 
 const FNM = { id: 'fnm', title: 'Draft FNM', game: 'magic', format: 'Draft', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', end: '23:00', fee: 20, signup: 'walkin' };
@@ -57,6 +58,11 @@ test('a date page shows the event, JSON-LD and the date link works', async () =>
   assert.equal((await get('/event-page/')).status, 404); // the template is not a page
 });
 
+test('the 404 page gets the live hours', async () => {
+  const res = await get('/no-such-page'), html = await res.text();
+  assert.equal(res.status, 404);
+  assert.ok(!html.includes('mg:hours') && !html.includes('baked'), 'markers filled');
+});
 test('bad ids, dates and test clocks give a titled 404, never a 500, a reflection or an off-site redirect; CSP hashes come from the template', async () => {
   for (const d of ['2026-13-45', '2026-13-45T19:00', '2026-02-30', '9999-12-31', '0000-01-01', 'x'.repeat(5000), '<script>alert(7)</script>']) {
     const res = await get(`/events/fnm?date=${encodeURIComponent(d)}`), html = await res.text();

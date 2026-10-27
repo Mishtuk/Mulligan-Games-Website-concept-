@@ -31,3 +31,7 @@ test('injectMarkers logs a failing marker (name and error) and leaves the static
   try { assert.equal(injectMarkers('<!--mg:boom-->x<!--/mg:boom-->', {}, '2026-10-26', { boom: () => { throw new Error('bad data'); } }), '<!--mg:boom-->x<!--/mg:boom-->'); } finally { console.error = was; }
   assert.ok(logged.length === 1 && logged[0].includes('mg:boom') && logged[0].includes('bad data'));
 });
+
+test('injectMarkers joins a list of parts with nothing between them (no stray commas)', () => {
+  assert.equal(injectMarkers('<ul><!--mg:l--></ul>', {}, '2026-10-19', { l: () => ['<li>a</li>', '<li>b</li>'] }), '<ul><li>a</li><li>b</li></ul>');
+});

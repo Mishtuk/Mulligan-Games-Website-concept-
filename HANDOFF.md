@@ -38,7 +38,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** #13 + owner redesign (calmer palette, photos, visible light/dark switch): `prototype/`, `DESIGN.md`, `docs/review/live-concept-review.md`, `source/social/` (local).
-- **Desktop:** #14 round-2 port, non-layout only (counter screens, 404, print CSS, JSON-LD fixes, sign-up confirmation R17): `src/pages/admin.astro`, `src/styles/admin.css`, `src/pages/404.astro`, `src/lib/jsonld.js`, `src/lib/render.js` (sign-up reply only), `server.js`, `test/`. Front/events layout + hero held for Laptop round 3. Also auditing public-page formatting (screenshots, no file edits).
+- **Desktop:** #14 round-2 non-layout port done. Waiting for Laptop round 3 (front/events layout, full-bleed hero, public print rules, D33 bar, D34 nav). Nothing claimed.
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;

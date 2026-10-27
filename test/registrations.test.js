@@ -418,6 +418,7 @@ test('HTTP: sign up until the waitlist, see the reply, cancel by link, watch the
   assert.ok(pa.t.includes('<meta name="robots" content="noindex">'));
   assert.ok(/You.re in\.<\/strong> 1 of 2 seats are taken for Draft FNM, Friday, November 6 at 7.PM\. Pay \$20 at the store when you arrive\./.test(pa.t));
   assert.ok(/Arrive by 6:50.PM or your seat goes to the next person on the waitlist\./.test(pa.t));
+  assert.equal(pa.t.split('at the store when you arrive').length - 1, 1, 'R17: exactly one payment phrase');
   assert.ok(pa.t.includes('Keep this link') && pa.t.includes(`https://mg.example/signup/${ta}`) && pa.t.includes('Cancel my seat'));
   const b = tokenOf(await form('fnm', jn('Bob'))), c = await form('fnm', jn('Cat'), { now: NOW }), tc = tokenOf(c), d = tokenOf(await form('fnm', jn('Dee')));
   const pc = await mine(tc);

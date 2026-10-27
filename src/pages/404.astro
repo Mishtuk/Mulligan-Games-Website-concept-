@@ -1,13 +1,18 @@
 ---
 import Base from '../components/Base.astro';
+import store from '../content/store.json';
+import { safeUrl } from '../lib/events.js';
+const a = store.address, tel = safeUrl(store.phoneHref);
+const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
 ---
 <Base title="Page not found | Mulligan Games" description="That page isn't here." skip="#main" skipLabel="Skip to the message">
   <main id="main">
     <div class="wrap dp-wrap">
       <div class="empty lattice" role="note">
         <h1 class="empty-h">We couldn’t find that page.</h1>
-        <p>Try the events list, or the front page.</p>
-        <p class="visit-acts"><a class="btn btn-act" href="/events/">See all events</a><a class="btn btn-2" href="/">Front page</a></p>
+        <p>Try the events list, or the front page. Or come by or call.</p>
+        <Fragment set:html={`<!--mg:hours--><!--/mg:hours-->`} />
+        <p class="visit-acts"><a class="btn btn-act" href="/events/">See all events</a><a class="btn btn-2" href="/">Front page</a>{tel && <a class="btn btn-2" href={tel}>Call {store.phone}</a>}<a class="btn btn-2" href={maps} target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
       </div>
     </div>
   </main>
