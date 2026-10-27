@@ -7,7 +7,7 @@ write the answer and date under the question and, if it changes a ruling, add an
 ## Store facts (block P3.1 content and any public deploy)
 1. **Address: settled, 445 York Rd** (Facebook About page, 2026-10-26; the Wizards locator's "455" is a typo the owners may want fixed there). Only confirm it if anything changed.
    Whichever it is, should the other listings be corrected?
-2. **Hours:** are Wed-Thu 2-10 PM, Fri-Sat 2 PM-midnight, Sun 1-10 PM, closed Mon-Tue still right? Any holiday closures
+2. **Hours:** are Wed-Thu 2-10 PM, Fri-Sat 2 PM-midnight, Sun 1-10 PM, closed Mon-Tue still right? (Google Maps shows the same, 2026-10-27.) Any holiday closures
    coming up?
 3. **Contact and links:** is mulligangames455@gmail.com the public email? Which Discord invite is current
    (discord.gg/YJAW4aTwaZ or discord.gg/uVbJ5frYRY)? Instagram handle? Is Spicerack still used? Is the TCGplayer seller
@@ -68,3 +68,8 @@ write the answer and date under the question and, if it changes a ruling, add an
     phone and player ID are deleted and the name shrinks to initials (counts and no-show totals stay); backups hold them up
     to 7 more days. Longer helps if you call people about a lost item or a result fix; shorter is kinder. Keep 30, or say
     a number. Blocks nothing; it is one setting (`RETENTION_DAYS`) and the privacy page follows it.
+
+## Reviews and found facts (2026-10-27; `docs/research/social-assets-2.md`)
+23. **Google review quotes:** the store has 4.9 stars from 81 Google reviews. OK to show "4.9 on Google, 81 reviews" plus
+    3 short quotes (first name + initial, linked to Google) on the front page? The research doc has a shortlist of 6.
+24. **Store T-shirt:** is it for sale? If yes, one line in the Shop section.
