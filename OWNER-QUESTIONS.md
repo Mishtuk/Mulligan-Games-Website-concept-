@@ -54,3 +54,9 @@ write the answer and date under the question and, if it changes a ruling, add an
     run any of them, or plan to? Decides which game chips are switched on (D14).
 20. **"New here?" page:** kids / age rule, loaner or precon decks to borrow, house rules or code of conduct, and which
     trade-ins you buy (and when to bring them). Blocks the page's text in P2.3 / P3.1.
+
+## Front-page video (2026-10-26; `docs/research/store-videos.md`)
+21. **A short shop video:** the site can open with a 10-15 second muted loop of the shop and tables. Your posted videos are
+    mostly close-ups of graded cards, so could you send 2-3 original clips (phone files, not reposts) of the room, the
+    tables on a busy night and the shelves, ideally with no faces? We clean them up and upscale them for the site. Clips
+    with customers (e.g. the Jan 2026 cEDH reel, a collab with a customer) need their OK too. Until then the site shows a photo.
