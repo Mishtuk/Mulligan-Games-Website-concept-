@@ -31,12 +31,12 @@ export function cedhLive({ store }) {
 /** The whole Visit block: hours table, address, parking, good to know, and the room photo when one is chosen. */
 export function visit(ctx) {
   const { store } = ctx, a = addr(store), t = tel(store), photo = store.photo;
-  return h`<div class="wrap visit-in${photo ? '' : ' no-photo'}"><div class="visit-hours"><h2 id="visit-h">Visit</h2>${hours(ctx)}</div>
+  return h`<div class="wrap visit-in"><div class="visit-hours"><h2 id="visit-h">Visit</h2>${hours(ctx)}</div>
 <div class="visit-where"><h3>Find us</h3><address>${a.street}<br>${a.city}, ${a.region} ${a.zip}</address>
 <p class="visit-acts"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>${t ? h`<a class="btn btn-2" href="${t}">${icon('phone')}${store.phone}</a>` : ''}</p>
 ${store.parking ? h`<p><strong>Parking:</strong> ${store.parking}</p>` : ''}<h3>Good to know</h3>
 <dl class="faq"><dt>New here?</dt><dd><a href="/new-here/">Start here.</a> What to expect and which nights are good for a first visit.</dd>${store.kids ? h`<dt>Can kids come?</dt><dd>${store.kids}</dd>` : ''}${store.freePlay ? h`<dt>Can I just come and play?</dt><dd>${store.freePlay}.</dd>` : ''}<dt>How do preorders work?</dt><dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd></dl></div>
-${photo ? h`<figure class="photo has-img"><img src="${`/media/photos/${encodeURIComponent(photo)}`}" alt="${store.photoAlt ?? ''}" loading="lazy"></figure>` : ''}</div>`;
+${photo ? h`<figure class="photo has-img"><img src="${`/media/photos/${encodeURIComponent(photo)}`}" alt="${store.photoAlt ?? ''}" loading="lazy"></figure>` : h`<div class="visit-pics"><figure class="vp-front"><img src="/media/video/storefront-exterior-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="The Mulligan Games storefront: brick front, glass door and the sign on the roof"></figure><figure class="vp-sign"><img src="/img/social/storefront-sign-roof.webp" width="398" height="398" loading="lazy" decoding="async" alt="The Mulligan Games sign on the roof against a blue sky"></figure><p class="vp-note">Look for the sign on the roof. The door is right below it.</p></div>`}</div>`;
 }
 /** "Between events": the Discord invite (or the follow line) and the social links. */
 export function discord({ store }) {

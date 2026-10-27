@@ -18,9 +18,22 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
   <Fragment slot="head"><Fragment set:html="<!--mg:shop-ld-->" /></Fragment>
   <main id="main">
     <!-- 2. Hero: the store's own flyer, made live -->
-    <section class="hero" aria-labelledby="hero-h">
-      <div class="wrap hero-in">
-        <Fragment set:html={`<!--mg:hero--><div class="hero-copy"><h1 class="hero-h" id="hero-h">Card and game nights every week in Warminster.</h1></div><!--/mg:hero-->`} />
+    <!-- 2. Hero: the room on a cEDH night (poster first, loop after load; site.js), then what's on (live) -->
+    <section class="phero" aria-labelledby="hero-h">
+      <div class="wrap phero-in">
+        <div class="phero-media" id="hero-media">
+          <img src="/media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Players at the cEDH tables in the Mulligan Games play room" fetchpriority="high" />
+          <video id="hero-video" muted loop playsinline preload="none" poster="/media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" aria-hidden="true" tabindex="-1">
+            <source src="/media/video/cedh-players-tables-loop.mp4" type="video/mp4" />
+            <source src="/media/video/cedh-players-tables-loop.webm" type="video/webm" />
+          </video>
+          <p class="media-cap">cEDH night at the shop</p>
+          <button class="vid-btn" id="vid-btn" type="button" data-paused>
+            <Icon name="pause" class="i-pause" /><Icon name="play" class="i-play" />
+            <span id="vid-label">Play video</span>
+          </button>
+        </div>
+        <Fragment set:html={`<!--mg:hero--><div class="phero-copy"><h1 class="phero-h" id="hero-h">Card and game nights every week in Warminster.</h1></div><!--/mg:hero-->`} />
       </div>
     </section>
 
@@ -35,12 +48,29 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
       </div>
     </section>
 
+    <!-- 3b. Inside the shop: the store's own photos (D27) -->
+    <section class="sec shop" id="shop" aria-labelledby="shop-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="shop-h">Inside the shop</h2>
+          <p class="sec-note">A play room full of tables, a singles case and a crew who know the formats.</p>
+        </div>
+        <ul class="shots">
+          <li class="shot shot-banner"><figure><img src="/img/social/interior-welcome-banner.webp" width="960" height="720" loading="lazy" decoding="async" alt="A Welcome to Mulligan Games banner over the doorway into the play room" /><figcaption>Through this door: the play room</figcaption></figure></li>
+          <li class="shot shot-case"><figure><img src="/img/social/singles-display-case.webp" width="480" height="640" loading="lazy" decoding="async" alt="A lit glass case full of single cards" /><figcaption>The singles case</figcaption></figure></li>
+          <li class="shot shot-corgi"><figure><img src="/img/social/staff-corgi-interior.webp" width="512" height="640" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding a corgi, game posters behind" /><figcaption>Staff, and a corgi</figcaption></figure></li>
+          <li class="shot shot-crew"><figure><img src="/img/social/staff-group.webp" width="640" height="480" loading="lazy" decoding="async" alt="Five Mulligan Games staff at the counter" /><figcaption>The Mulligan crew</figcaption></figure></li>
+        </ul>
+      </div>
+    </section>
+
     <!-- 4. cEDH strip (D4) -->
     <section class="cedh" id="cedh" aria-labelledby="cedh-h">
       <div class="wrap cedh-in">
         <div class="cedh-copy">
           <h2 id="cedh-h">cEDH at Mulligan</h2>
           <p class="cedh-lede">A monthly Championship Series, 5K weekends and a November invitational. Forty to 120 players an event, and a dual land on the line every month.</p>
+          <figure class="cedh-photo"><img src="/media/video/cedh-monthly-event-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="Close-up of a cEDH game at Mulligan: playmats, sleeved decks and cards in play" /></figure>
           <dl class="cedh-facts">
             <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
             <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
@@ -71,7 +101,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
     <!-- 6. Visit -->
     <section class="sec visit" id="visit" aria-labelledby="visit-h">
       <Fragment set:html="<!--mg:visit-->" />
-      <div class="wrap visit-in no-photo">
+      <div class="wrap visit-in">
         <div class="visit-hours">
           <h2 id="visit-h">Visit</h2>
           <Fragment set:html={`<!--mg:hours--><p>We’re confirming our opening hours. Call us for today’s hours.</p><!--/mg:hours-->`} />
@@ -94,6 +124,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
             <dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd>
           </dl>
         </div>
+        <div class="visit-pics"><figure class="vp-front"><img src="/media/video/storefront-exterior-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="The Mulligan Games storefront: brick front, glass door and the sign on the roof"></figure><figure class="vp-sign"><img src="/img/social/storefront-sign-roof.webp" width="398" height="398" loading="lazy" decoding="async" alt="The Mulligan Games sign on the roof against a blue sky"></figure><p class="vp-note">Look for the sign on the roof. The door is right below it.</p></div>
       </div>
       <Fragment set:html="<!--/mg:visit-->" />
     </section>

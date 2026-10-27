@@ -12,8 +12,8 @@
     <meta name="robots" content="noindex, nofollow" />
     <title>Admin | Mulligan Games</title>
     <style is:global>
-      :root { --night: #16161d; --on-dark: #eeeef4; --accent: #b9b2ff; --paper: #ececf1; --card: #fafafc; --stone: #dedee6; --ink: #1d1d26; --ink-2: #4a4a58; --field: #5a5a6a; --line: rgb(29 29 38 / .18);
-        --gold-ink: #6a521d; --warn-bg: #f3e7c6; --red-ink: #8a2328; --bad-bg: #f4dedb; --olive: #3f5a2b; --ok-bg: #e2ead6; --edit: #24405f; --edit-bg: #dfe6ee; }
+      :root { --night: #26211D; --on-dark: #F5EFE4; --accent: #9DB8F2; --paper: #F5EFE4; --card: #FFFCF6; --stone: #EEE5D6; --ink: #2B211C; --ink-2: #5F5047; --field: #8D7C6D; --line: rgb(43 33 28 / .18);
+        --gold-ink: #8A5300; --warn-bg: #FFF3D6; --red-ink: #A3291B; --bad-bg: #F8E4DE; --olive: #1C6B3F; --ok-bg: #E3F4EA; --edit: #244C8F; --edit-bg: #E3EBF7; }
       * { box-sizing: border-box; }
       body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
       h1, h2, .num { font-weight: 700; }
@@ -34,14 +34,14 @@
       .side nav, .tail { display: grid; gap: 2px; }
       .tail { margin-top: auto; padding-top: 1rem; }
       .side a:not(.wordmark), .side .linkbtn, .mnav a, .mnav .linkbtn { display: flex; align-items: center; gap: .7rem; min-height: 52px; padding: 0 .8rem; border-radius: 6px; font: 600 1.05rem/1.2 system-ui, sans-serif; color: var(--on-dark); text-decoration: none; position: relative; width: 100%; background: none; border: 0; cursor: pointer; text-align: left; }
-      .side a:hover, .side .linkbtn:hover, .mnav a:hover, .mnav .linkbtn:hover { background: rgb(238 238 244 / .08); }
-      a[aria-current='page'] { background: rgb(185 178 255 / .16); color: var(--accent) !important; }
+      .side a:hover, .side .linkbtn:hover, .mnav a:hover, .mnav .linkbtn:hover { background: rgb(245 239 228 / .08); }
+      a[aria-current='page'] { background: rgb(157 184 242 / .16); color: var(--accent) !important; }
       a[aria-current='page']::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; background: var(--accent); border-radius: 2px; }
       .linkbtn { text-decoration: underline; }
 
       .main { padding: 1.5rem; max-width: 60rem; width: 100%; min-width: 0; }
       .banner { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; background: var(--bad-bg); color: var(--red-ink); font-weight: 700; border-radius: 6px; padding: .8rem 1rem; margin-bottom: 1.25rem; }
-      .card { background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(29 29 38 / .12); }
+      .card { background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(43 33 28 / .12); }
       .head { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
       .head h1 { margin: 0; }
       .meta, .hint { color: var(--ink-2); font-size: .95rem; }
@@ -77,7 +77,7 @@
       .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
       ul.rank { list-style: none; margin: 0; padding: 0; }
       ul.rank li { position: relative; display: flex; justify-content: space-between; gap: 1rem; align-items: center; min-height: 44px; padding: 0 .5rem; }
-      ul.rank .bg { position: absolute; left: 0; top: 4px; bottom: 4px; background: rgb(74 74 88 / .14); border-radius: 4px; }
+      ul.rank .bg { position: absolute; left: 0; top: 4px; bottom: 4px; background: rgb(95 80 71 / .14); border-radius: 4px; }
       ul.rank .nm, ul.rank .ct { position: relative; } ul.rank .ct { font-variant-numeric: tabular-nums; font-weight: 700; }
 
       .ev { display: flex; gap: .85rem; align-items: flex-start; min-height: 56px; padding: .6rem 0; border-top: 1px solid var(--line); }
@@ -92,7 +92,7 @@
       .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--night); color: var(--on-dark); padding: .5rem .5rem .5rem 1.25rem; border-radius: 6px; z-index: 20; display: flex; gap: .75rem; align-items: center; min-height: 48px; max-width: calc(100vw - 2rem); }
       .toast button { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; min-height: 48px; padding: 0 .75rem; cursor: pointer; text-decoration: underline; }
       dialog.ask { border: 0; border-radius: 6px; padding: 1.5rem; max-width: 28rem; width: calc(100vw - 2rem); background: var(--card); color: var(--ink); }
-      dialog.ask::backdrop { background: rgb(22 22 29 / .6); }
+      dialog.ask::backdrop { background: rgb(38 33 29 / .6); }
       textarea { resize: vertical; }
       .lbl { font-weight: 600; margin: 0; }
       .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -113,7 +113,7 @@
       .gtile:hover, .tpl:hover { border-color: var(--night); background: var(--stone); }
       .tpls { display: grid; gap: .6rem; margin-bottom: 1.25rem; } .tplrow { display: flex; gap: .6rem; align-items: stretch; flex-wrap: wrap; } .tplrow .tpl { flex: 1 1 18rem; width: auto; }
       .eform { padding-bottom: 5rem; }
-      .fgroup { border: 0; background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(29 29 38 / .12); min-width: 0; }
+      .fgroup { border: 0; background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(43 33 28 / .12); min-width: 0; }
       .fgroup legend { font-weight: 700; font-size: 1.15rem; float: left; width: 100%; padding: 0; margin: 0 0 .75rem; }
       .fgrid { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
       .fgrid > .wide, .fgrid .fld.wide { grid-column: 1 / -1; } .fgrid > .say { grid-column: 1 / -1; }
@@ -137,7 +137,7 @@
       .main:has(.ewrap) { max-width: 82rem; }
       .ewrap { display: grid; gap: 0 1.25rem; align-items: start; } .ewrap .savebar { margin: 0 0 -5rem; }
       @media (min-width: 1100px) { .ewrap { grid-template-columns: minmax(0, 1fr) 24rem; } .ewrap > .pv { position: sticky; top: 1rem; } }
-      .pv { background: var(--card); border-radius: 6px; padding: .25rem 1rem 1rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(29 29 38 / .12); }
+      .pv { background: var(--card); border-radius: 6px; padding: .25rem 1rem 1rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(43 33 28 / .12); }
       .pv summary { cursor: pointer; font-weight: 700; min-height: 56px; display: flex; align-items: center; }
       .pv iframe { width: 100%; height: 22rem; border: 0; display: block; color-scheme: light; }
       details.srow { border-left: 6px solid var(--gc, var(--stone)); padding-left: .75rem; }

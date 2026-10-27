@@ -222,7 +222,7 @@ function liveParts(url, more = {}) {
   const ctx = () => (c ??= publicCtx(url));
   const script = (obj) => view.h`<script type="application/ld+json">${view.safe(ldScript(obj))}</script>`;
   return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), cedh: () => view.cedh(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
-    events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(ctx().store, PUBLIC_URL)),
+    events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(ctx().store, PUBLIC_URL)), origin: () => view.h`${PUBLIC_URL}`,
     bar: () => facts_view.bar(ctx()), 'foot-addr': () => facts_view.footAddr(ctx()), socials: () => facts_view.socials(ctx()), 'cedh-live': () => facts_view.cedhLive(ctx()), visit: () => facts_view.visit(ctx()), discord: () => facts_view.discord(ctx()),
     'nh-toc': () => facts_view.nhToc(ctx()), 'nh-free': () => facts_view.nhFree(ctx()), 'nh-kids': () => facts_view.nhKids(ctx()), 'nh-here': () => facts_view.nhHere(ctx()), 'nh-ask': () => facts_view.nhAsk(ctx()), 'nh-directions': () => facts_view.nhDirections(ctx()),
     ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
@@ -263,7 +263,7 @@ function eventDoc(url, id, dateParam, timeParam, form = {}) {
   if (!o) return page(404, view.eventMissing(ctx, s));
   const st = seatState(o, ctx.now.m, ctx.counts.get(`${o.seriesId}|${o.slot}`)), abs = PUBLIC_URL + view.eventPath(o), ld = eventLd(o, st, store, abs);
   const desc = `${o.title} at ${store.name} in ${store.address.city}, ${store.address.region} on ${view.fmtLong(o.date)}. ${view.timeLine(o)}.`;
-  const head = view.h`<title>${`${o.title}, ${view.fmtLong(o.date)}${o.cancelled ? ' (cancelled)' : ''} | ${store.name}`}</title><meta name="description" content="${desc}"><link rel="canonical" href="${abs}">${ld ? view.h`<script type="application/ld+json">${view.safe(ldScript(ld))}</script>` : ''}`;
+  const head = view.h`<title>${`${o.title}, ${view.fmtLong(o.date)}${o.cancelled ? ' (cancelled)' : ''} | ${store.name}`}</title><meta name="description" content="${desc}"><link rel="canonical" href="${abs}"><meta property="og:title" content="${`${o.title}, ${view.fmtLong(o.date)}`}"><meta property="og:description" content="${desc}"><meta property="og:url" content="${abs}">${ld ? view.h`<script type="application/ld+json">${view.safe(ldScript(ld))}</script>` : ''}`;
   return page(200, view.eventPage(ctx, o, form), head);
 }
 function eventPage(nreq, nres, url, id) {

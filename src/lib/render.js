@@ -218,17 +218,16 @@ export function hero(ctx) {
   let next = '';
   if (slot) {
     const shown = slot.items.slice(0, 2).map((o) => o.title), more = slot.items.length - shown.length, rel = relDay(slot.date, now.ymd);
-    next = h`<a class="nextup" id="nextup" href="#d-${slot.date}"><span class="nextup-dia" aria-hidden="true"></span><span class="nextup-in"><span class="nextup-k">${slot.on ? 'On now' : rel === 'today' ? 'Next up' : `Next up ${rel}`}</span><span class="nextup-time">${fmtTime(slot.start)}</span><span class="nextup-what">${shown.join(', ')}${more ? ` and ${more} more` : ''}</span></span></a>`;
-  } else next = h`<a class="nextup" id="nextup" href="#week"><span class="nextup-dia" aria-hidden="true"></span><span class="nextup-in"><span class="nextup-k">Next up</span><span class="nextup-time">Soon</span><span class="nextup-what">See this week</span></span></a>`;
+    next = h`<a class="next" id="nextup" href="#d-${slot.date}"><span class="next-time">${fmtTime(slot.start)}</span><span class="next-in"><span class="next-k">${slot.on ? 'On now' : rel === 'today' ? 'Next up' : `Next up ${rel}`}</span><span class="next-what">${shown.join(', ')}${more ? ` and ${more} more` : ''}</span></span></a>`;
+  } else next = h`<a class="next" id="nextup" href="#week"><span class="next-time">Soon</span><span class="next-in"><span class="next-k">Next up</span><span class="next-what">See this week</span></span></a>`;
   const deck = [];
   for (let i = 0; i < 7; i++) {
     const ymd = addDays(now.ymd, i), hrs = hoursFor(store, ymd), evs = week.filter((o) => o.date === ymd && live(o)), closed = hrs.known && hrs.closed && !evs.length;
     const cap = closed ? 'Closed' : `${evs.length} ${evs.length === 1 ? 'event' : 'events'}`;
     deck.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${dayName(ymd)} ${fmtDate(ymd)}${i === 0 ? ', today' : ''}, ${cap.toLowerCase()}`}"><span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span><span class="dc-num">${dayNum(ymd)}</span><span class="dc-pips" aria-hidden="true">${evs.slice(0, 8).map((o) => h`<i data-game="${o.game}"></i>`)}</span></a><span class="dc-cap" aria-hidden="true">${cap}</span></li>`);
   }
-  return h`<div class="hero-copy"><p class="hero-date" id="hero-date">${fmtLong(now.ymd)}</p><h1 class="hero-h" id="hero-h">${headline(ctx, st)}</h1><p class="hero-sub" id="hero-sub">${parts.join(' ')}</p></div>
-<div class="hero-side">${next}${store.freePlay ? h`<p class="freeplay">${store.freePlay}</p>` : ''}</div>
-<nav class="deck" aria-label="This week, by day"><ol id="deck">${deck}</ol></nav>`;
+  return h`<div class="phero-copy"><p class="phero-date" id="hero-date">${fmtLong(now.ymd)}</p><h1 class="phero-h" id="hero-h">${headline(ctx, st)}</h1><p class="phero-sub" id="hero-sub">${parts.join(' ')}</p><div class="phero-acts">${next}<a class="btn btn-act" href="#week">This week’s events</a></div>${store.freePlay ? h`<p class="freeplay2">${store.freePlay}</p>` : ''}</div>
+<nav class="wdeck" aria-labelledby="wdeck-k"><p class="wdeck-k" id="wdeck-k">The next seven days</p><ol id="deck">${deck}</ol></nav>`;
 }
 
 // ---------- this week + further out ----------
@@ -407,10 +406,10 @@ export function events(ctx) {
   let empty = '';
   if (!total) {
     const future = expand(ctx.series.filter(passes), addDays(horizon, 1), addDays(now.ymd, 400), ctx.exceptions).find(live);
-    empty = h`<div class="empty lattice" role="note"><p class="empty-h">No ${[g?.short, format].filter(Boolean).join(' ') || ''} events right now.</p>${future ? h`<p>The next one is ${future.title} on ${fmtLong(future.date)}${future.start ? ` at ${fmtTime(future.start)}` : ''}.</p>` : h`<p>Nothing is scheduled yet. Ask at the counter.</p>`}<a class="btn btn-2" href="${keep(ctx, '/events/', {})}" data-chip="all">Show all games</a></div>`;
+    empty = h`<div class="empty empty-photo" role="note"><img src="/img/social/staff-corgi-interior.webp" width="512" height="640" alt="A Mulligan Games staff member holding a corgi in the play room" loading="lazy"><div class="empty-in"><p class="empty-h">No ${[g?.short, format].filter(Boolean).join(' ') || ''} events right now.</p>${future ? h`<p>The next one is ${future.title} on ${fmtLong(future.date)}${future.start ? ` at ${fmtTime(future.start)}` : ''}.</p>` : h`<p>Nothing is scheduled yet. Ask at the counter.</p>`}${ctx.store.freePlay ? h`<p>${ctx.store.freePlay}.</p>` : ''}<a class="btn btn-2" href="${keep(ctx, '/events/', {})}" data-chip="all">Show all games</a></div></div>`;
   }
   const calHref = chip === 'all' ? '/events.ics' : `/events.ics?game=${chip}`;
-  return h`<div class="ep-head"><h1>Events</h1><details class="cal-menu" id="cal-menu"><summary class="btn btn-2">${icon('calendar')}Add to my calendar</summary><div class="cal-pop"><a class="btn btn-2" href="${calHref}">${g ? `${g.short} events` : 'All events'}<span class="vh"> (saves a calendar file)</span></a></div></details></div>
+  return h`<div class="ep-head"><div class="ep-copy"><h1>Events</h1><p class="ep-lede">Every game night at the shop. Pick a game, check the fee and open seats, and hold a seat. You pay at the store.</p><details class="cal-menu" id="cal-menu"><summary class="btn btn-2">${icon('calendar')}Add to my calendar</summary><div class="cal-pop"><a class="btn btn-2" href="${calHref}">${g ? `${g.short} events` : 'All events'}<span class="vh"> (saves a calendar file)</span></a></div></details></div><figure class="ep-photo"><img src="/img/social/interior-welcome-banner-800.webp" width="800" height="600" alt="The Welcome to Mulligan Games banner over the doorway into the play room" fetchpriority="high"><figcaption>The play room is through this door</figcaption></figure></div>
 <nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
 <form class="ep-format" action="/events/" method="get">${chip !== 'all' ? h`<input type="hidden" name="game" value="${chip}">` : ''}${ctx.keepNow ? h`<input type="hidden" name="now" value="${ctx.keepNow}">` : ''}<label for="fmt">Format</label><select id="fmt" name="format"><option value="">All formats</option>${formats.map((f) => h`<option${f === format ? ' selected' : ''}>${f}</option>`)}</select><button class="btn btn-2 btn-sm" type="submit">Show</button></form>
 <p class="vh" id="filter-status" role="status" aria-live="polite">${g ? `Showing ${g.short}` : 'Showing all games'}${format ? `, ${format}` : ''}: ${total} ${total === 1 ? 'event' : 'events'}.</p>

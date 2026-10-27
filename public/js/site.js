@@ -3,17 +3,53 @@
   'use strict';
   var meta = document.querySelector('meta[name="color-scheme"]');
 
-  /* theme toggle: system default or its opposite, never stores the value that equals the system */
-  var btn = document.getElementById('theme-btn');
+  /* Light | Dark switch: follows the system until a visitor picks one; the pick is remembered (mg-scheme), choosing the system's own scheme forgets it */
   function system() { return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
-  function stored() { try { return localStorage.getItem('mg-scheme'); } catch (e) { return null; } }
-  if (btn && meta) {
-    btn.addEventListener('click', function () {
-      var cur = stored() || system(), target = cur === 'dark' ? 'light' : 'dark';
+  function current() { var c = meta && meta.content; return c === 'light' || c === 'dark' ? c : system(); }
+  function sync() {
+    document.querySelectorAll('button[data-scheme]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-scheme') === current())); });
+  }
+  if (meta) {
+    document.addEventListener('click', function (ev) {
+      var b = ev.target.closest && ev.target.closest('button[data-scheme]');
+      if (!b) return;
+      var target = b.getAttribute('data-scheme');
       try { if (target === system()) localStorage.removeItem('mg-scheme'); else localStorage.setItem('mg-scheme', target); } catch (e) { /* not saved */ }
       meta.content = target === system() ? 'light dark' : target;
+      sync();
     });
-    window.addEventListener('storage', function (ev) { if (ev.key === 'mg-scheme') meta.content = ev.newValue || 'light dark'; });
+    window.addEventListener('storage', function (ev) { if (ev.key === 'mg-scheme') { meta.content = ev.newValue || 'light dark'; sync(); } });
+    try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync); } catch (e) { /* old browsers */ }
+    sync();
+  }
+
+  /* front page hero video: the poster shows until a real frame is painted; held back for reduced motion / Save-Data / slow links */
+  var v = document.getElementById('hero-video'), vbtn = document.getElementById('vid-btn'), box = document.getElementById('hero-media');
+  if (v && vbtn && box && v.play) {
+    var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null, vlab = document.getElementById('vid-label');
+    var hold = rm.matches || c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
+    try { pref = sessionStorage.getItem('mg-video'); } catch (e) { /* not stored */ }
+    var label = function (playing) { vlab.textContent = playing ? 'Pause video' : 'Play video'; if (playing) vbtn.removeAttribute('data-paused'); else vbtn.setAttribute('data-paused', ''); };
+    var start = function () { v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); };
+    var reveal = function () { box.classList.add('is-on'); };
+    v.addEventListener('playing', function () {
+      label(true);
+      if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(reveal);
+      else v.addEventListener('timeupdate', function t() { if (v.currentTime > 0) { v.removeEventListener('timeupdate', t); reveal(); } });
+    });
+    ['error', 'emptied', 'abort'].forEach(function (n) { v.addEventListener(n, function () { box.classList.remove('is-on'); label(false); }); });
+    v.addEventListener('pause', function () { label(false); });
+    vbtn.addEventListener('click', function () {
+      var go = v.paused;
+      try { sessionStorage.setItem('mg-video', go ? 'play' : 'pause'); } catch (e) { /* not stored */ }
+      if (go) start(); else v.pause();
+    });
+    try { rm.addEventListener('change', function (ev) { if (ev.matches) v.pause(); }); } catch (e) { /* old browsers */ }
+    vbtn.classList.add('is-ready'); label(false);
+    if (!((hold && pref !== 'play') || pref === 'pause')) {
+      var later = function () { setTimeout(start, 300); };
+      if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
+    }
   }
 
   /* events page: changing the format sends the form */

@@ -76,7 +76,7 @@ test('seedStore: copies store.json once, edits stay, hours stay null (owner Q2)'
 const tmp = mkdtempSync(join(tmpdir(), 'mg-store-'));
 const dist = join(tmp, 'dist'), data = join(tmp, 'data');
 const put = (path, body) => { mkdirSync(join(dist, path), { recursive: true }); writeFileSync(join(dist, path, 'index.html'), body); };
-const frame = (inner) => `<!doctype html><html><head><!--mg:head--><title>t</title><!--mg:shop-ld--></head><body><!--mg:strip--><p>baked</p><!--/mg:strip--><div class="openbar"><!--mg:bar--><p>baked bar</p><!--/mg:bar--></div>${inner}<footer><!--mg:foot-addr--><p>baked foot</p><!--/mg:foot-addr--><ul><!--mg:socials--><!--/mg:socials--></ul></footer></body></html>`;
+const frame = (inner) => `<!doctype html><html><head><!--mg:head--><title>t</title><meta property="og:image" content="<!--mg:origin-->http://baked.example<!--/mg:origin-->/i.jpg"><!--mg:shop-ld--></head><body><!--mg:strip--><p>baked</p><!--/mg:strip--><div class="openbar"><!--mg:bar--><p>baked bar</p><!--/mg:bar--></div>${inner}<footer><!--mg:foot-addr--><p>baked foot</p><!--/mg:foot-addr--><ul><!--mg:socials--><!--/mg:socials--></ul></footer></body></html>`;
 put('', frame('<main><!--mg:hero--><!--/mg:hero--><dl><!--mg:cedh-live--><!--/mg:cedh-live--></dl><section><!--mg:visit--><div>baked visit</div><!--/mg:visit--></section><div><!--mg:discord--><!--/mg:discord--></div></main>'));
 put('events', frame('<main><!--mg:events-->PLACEHOLDER<!--/mg:events--></main>'));
 put('new-here', frame('<main><ul><!--mg:nh-toc--><!--/mg:nh-toc--></ul><!--mg:nh-free--><!--/mg:nh-free--><!--mg:nh-kids--><!--/mg:nh-kids--><!--mg:nh-here--><!--/mg:nh-here--><!--mg:nh-directions--><a href="old">baked old directions</a><!--/mg:nh-directions--><!--mg:nh-ask--><!--/mg:nh-ask--></main>'));
@@ -157,6 +157,10 @@ test('holiday and special-hours overrides win over the weekly row and show their
   await save({ hourOverrides: [] });
   assert.ok((await text(`/?now=2026-10-27T11:00`)).includes('<strong>Open now</strong> till 5 PM'));
 });
+test('og:image takes the server PUBLIC_URL, not the build-time site', async () => {
+  const t = await text('/');
+  assert.ok(t.includes(`content="${SITE}/i.jpg"`) && !t.includes('baked.example'));
+});
 test('F4 + B1: hours not set and a special day: /events/ still renders, the front page never says "Closed this week"', async () => {
   const ov = [{ date: '2026-11-26', closed: true, note: 'Closed for Thanksgiving' }, { date: '2026-11-30', open: '12:00', close: '16:00', note: 'Short day' }];
   assert.equal((await save({ hours: null, hourOverrides: ov })).status, 200);
@@ -199,7 +203,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
   assert.ok((await text('/events/fnm?date=2026-10-30&now=' + NOW)).includes('9 Test Ln, Hatboro, PA 19040'));
   await save({ freePlay: '', photo: null, photoAlt: '', links: { facebook: '' } }); // fields can be cleared: the sections go away
   const after = await text(`/?now=${NOW}`), nh2 = await text(`/new-here/?now=${NOW}`);
-  assert.ok(after.includes('no-photo') && !after.includes('<figure') && !after.includes('Can I just come and play?') && !after.includes('facebook.com'));
+  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('Can I just come and play?') && !after.includes('facebook.com'));
   assert.ok(!nh2.includes('id="free"') && !nh2.includes('href="#free"'));
   assert.equal((await api('DELETE', 'photos/room-a.webp')).status, 404); // not an upload, never touched
 });
