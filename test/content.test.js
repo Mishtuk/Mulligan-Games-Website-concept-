@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { expand, isDate, isTime } from '../src/lib/state.js';
+import { isDate, isTime } from '../src/lib/state.js';
+import { expand, validate } from '../src/lib/events.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../src/content/${f}.json`, import.meta.url), 'utf8'));
 const store = load('store'), games = load('games'), series = load('series'), releases = load('releases');
@@ -44,6 +45,10 @@ test('series: required fields, ids, games, times, fees, sign-up', () => {
   }
 });
 
+test('series: the seed passes the real validator', () => {
+  for (const s of series) assert.deepEqual(validate(s), {}, s.id);
+});
+
 test('series: recurrence fields are valid', () => {
   for (const { id, recurrence: r } of series) {
     const w = `series ${id}`;
@@ -57,23 +62,8 @@ test('series: recurrence fields are valid', () => {
   }
 });
 
-// Adapt the seed recurrence to state.js's flat model (date + recurring) so the real expander is exercised.
-function toEvents() {
-  const first = (day, nth) => { // nth `day`-weekday of Jan 2026 (Jan 1 2026 is a Thursday)
-    const d = 1 + ((day - 4 + 7) % 7) + (nth - 1) * 7;
-    return `2026-01-${String(d).padStart(2, '0')}`;
-  };
-  return series.flatMap((s) => {
-    const r = s.recurrence, base = { id: s.id, title: s.title, start: s.start || '' };
-    if (r.type === 'none') return [{ ...base, date: r.date, recurring: 'none' }];
-    if (r.type === 'weekly') return [{ ...base, date: first(r.day, 1), recurring: 'weekly' }];
-    if (r.type === 'nth') return [{ ...base, date: first(r.day, r.nth), recurring: 'monthly_weekday' }];
-    return r.dates.map((d) => ({ ...base, date: d.date, start: d.start, recurring: 'none' }));
-  });
-}
-
 test('series expand to the real November 2026 dates', () => {
-  const nov = expand(toEvents(), '2026-11-01', '2026-11-30');
+  const nov = expand(series, '2026-11-01', '2026-11-30');
   const on = (id) => nov.filter((o) => o.id === id).map((o) => o.date + (o.start ? ' ' + o.start : ''));
   assert.deepEqual(on('pauper'), ['2026-11-04 19:00', '2026-11-11 19:00', '2026-11-18 19:00', '2026-11-25 19:00']);
   assert.deepEqual(on('cedh-mcs'), ['2026-11-01 10:00']); // 1st Sunday
@@ -83,7 +73,7 @@ test('series expand to the real November 2026 dates', () => {
   assert.deepEqual(on('cedh-5k-nov7'), ['2026-11-07']);
   assert.deepEqual(on('chaos-draft-oct30'), []); // October only
   assert.deepEqual(on('cedh-weekly'), ['2026-11-01 14:00', '2026-11-08 14:00', '2026-11-15 14:00', '2026-11-22 14:00', '2026-11-29 14:00']);
-  assert.equal(expand(toEvents(), '2026-10-30', '2026-10-30').some((o) => o.id === 'chaos-draft-oct30'), true);
+  assert.equal(expand(series, '2026-10-30', '2026-10-30').some((o) => o.id === 'chaos-draft-oct30'), true);
 });
 
 // Owner rule (no injection): any scheme-prefixed string anywhere in the seed must be https:// or tel:+digits.

@@ -5,7 +5,9 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, backup } from './src/db.js';
+import { openDb, getState, backup, seedSeries, listSeries, getSeries, putSeries, deleteSeries, listExceptions, putException, deleteException } from './src/db.js';
+import { clean as cleanSeries, cleanException, copyText, newId, occurrences, validate as validateSeries, validateException, KINDS, SIGNUPS } from './src/lib/events.js';
+import { GAMES } from './src/lib/games.js';
 import { clean, createAudit } from './src/audit.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
@@ -50,6 +52,7 @@ const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
 if (dirProblem) { console.error(`Refusing to start: ${dirProblem}`); process.exit(1); }
 
 const db = openDb(DATA);
+seedSeries(db);
 const audit = createAudit({ db, log });
 const stats = createStats({ db, log });
 
@@ -265,8 +268,65 @@ async function uploadPhoto(body, ip, note, photoList) {
   return json({ name, photos: photoList() });
 }
 
+// ---------- event series (admin) ----------
+const invalid = (errors) => json({ error: 'invalid', errors }, 422);
+/** GET series | POST series | PUT series/:id | DELETE series/:id | POST series/:id/exceptions | DELETE series/:id/exceptions/:date | GET series/:id/copy?date=
+ *  All of it is behind the admin session and (for writes) the origin check in route(); bodies are capped in the HTTP layer. */
+function seriesApi(req, url, body, [id, sub, date], ip, note) {
+  const m = req.method;
+  if (m !== 'GET' && !allow(`ev:${ip}`, 600)) { note('events_blocked', 'rate limit'); return bad('rate', 429); }
+  const plain = body && typeof body === 'object' && !Array.isArray(body);
+  if (!id) {
+    if (m === 'GET') return json({ series: listSeries(db), exceptions: listExceptions(db), games: GAMES, kinds: KINDS, signups: SIGNUPS });
+    if (m !== 'POST') return bad('not_found', 404);
+    if (!plain) return bad('body');
+    const errors = validateSeries(body);
+    if (Object.keys(errors).length) return invalid(errors);
+    const s = cleanSeries({ ...body, id: body.id || newId(body.title, new Set(listSeries(db).map((x) => x.id))) });
+    if (getSeries(db, s.id)) return invalid({ id: 'That id is already used.' });
+    putSeries(db, s);
+    note('series_create', s.id);
+    return json({ series: s }, 201);
+  }
+  const cur = getSeries(db, id);
+  if (!cur) return bad('not_found', 404);
+  if (!sub) {
+    if (m === 'GET') return json({ series: cur, exceptions: listExceptions(db, id) });
+    if (m === 'DELETE') { deleteSeries(db, id); note('series_delete', id); return json({ ok: true }); }
+    if (m !== 'PUT') return bad('not_found', 404);
+    if (!plain) return bad('body');
+    const errors = validateSeries({ ...body, id });
+    if (Object.keys(errors).length) return invalid(errors);
+    const s = cleanSeries({ ...body, id });
+    putSeries(db, s);
+    note('series_update', id);
+    return json({ series: s });
+  }
+  if (sub === 'exceptions' && m === 'POST') {
+    if (!plain) return bad('body');
+    const errors = validateException(body);
+    if (!errors.date && !errors.form && !occurrences(cur, body.date, body.date).length) errors.date = 'The event does not happen on that date.';
+    if (Object.keys(errors).length) return invalid(errors);
+    const x = cleanException(id, body, etDay());
+    putException(db, x);
+    note('exception_set', `${id} ${x.date} ${x.type}`);
+    return json({ exception: x });
+  }
+  if (sub === 'exceptions' && m === 'DELETE') {
+    if (!deleteException(db, id, date ?? '')) return bad('not_found', 404);
+    note('exception_clear', `${id} ${date}`);
+    return json({ ok: true });
+  }
+  if (sub === 'copy' && m === 'GET') {
+    const d = url.searchParams.get('date') ?? '';
+    const t = copyText(cur, d, PUBLIC_URL, listExceptions(db, id));
+    return t === null ? bad('not_found', 404) : json({ text: t });
+  }
+  return bad('not_found', 404);
+}
+
 async function adminApi(req, url, user) {
-  const [section, a1] = url.pathname.slice('/api/admin/'.length).split('/');
+  const [section, a1, a2, a3] = url.pathname.slice('/api/admin/'.length).split('/');
   const key = `${req.method} ${section}`;
   const body = ['POST', 'PUT'].includes(req.method) ? await req.json().catch(() => null) : null;
   const ip = clientIp(req);
@@ -284,6 +344,7 @@ async function adminApi(req, url, user) {
     note('photo_delete', a1);
     return json({ ok: true, photos: photoList() });
   }
+  if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
   if (key === 'GET security') return json({ events: audit.recent(500) });
 
   if (key === 'POST password') { // change password: prove it's you first

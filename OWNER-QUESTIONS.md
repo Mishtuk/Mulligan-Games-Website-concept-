@@ -22,7 +22,8 @@ write the answer and date under the question and, if it changes a ruling, add an
 7. **Discord:** should the site post the weekly schedule to a Discord channel automatically (later feature)? Which server
    and channel?
 8. **Pre-registration:** which events should take sign-ups on the site (only capped ones like Draft and Pauper, or all)?
-   Any no-show rule (e.g. waitlist after 10 minutes late)?
+   Any no-show rule (e.g. waitlist after 10 minutes late)? The site can show "Arrive by" per event: should seats be held
+   until the start time, or 5, 10, 15 or 30 minutes before? Until you say, events show no arrive-by time.
 9. **Publisher programs:** besides Wizards (WPN), are you enrolled in Play! Pokemon, Konami OTS, Bandai, Ravensburger Play
    Hub or Riftbound? This decides which official-tool links the event form offers.
 10. **Staff logins:** how many people need admin access? Should staff (not owners) be able to see inventory counts or

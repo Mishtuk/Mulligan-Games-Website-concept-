@@ -1,13 +1,14 @@
 # Mulligan Games: design spec
 
-Owner: Laptop designer (P1.3 review: Desktop designer). Status: **P1.1 draft, reviewed against the P1.2 prototype in P1.3; for sign-off** (2026-10-26). Built from `BRIEF.md`, `DECISIONS.md` (D1 to D14),
+Owner: Laptop designer (P1.3 review: Desktop designer). Status: **P1.1 draft, reviewed against the P1.2 prototype in P1.3; signed off. Section 15 (P1.3b, D16 to D18) signed off by the boss, D22** (2026-10-26). Built from `BRIEF.md`, `DECISIONS.md` (D1 to D14),
 `docs/research/*.md` (including `mulligan-facebook.md` and the "Rendered look" screenshot notes) and the Warminster VFW admin.
 The front page prototype (`prototype/index.html`) is the reference build of this spec: when the two disagree, fix one
 and note it here.
 
 Contents: 1 Concept · 2 Tokens · 3 Type · 4 Layout system · 5 Components · 6 Front page · 7 Events page and event detail ·
 8 Sign-up · 9 Admin · 10 Loading, empty, error · 11 Accessibility · 12 VFW reuse and divergence · 13 Prototype files
-and data · 14 What may change
+and data · 14 What may change · 15 Boss-ranking additions (D16 to D18: event fields, post text, per-date page, New
+here?, No-show)
 
 ---
 
@@ -225,7 +226,9 @@ Anatomy, top to bottom (markup from `MG.eventCard()` in `prototype/js/mg.js`):
 - The time line always shows start and end ("7 PM to 11 PM"); with doors: "Doors 11 AM, starts noon".
 - Fee pip: "$20", "Free", or "?" only when the admin left the fee blank (admin warns; section 9.3).
 - Tags (small, rounded 6px): **On now** (green dot pulse) between start and end; **Kids welcome**; **Invite only**;
-  **Updated** (foil yellow, pencil icon) when a one-date change has a note; the note follows the tag.
+  **Changed** (foil yellow, pencil icon; was "Updated") when a one-date change has a note; the note follows the tag,
+  then "Updated Oct 25.". D17 tags (beginner friendly, age rule, casual / competitive) and the "Arrive by" line:
+  section 15.5.
 
 #### Event card: states
 
@@ -385,7 +388,7 @@ Events                                         [Add to my calendar ▾]  (all ev
 - Empty filter: the empty state (section 10) with the next matching date beyond 60 days, else "Nothing scheduled yet".
 
 **Event detail** (prototype: a `<dialog>` opened from `#e-<key>`, also opened on load when the hash is present; build:
-its own page, same content):
+its own page per date, D16, specified in section 15.4 with layouts, status banners and JSON-LD):
 
 ```
 [×]                                                    ← close (Esc, light dismiss)
@@ -429,6 +432,8 @@ POST, server reply page). One column, 48px fields, labels above, errors under th
   - "**You're in.** Seat 18 of 28 is yours for Draft FNM, Friday Oct 30 at 7 PM. Pay $20 at the counter." [Add to calendar]
   - "**You're on the waitlist (#3).** If a seat opens, you move in automatically. Check this page or ask at the counter."
   - Last-seat race: "That seat just went. You're on the waitlist (#1) instead."
+  - When the event has an arrive-by time (D17, 15.1 `arriveByMins`), "You're in" adds: "Arrive by 6:50 PM or your
+    seat goes to the next person on the waitlist." (without a waitlist: "... or your seat may go to a walk-in.").
 - Errors: duplicate ("You're already signed up for this one, as Sam B."); closed ("Sign-ups closed at 7 PM. Walk in if
   seats are left."); network ("Couldn't reach the shop's site. Your seat isn't held yet. Try again."); rate limited
   ("Too many tries. Wait a minute and try again.").
@@ -490,6 +495,7 @@ TABLET 768 (portrait)
   "Check in" / "Checked in" at 14px from 768 (88px wide). Row menu (⋯):
   "Cancel sign-up", "Edit name or contact", "Show contact" (contacts are hidden by default: privacy at a public counter).
 - Tapping check-in toggles at once; toast "Sam B. checked in. Undo".
+- **No-show** (one tap, Undo, promotes the waitlist): section 15.7.
 - **Cancel** a registered player: toast "Riley K. cancelled. Jordan K. moved in from the waitlist. Undo" (auto-promote,
   D6); the promoted row flashes `--ok-bg` once (respect reduced motion).
 - **Walk-in add:** name only (contact optional), adds as checked in and "At the door" payment preset (editable). If the
@@ -508,8 +514,8 @@ TABLET 768 (portrait)
   "3 dates: Nov 6, 8, 8"; "Friday Oct 30, 6 PM"), fee, seats, sign-up mode in words, next date with its count ("Next:
   Fri Oct 30, 28 of 28, 3 waiting"), switch "Showing on the website".
 - Expand a row: **Next dates** (8): each date with its count and actions "Roster", "Change this date", "Cancel this
-  date" (cancelled dates show the stamp and "Bring it back"). "Change this date": start time, seats, note (the note
-  makes the public "Updated" tag), all for that date only.
+  date" (cancelled dates show the stamp and "Bring it back"), plus "Copy post text" (section 15.3). "Change this
+  date": start time, seats, note (the note makes the public "Changed" tag), all for that date only.
 
 **Editor, template first** (`admin/events.html#new`):
 1. **What game?** 8 big tiles (icon, name; 2 columns phone, 4 tablet).
@@ -532,8 +538,9 @@ TABLET 768 (portrait)
      (checkbox, on). Sign-ups close: At the start time / {n} hours before.
    - *Official tool (D2):* Tool (EventLink, Play! Pokemon, Bandai TCG+, KONAMI, Ravensburger Play Hub, PlayRiftbound,
      Melee, Best Coast Pairings, TopDeck, Other), Link, Event code.
-   - *For players:* Prizes; What to bring; Description; Kids welcome; Invite only; cEDH series (when game is cEDH);
-     Warhammer: points, round length, list deadline (when game is Warhammer).
+   - *For players:* Prizes; What to bring; Description; Who it's for (Beginner friendly, Ages incl. "Kids welcome",
+     Play style: section 15.2); Invite only; cEDH series (when game is cEDH); Warhammer: points, round length, list
+     deadline (when game is Warhammer). "Hold seats until" sits under "Sign-ups close" (15.2).
    - *Stock it uses:* rows of product + "per seat" or "fixed" + qty ("3 per seat"); shows "Reserves 84 Draft boosters
      for Oct 30" live.
    - *On the website:* Show on the website; Feature on the front page.
@@ -544,8 +551,8 @@ TABLET 768 (portrait)
 ### 9.4 Event roster (one date) and results
 
 `admin/events.html#roster/<key>`: header (title, date, time, fee, tool link + code with Copy), stat row ("28 of 28
-signed up", "3 on the waitlist", "18 checked in", "15 paid"), tabs **Signed up / Waitlist / Cancelled**, rows as in
-Today (9.2). Waitlist order is sign-up time; "Move up/down" arrows for staff override.
+signed up", "3 on the waitlist", "18 checked in", "15 paid"), tabs **Signed up / Waitlist / Cancelled and
+no-shows** (15.7), rows as in Today (9.2). "Copy post text" next to the tool link (15.3). Waitlist order is sign-up time; "Move up/down" arrows for staff override.
 
 **Results panel** (after the start time, or "Enter results" in Today):
 - Headcount (pre-filled from check-ins, editable); Winner; Top 4 / Top 8 names (text fields, autocomplete from the roster).
@@ -606,6 +613,10 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 | Sign-up | button spinner "Holding your seat..." | n/a | field errors and messages in section 8 |
 | Admin lists | 3 skeleton rows (surface-2 bars, no shimmer under reduced motion) | one sentence + the action ("No sign-ups yet. Share the event link or add a walk-in.") | toast with the server's plain message + "Try again"; field errors under the field (VFW `markErr`) |
 | Admin offline | | | sticky banner (9.1) |
+| Event date page (15.4) | none (server) | n/a | 404 "We couldn't find that event date."; 500 "The event page didn't load..." |
+| "New here?" (15.6) | none (server) | Good first nights: "No beginner nights in the next two weeks. Call the shop..." | as any server page |
+| Copy post text (15.3) | none (local data) | n/a | clipboard refused: "Copy this text" dialog with the text selected |
+| No-show (15.7) | Today skeleton rows | no button when everyone is checked in | rolled back + toast "Couldn't save. Riley K. is still signed up. Try again." |
 
 ---
 
@@ -692,3 +703,359 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
   action colour (red only on actions), white-diamond day numbers, a sideways chip row with counts (TopDeck), cEDH chip
   highlighted, "N registered" matching TopDeck, one real room photo slot (Mox), no script needed to see the schedule
   (server-rendered).
+- **P1.3b boss-ranking additions (2026-10-26):** new section 15 (D16 to D18). Spec changes elsewhere: the "Updated"
+  tag is renamed "Changed" and the card adds "Updated <date>" (5.3, 9.3); the "Kids welcome" checkbox moves into the
+  editor's "Who it's for" ages choice (9.3); the sign-up reply states the arrive-by time (8); the roster tab
+  "Cancelled" becomes "Cancelled and no-shows" (9.4).
+
+---
+
+## 15. Boss-ranking additions (P1.3b: D16, D17, D18)
+
+From `docs/research/feature-ideas.md` "Boss ranking" (ideas 1, 2, 3, 5, 6, 7, 8, 10, 15, 19, 22) and `DECISIONS.md`
+D16 to D18. Written in build order: admin first (P2.2), then public (P2.3), then the counter (P2.4). Same tokens,
+components and voice as sections 2 to 9; there are no new colours. Every element below reads in both themes because it
+only uses tokens from 2.1 (pairs already checked in 2.3).
+
+**Owner rule (D20), applies to every part of this section:** anything a person typed (event name, note, age rule,
+description, player names) is shown as text, never as HTML: Astro `{}` on the server, `textContent` / `.value` in the
+browser. The post text (15.3) is plain text, never HTML. Links from stored data go through `safeUrl`.
+
+### 15.1 New and reused field names (the data model for P2.2)
+
+Reused, already in the seed (`src/content/series.json`) or the prototype (`prototype/data/sample.js`, `rules.js`):
+`kidsWelcome` (series), `inviteOnly` (series), `doors` (series), exception `{ series, date, type: 'cancel' | 'change',
+start, capacity, note, updated }`, registration `status` (`'in' | 'waitlist' | 'cancelled' | 'noshow'`).
+
+| Field | On | Type | Default | Meaning |
+|---|---|---|---|---|
+| `beginnerFriendly` | series | boolean | `false` | "Beginner friendly" tag; lists the event on "New here?" |
+| `ageNote` | series | string, max 60, or `null` | `null` | an age rule in the owner's words ("13 and up"). `kidsWelcome: true` is the "All ages" choice; never both set |
+| `playStyle` | series | `'casual'` / `'competitive'` / `null` | `null` | "Casual" / "Competitive" tag |
+| `arriveByMins` | series | integer, one of `0, 5, 10, 15, 30`, or `null` | `null` | seat-release time as minutes before the start, so a one-date time change moves it too. Kept only when `signup` is `'here'` or `'counter'`; saved as `null` otherwise |
+| `updated` | exception | date `YYYY-MM-DD` (store time zone) | set by the server | already in the sample; the server sets it on every save of that exception (cancel, change). "Bring it back" deletes the exception |
+
+No other new fields. Commander brackets, entry rules and loaner decks stay in `description` (D17).
+
+### 15.2 Admin: D17 fields in the event editor (P2.2)
+
+Two places in the existing editor form (9.3, step 3). Nothing else in the form moves.
+
+**a) "Entry and seats" group, under "Sign-ups close"** (shown only when "How players sign up" is "Sign up on this
+site" or "At the counter only"; same `data-if` mechanism as the waitlist box):
+
+- **Hold seats until** (select, 56px): "No set time" (default, `null`) / "The start time" (`0`) / "5 minutes before" /
+  "10 minutes before" / "15 minutes before" / "30 minutes before". Hint: "After this, a seat nobody has claimed can go
+  to the waitlist or a walk-in. Players see it as "Arrive by"."
+- Read-back sentence under it (same `.say` style and `aria-live` as the "When" sentence), with the real time:
+  "Players must arrive by 6:50 PM. After that you can mark no-shows and the waitlist moves up." With "No set time":
+  no sentence.
+
+**b) "For players" group: a new block "Who it's for" between "Description" and "Invite only".** The old "Kids
+welcome" checkbox becomes one of the age choices.
+
+- **Beginner friendly** (checkbox, 56px row): "Beginner friendly. New players are welcome and someone will help them."
+- **Ages** (visible label over three radio cards, the "How players sign up" style): "Not stated" (default) / "All
+  ages. Kids welcome." (`kidsWelcome: true`) / "Age rule" (reveals a 56px text field "Age rule", placeholder "13 and
+  up", hint "Short, in your words. Shown on the card.").
+- **Play style** (visible label over a 3-button segmented control, 48px, like payment): "Not stated" (default) /
+  "Casual" / "Competitive". Hint: "Mainly for Commander nights. Put the bracket or house rules in the description."
+
+```
+TABLET 768 (fields two-up where they fit)               PHONE 360 (one column)
+┌ Entry and seats ─────────────────────────────────┐    ┌ Entry and seats ─────────────┐
+│ Entry fee ($) [20     ]   Seats [28     ]        │    │ … (as today)                 │
+│ How players sign up  (radio cards, 2x2)          │    │ Sign-ups close               │
+│ [x] Waitlist when full …                         │    │ [At the start time       ▾]  │
+│ Sign-ups close            Hold seats until       │    │ Hold seats until             │
+│ [At the start time  ▾]    [10 minutes before ▾]  │    │ [10 minutes before       ▾]  │
+│ Players must arrive by 6:50 PM. After that …     │    │ Players must arrive by 6:50  │
+├ For players ─────────────────────────────────────┤    │ PM. After that …             │
+│ Prizes / What to bring / Description (wide)      │    ├ For players ─────────────────┤
+│ Who it's for                                     │    │ Who it's for                 │
+│ [ ] Beginner friendly. New players are welcome…  │    │ [ ] Beginner friendly. New … │
+│ Ages                                             │    │ Ages                         │
+│ (•) Not stated  ( ) All ages  ( ) Age rule       │    │ (•) Not stated               │
+│                     Age rule [13 and up     ]    │    │ ( ) All ages. Kids welcome.  │
+│ Play style [Not stated|Casual|Competitive]       │    │ ( ) Age rule                 │
+│ [ ] Invite only                                  │    │ Play style                   │
+└──────────────────────────────────────────────────┘    │ [Not stated|Casual|Compet…]  │
+                                                        │ [ ] Invite only              │
+                                                        └──────────────────────────────┘
+```
+
+At 360 the three age cards stack one per row; the segmented control stays one row (three segments, 15px labels, fits
+328px). At 1024 the live card preview on the right shows the new tags and the arrive-by line as you change them.
+
+**Template defaults** (step 2): every "Learn to play" template sets `beginnerFriendly: true` and `kidsWelcome: true`;
+cEDH templates and RCQ set `playStyle: 'competitive'`; "Commander night" sets `'casual'`. No template sets
+`arriveByMins`: that is store policy the owners haven't stated (OWNER-QUESTIONS Q8), so it stays "No set time" until
+they pick one. Template summaries add the words: "Learn to play: free, kids welcome, beginner friendly".
+
+**Validation** (server-side; shown under the field with `aria-describedby` + `aria-invalid` and in the "N things need
+fixing" summary, VFW `markErr`):
+
+| Field | Rule | Message under the field |
+|---|---|---|
+| Age rule | required when "Age rule" is picked | "Write the age rule, for example "13 and up"." |
+| Age rule | 60 characters or fewer | "Keep it to 60 characters. Put more in the description." |
+| Ages | not both `kidsWelcome` and `ageNote` | none: the radios make it impossible; the server drops `ageNote` when `kidsWelcome` is true |
+| Play style | `casual`, `competitive` or empty | "Pick casual, competitive or not stated." (only a tampered request gets here) |
+| Hold seats until | one of the listed values | "Pick a time from the list." (tampered request) |
+| Hold seats until | with "Doors open" set: start minus minutes is not before the doors | "That's before the doors open at 11 AM. Pick a shorter time." |
+
+The age rule is stored trimmed, line breaks collapsed to spaces, with anything between `<` and `>` removed (the shared
+`text()` cleaner every text field uses, D22); what is left is always shown as text, never as HTML.
+
+### 15.3 Admin: "Copy post text" on each date (D18, P2.2)
+
+**Where:** every date row in the Events list's "Next dates" (9.3), after "Roster":
+`[Roster] [Copy post text] [Change this date] [Cancel this date]`; on a cancelled date `[Roster] [Copy post text]
+[Bring it back]` (it copies the cancellation notice). `btn btn-2 btn-sm`, copy icon, visually hidden "for Draft FNM,
+Oct 30". The roster header (9.4) gets the same button next to the tool link. At 360 the buttons wrap under the date
+(as today); at 768+ they sit on the date's line.
+
+**Text format.** One pure function `postText(occurrence, siteUrl)` in `src/lib/events.js`, tested (P2.2). Plain text
+only: lines joined with `\n`; no HTML, no Markdown, no emoji, no HTML entities (an event named "R&D Night" stays
+`R&D Night`). Times as `MG.fmtTime` but with plain spaces ("7 PM", "noon", "midnight"). Values are the date's own (a
+one-date change wins over the series). A line whose value is missing is left out, never written as "?" or "TBA". Post text has no tags or arrive-by
+line (D21). The built function is `copyText(series, date, siteUrl, exceptions)` (P2.2a); same output.
+
+```
+{title}                                       ← "Cancelled: {title}" on a cancelled date (own layout, below)
+{Weekday}, {Month} {d}, {start} to {end}      ← no end set: "{Weekday}, {Month} {d}, starts {start}"
+                                                 doors set: "..., doors {doors}, starts {start}" (+ " to {end}")
+Changed: {note}                               ← changed date only (see below)
+Entry ${fee}                                  ← fee 0: "Free entry"; fee null: line left out
+{sign-up line}                                ← by sign-up mode, below
+Details: {siteUrl}/events/{series-id}?date={YYYY-MM-DD}   ← "Details and sign-up: ..." when signup = here
+```
+
+Sign-up line by mode: `walkin` "Just show up. No sign-up needed." / `here` "Sign up on our website to hold a seat."
+/ `counter` "Pre-register at the counter." / `external` "Sign up online: {tool.url}" (no `cta` field, D22) / invite only
+"Invite only." / mode not set (two seed events have `null`): line left out.
+
+**Changed date:** the time line uses the new time; the "Changed:" line uses the note, or, with no note, a sentence the
+server writes: "Starts at 7:30 PM this week (usually 7 PM)." / "Seats changed to 20 for this date."
+
+**Cancelled date:**
+```
+Cancelled: {title}
+{Weekday}, {Month} {d}
+{note}                                        ← left out if none
+Next one: {Weekday}, {Month} {d}, {start}     ← next date that isn't cancelled; left out if none
+Details: {url of the cancelled date's page}
+```
+
+`{siteUrl}` is the configured public origin (the one the canonical links and `sitemap.xml` use); the domain is still
+open (Q14). The link always names the date, so a pasted post points at that night, not the series.
+
+**Examples from the real seed** (`src/content/series.json`; the domain shown as `<site>`):
+
+```
+Draft FNM
+Friday, October 30, starts 7 PM
+Entry $20
+Just show up. No sign-up needed.
+Details: https://<site>/events/fnm-draft?date=2026-10-30
+```
+```
+Riftbound Second Saturday Summoner Skirmish
+Saturday, November 14, doors 11 AM, starts noon
+Entry $10
+Sign up online: https://tinyurl.com/RBMulliganGames
+Details: https://<site>/events/rb-skirmish?date=2026-11-14
+```
+Null fee (seed "Tabletop Wednesday", `fee: null`): no "Entry" line. Cancelled (the prototype's sample exception, not a
+real cancellation):
+```
+Cancelled: Pokemon League Night
+Saturday, October 31
+No league on Halloween. Back next Saturday.
+Next one: Saturday, November 7, 6:30 PM
+Details: https://<site>/events/pokemon-sat?date=2026-10-31
+```
+
+**Feedback:**
+- Copied: the button turns to a check icon + "Copied" for 2 seconds (fixed width, no layout jump), and the toast
+  (`role="status"`) says "Post text for Draft FNM, Oct 30 copied. Paste it into Facebook, Discord or Google." With a
+  missing value it adds one sentence: "No entry fee is set, so the post leaves it out." / "No end time is set. Google
+  shows events without one as all day."
+- Clipboard fails (not a secure page, permission refused, old browser; `U.copy` reports `false`): a dialog "Copy this
+  text" opens with the text in a read-only `<textarea>` (filled through `.value`), 8 rows, already selected, hint
+  "Press and hold the text, then Copy. On a keyboard: Ctrl+C." and one button "Done". Focus goes to the textarea; Esc
+  or "Done" closes it and focus returns to the button.
+- No loading state: the text is built from data already on the screen.
+
+### 15.4 Public: one page per event date (D16, P2.3)
+
+**URL:** `/events/<series-id>?date=YYYY-MM-DD`; when a series has two slots on one day (Star Trek Prerelease, Nov 8),
+also `&time=HHMM` (`/events/startrek-prerelease?date=2026-11-08&time=1500`). `<link rel="canonical">` is that same URL
+with its parameters. `/events/<series-id>` without a date redirects (302) to the next date that isn't cancelled.
+Server-rendered (D11); works without JS.
+
+```
+PHONE 360                      TABLET 768                          DESKTOP 1280
+┌────────────────────────┐     ┌────────────────────────────────┐  ┌──────────────────────────────────────────────┐
+│ strip + header         │     │ strip + header                 │  │ strip + header                               │
+│ < All events           │     │ < All events                   │  │ < All events                                 │
+│▬▬▬▬▬ game band ▬▬▬▬▬▬▬▬│     │▬▬▬▬▬▬▬▬ game band ▬▬▬▬▬▬▬▬▬▬▬▬▬│  │▬▬▬▬▬▬▬▬▬▬ game band ▬▬▬▬▬▬▬▬▬▬│               │
+│ Draft FNM        ($20) │ h1  │ Draft FNM                ($20) │  │ Draft FNM              ($20) │ ┌ ticket ───┐ │
+│ ⬠ Magic ◆ Draft, newest│     │ ⬠ Magic ◆ Draft, newest set    │  │ ⬠ Magic ◆ Draft, newest set  │ │ stat box  │ │
+│ Friday, October 30     │     │ Friday, October 30             │  │ Friday, October 30           │ │ Full,     │ │
+│ 7 PM to 11 PM          │     │ 7 PM to 11 PM                  │  │ 7 PM to 11 PM                │ │ 3 waiting │ │
+│ [status banner, if any]│     │ [status banner, if any]        │  │ [status banner, if any]      │ │ Arrive by │ │
+│ [Beginner friendly]    │     │ [Beginner friendly][Kids       │  │ [tags]                       │ │ 6:50 PM … │ │
+│ [Kids welcome][Casual] │     │  welcome][Casual]              │  │ Prizes  …                    │ │ [Join the │ │
+│ ┌stat box┐             │     │ ┌stat box┐ [Join the waitlist] │  │ Bring   …                    │ │ waitlist] │ │
+│ [Join the waitlist   ] │     │ Arrive by 6:50 PM or your …    │  │ Ages    …                    │ │ (sign-up  │ │
+│ Arrive by 6:50 PM or … │     │ (sign-up form, when opened)    │  │ Official tool …              │ │  form)    │ │
+│ (sign-up form)         │     │ Prizes / Bring / Ages / Play   │  │ Other dates …                │ └───────────┘ │
+│ Prizes … (dl stacked)  │     │  style / Official tool         │  │ [Add to calendar][Directions]│ sticky, 22rem │
+│ Other dates …          │     │  (dl, term and value side by   │  │ address + parking            │               │
+│ [Add to calendar]      │     │  side)                         │  │ New here? line               │               │
+│ [Directions]           │     │ Other dates …                  │  └──────────────────────────────────────────────┘
+│ address + parking      │     │ [Add to calendar] [Directions] │
+│ New here? line         │     │ address + parking, New here?   │
+└────────────────────────┘     └────────────────────────────────┘
+```
+
+- The prototype's detail dialog (section 7) becomes this page: h1 is the event name in the card's name bar (bar tint,
+  cost pip); date and time are two lines (condensed, `--t-lg`). The facts list is a `<dl>`: Prizes, Bring, Ages ("All
+  ages. Kids welcome." or the age rule), Play style ("Casual" / "Competitive"), Official tool (+ event code with
+  Copy), Description, Other dates. Rows with no value are left out.
+- Action area = the card's state (5.3) and its action. "Sign up" / "Join the waitlist" go to the sign-up form (section
+  8), which sits right under the action on phone and tablet and inside the ticket at 1024+ (ticket: `--surface`,
+  `--lift`, `--r-card`, sticky at top 16px, 22rem wide). Without JS the form is simply there, open.
+- **Arrive by** (when `arriveByMins` is set and signup is here / counter): one line under the action, clock icon,
+  `--t-sm`: "Arrive by 6:50 PM or your seat goes to the next person on the waitlist." Without a waitlist: "Arrive by
+  6:50 PM or your seat may go to a walk-in."
+- **Beginner-friendly** events end with: "First time at Mulligan? Read New here?" (link to 15.6).
+- **Other dates:** the next 6 dates of the series after this one, as links ("Fri Nov 6"). A cancelled date is struck
+  (`<s>`, `--ink-2`) and followed by the word "cancelled" in `--bad` (the word is what screen readers hear; `<s>` is
+  not announced): "~~Sat Oct 31~~ cancelled". It stays a link (its page says why). A changed date adds "changed". The
+  date you're on is not listed.
+- JSON-LD (one `Event`): `eventStatus` EventScheduled; EventCancelled on a cancelled date (all other properties kept);
+  EventRescheduled with `previousStartDate` when a one-date change moved the start. `offers.availability`: InStock
+  (open, needs players, walk-in), LimitedAvailability (few seats), SoldOut (full or waitlist); `offers.price` 0 when
+  free; no `offers` when the fee is null. **No Event JSON-LD on invite-only dates** (Google: events must be open to
+  the public).
+
+**Status banner** (between the time and the tags; `role="note"`; 3px left border, `--r-box`, icon + words):
+
+| State | Banner | Rest of the page |
+|---|---|---|
+| Cancelled | `--bad-bg`, `--bad` border, circle-x: "**Cancelled.** No Pokemon League Night on Saturday, October 31." + the note on its own line + "Updated Oct 24." (`--ink-2`) + link "Next one: Saturday, November 7" | the card's Cancelled stamp by the title; no action, form or arrive-by; Add to calendar gives the cancelled VEVENT; the page stays up (and in the sitemap) until the date passes |
+| Changed (exception type change) | `--warn-bg`, `--warn` border, pencil: "**Changed for this date.**" + the note, else the server's sentence ("Starts at 7:30 PM this week (usually 7 PM).") + "Updated Oct 25." | the time line shows the new time |
+| Past date | `--surface-2`, `--line-strong` border: "This date has passed." + link "Next one: Friday, November 6" | no action or form; not in the sitemap |
+| Scheduled | no banner (no "Confirmed" label: noise, Boss ranking #2) | |
+
+"Updated <date>" reads "Updated today" / "Updated yesterday" / "Updated Oct 24" (from `exception.updated`, store time
+zone). Text on `--bad-bg` and `--warn-bg` is `--ink` (14:1 or more in both themes); the coloured word is the bold
+lead-in.
+
+**Other states:** full, waitlist, sign-ups closed, needs players, few seats and open are the card states (5.3) in the
+stat box and action. Loading: none (server-rendered); the sign-up form has its own (section 8). Unknown series, or a
+date that isn't one of its dates: 404 page with the normal header, "We couldn't find that event date." + "See all
+events" (+ "Next one: ..." when the series exists). Server error: 500 page "The event page didn't load. Reload the
+page, or call the shop at (215) 789-3299."
+
+### 15.5 Public: D17 tags and arrive-by on the event card (P2.3)
+
+The card (5.3) gets the new tags in its tag row and one arrive-by line. Tag order: **On now**, **Changed**, then
+**Beginner friendly** (sprout icon), **Kids welcome** (existing kid icon) *or* the age rule (info icon, text as typed,
+e.g. "13 and up"), **Casual** (mug icon) / **Competitive** (trophy icon), **Invite only**. The D17 tags are neutral:
+`--surface-2` fill, `--ink` text, 1px `--line-strong` border, 6px radius, `--t-xs`; only On now (green) and Changed
+(foil) keep colour. Tags wrap; at 360 a card with four tags takes two tag lines, never truncated. New icons (sprout,
+info, mug, trophy) are simple generic shapes like the rest of the set.
+
+The "Updated" tag (5.3, 9.3) is renamed **Changed** (same foil + pencil) to match the page banner and Boss ranking #2,
+and the note ends with the date in `--ink-2`: "[✎ Changed] Starts at 7:30 this week. Updated Oct 25." A cancelled
+card's note also ends "Updated Oct 24."
+
+```
+│ ◷ 7 PM to 11 PM                                 │
+│ ⏲ Arrive by 6:50 PM to keep your seat.          │ ← signup here/counter with arriveByMins only; --t-sm, --ink-2
+│ [Beginner friendly] [Kids welcome] [Casual]      │ ← each with its icon
+```
+
+The arrive-by line shows in every state except Cancelled, Walk-in only and External (it matters to people already
+signed up even after sign-ups close). The collapsed weekly card (section 7) shows it too. Further out rows (5.8) show
+no tags (one line per series).
+
+### 15.6 Public: "New here?" page (P2.3; feature ideas 5, 15, 19)
+
+**URL** `/new-here`. Linked from the front page's "Good to know" block (first line: "New here? Start here."), the
+footer, and every beginner-friendly event page (15.4). Same strip, header and footer; no hero. One column, max 70ch,
+left-aligned. 768+: an "On this page" list of section links under the lede; 1024+: that list becomes a sticky left
+rail (14rem) beside the text. h1 "New here?", an h2 per section with the day-header diamond (5.5 shape, no number) as
+a small bullet.
+
+**Rule: no store policy is invented.** A section or sentence marked **TODO** below is **not rendered** until the owners
+answer OWNER-QUESTIONS Q20 (or the question named). A build test fails if "TODO" reaches a public page. The text lives
+in the page source like the other fixed copy (section 6) and moves to Store info later.
+
+| # | Section (h2) | Sample copy | Source |
+|---|---|---|---|
+| 1 | (lede, no h2) | "Never been to Mulligan Games? Here's what to expect, what to bring and which nights are good for a first visit." | |
+| 2 | Good first nights | From data: beginner-friendly events in the next 14 days, as Further out rows (date block, title link, game badge, time, fee, sign-up mode). Empty: "No beginner nights in the next two weeks. Call the shop at (215) 789-3299 to ask what's on." | `beginnerFriendly` |
+| 3 | Free play | "Free play all day, every day we're open. Bring a deck and find a table." | `store.freePlay` (fb flyer) |
+| 4 | What to bring | "Each event page says what to bring." General advice: **TODO Q20** | event data; Q20 |
+| 5 | Borrowing a deck | **TODO Q20** (loaner or precon decks: which games, which nights) | Q20 |
+| 6 | Kids and ages | "Each event shows "Kids welcome" or its age rule." Store-wide rule (age, whether an adult must stay): **TODO Q20** | D17; Q20 |
+| 7 | Signing up and paying | "Some events are walk-in: just show up. Others hold a seat when you sign up on the event's page, and you pay at the store when you arrive. If an event says "Arrive by", come by then or your seat can go to the next person waiting." Any other no-show rule: **TODO Q8** | D3, D5, D6, D17; Q8 |
+| 8 | Prereleases | "Prerelease seats are pre-registered at the counter. The event page shows if seats are left." Limits and priority: **TODO Q20** | fb (Star Trek: in store only); Q20 |
+| 9 | Proxies | cEDH: "Up to 10 proxies, approved by a judge." Other events: **TODO Q20** | D4 (pub); Q20 |
+| 10 | House rules | **TODO Q20** (code of conduct) | Q20 |
+| 11 | Trade-ins | "We buy trade-ins." What, and when to bring them: **TODO Q20** | pub; Q20 |
+| 12 | Getting here | address, `store.parking` ("Park in any lot next to the shop except the RISE lot."), Directions button, today's hours line | store facts (confirmed before launch, D12) |
+| 13 | Still have a question? | "Call (215) 789-3299." + "Or ask in our Discord." once Q3 picks the invite | store facts; Q3 |
+
+States: loading none (server); empty only in section 2 (above); error as any server page. Both themes: page tokens
+only.
+
+### 15.7 Counter: one-tap "No-show" with Undo on Today (P2.4; feature idea 8)
+
+**When it shows:** on Today (9.2) and the roster (9.4), on rows with status `in` that are **not checked in**, from the
+seat-release time (`start - arriveByMins`), or from the start time when none is set. Before that the row is as now.
+Never on walk-in-only events (no list) or external sign-ups (no roster).
+
+**Where:** in the row, between the name and the row menu, **in place of the payment control** on that row (someone
+who hasn't arrived hasn't paid at the door; payment comes back the moment they're checked in). A payment already set
+before they arrived shows as a small tag under the name ("Paid online elsewhere"). One tap, no confirm (Undo over
+confirm, section 9). This keeps the 768 row on one line (P1.3).
+
+```
+TABLET 768, after 6:50 PM
+│ [✓ Checked in] Sam B.    Wizards ID 9001370  [Unpaid|Door|Online|Comped|Credit] [⋯]
+│ [  Check in  ] Riley K.  signed up Oct 27    [ ⨯ No-show ]                      [⋯]  ← btn-2, 48px, user-x icon
+│ …
+│ Waitlist
+│  #1 Jordan K.   signed up Oct 27 6:10 PM                         [Move in]
+│ ▸ No-shows (1)                                       ← <details>, closed by default
+│     Pat L.   No-show, marked 6:52 PM                 [They're here: seat them]
+
+PHONE 360
+│ [ ] Riley K.             [No-show] [⋯] │   ← in the payment select's place; text label kept, 15px
+```
+
+The header stat row adds "No-shows 1" when there is at least one. Button text "No-show", visually hidden "Mark Riley
+K. as a no-show".
+
+**What a tap does** (server: `status: 'noshow'`, `checkedIn: false`, seat freed; same promote as a cancel, D6):
+- Waitlist on and someone waiting: #1 moves in (`status: 'in'`, row flashes `--ok-bg` once, "Moved in from the
+  waitlist" tag). Toast: "Riley K. marked no-show. Jordan K. moved in from the waitlist: call their name. Undo".
+- Nobody waiting (or no waitlist): "Riley K. marked no-show. 1 seat open for a walk-in. Undo".
+- **Undo** (6s, toast button): Riley back to `in`; Jordan back to waitlist #1, unless Jordan was checked in meanwhile:
+  then both keep their seats and the count reads "29 of 28" (as "Seat anyway"). Toast: "Riley K. is signed up again."
+- **Late arrival after the toast is gone:** "They're here: seat them" in the No-shows list checks them in if a seat is
+  free; if full, the walk-in pair appears in its place: "Add to waitlist" / "Seat anyway (29 of 28)".
+- Roster page (9.4): the tab "Cancelled" becomes "Cancelled and no-shows"; no-show rows carry a neutral "No-show" tag
+  (user-x icon, `--surface-2`). P2.6 counts `noshow` registrations per date.
+
+**States:** before the release time (no button); button shown; marked (row moves to "No-shows", toast); undone (row
+back in place); nothing to mark (everyone checked in: no buttons, nothing extra to say); event cancelled (not on
+Today; roster read-only, no button); full with waitlist (promote, above); full without waitlist ("1 seat open for a
+walk-in"); loading (Today's skeleton rows, section 10); error (the change shows at once and rolls back if the server
+refuses: toast "Couldn't save. Riley K. is still signed up. Try again."; offline: banner, 9.1). Both themes: tokens
+only. Names are set with `textContent`.

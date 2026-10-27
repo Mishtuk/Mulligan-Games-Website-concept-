@@ -164,3 +164,48 @@ and on output. SQL is parameterised only (`?` placeholders), never built from st
 tests as build tests. The prototype is not changed: it is a throwaway concept, every value goes through `MG.esc` /
 `MG.safeUrl`, and its injection tests pass; nothing is copied from it into the build without converting to the above.
 **Why:** escaping inside `innerHTML` strings works until one value is missed (P1.3 found two); text APIs can't miss.
+
+### D21. Mediator: coder vs designer on age, arrive-by and copy text (2026-10-26)
+Sides: the coder's `events.js` (`ageMin` integer, `arriveBy` clock time, copy text with "UPDATED:" / "CANCELLED:" and
+"fee to be confirmed") against DESIGN.md §15.1-15.3 (`ageNote` + `kidsWelcome`, `arriveByMins`, "Changed" tag and the
+§15.3 template). Both agree on `beginnerFriendly` and `playStyle`; those stay as they are.
+
+1. **Age: designer's `ageNote`.** `ageNote` is a string up to 60 characters, or null; `kidsWelcome` is "All ages".
+   Coder: in `src/lib/events.js` remove `ageMin` from `INTS`, from `clean()` and from the copy-text tags; validate
+   `ageNote` (null or 60 characters or fewer after collapsing whitespace); `clean()` stores it trimmed and as null when
+   `kidsWelcome` is true. Update the age asserts in `test/events.test.js`.
+2. **Arrive by: designer's `arriveByMins`.** Integer 0, 5, 10, 15 or 30, or null; kept only when `signup` is `here` or
+   `counter`. Coder: in `src/lib/events.js` remove `arriveBy` from `TIMES` and the start check in `validate()`; validate
+   `arriveByMins` against that list; `occurrences()` adds `arriveBy` per date (start minus mins; null without a start or
+   mins), so a one-date start change moves it. Update the arrive-by asserts in `test/events.test.js`.
+   Designer: no change.
+3. **Copy text: designer's §15.3 template, and "Changed", not "UPDATED".** Title with no prefix; "Changed: {note}" line
+   (or the §15.3 server sentence) on a changed date; "Cancelled: {title}" in sentence case with the §15.3 layout and
+   "Next one:"; "Entry $20" / "Free entry" (line left out when the fee is null); sign-up lines by mode; link
+   `<baseUrl>/events/<id>?date=` kept. No tags line and no arrive-by line; missing values are left out, not
+   "to be confirmed". Coder: rewrite `copyText()` in `src/lib/events.js` to that template and update its asserts in
+   `test/events.test.js`. Designer: add one sentence to DESIGN.md §15.3 saying the post text has no tags or arrive-by
+   line (D17 names the card, event page and sign-up reply only).
+
+**Why:** the owners' words ("13 and up", "kids with a parent") fit `ageNote` and an integer ages cannot; a fixed clock
+time would print the old seat-release time after a one-date start change, which breaks the sign-up promise. The §15.3
+template is the wording the admin and public pages are already specified to use, so the post reads the same everywhere
+and players see one message. The changes are local to `events.js` and its tests; the designer's fields and text are
+already written.
+Boss overrule: none.
+
+### D22. P1.3b and P2.2a review calls (2026-10-26)
+Design (P1.3b, DESIGN.md section 15): (1) "No-show" takes the payment control's place on a roster row until check-in,
+confirmed (keeps the 768 row on one line; nobody pays before they arrive). (2) The card tag "Updated" is renamed
+"Changed" and the roster tab "Cancelled" becomes "Cancelled and no-shows", accepted (one word for one thing, matches
+the page banner, D21 and the post text). (3) No default arrive-by time; Q8 now asks the owners for one.
+Code (P2.2a): (4) `inviteOnly` is a validated series boolean and prints "Invite only." in the post text, accepted.
+(5) The external sign-up line is always "Sign up online: {link}"; no `cta` field (15.1 adds none; 15.3 updated).
+(6) A changed date with no note gets a server sentence (new time, seats, or "Moved from ..."), accepted. (7) `safeUrl`
+accepts `localhost` hosts: accepted. Stored links are only ever shown as links, never fetched by the server, so a
+localhost link can't reach anything the clicker's own browser couldn't, and the dev `PUBLIC_URL` needs it. (8) One-date
+exceptions are keyed by the original date and a move is limited to 60 days, accepted (keeps "Bring it back" a single
+delete and the expansion window bounded). (9) The seed loads once, guarded by a kv flag, so deleted events don't come
+back, accepted. (10) Stored text keeps going through the shared `text()` cleaner, which drops anything between `<`
+and `>`; DESIGN.md 15.2 changed to say so (defence in depth on top of D20, not instead of it).
+**Why:** each call either follows the signed-off spec or is the smaller option with no loss for owners or players.

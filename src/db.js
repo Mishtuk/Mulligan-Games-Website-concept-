@@ -3,6 +3,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import seed from './content/series.json' with { type: 'json' };
 
 export function openDb(dir) {
   if (dir !== ':memory:') mkdirSync(dir, { recursive: true });
@@ -14,12 +15,33 @@ export function openDb(dir) {
     CREATE TABLE IF NOT EXISTS stats_daily (day TEXT NOT NULL, metric TEXT NOT NULL, item TEXT NOT NULL DEFAULT '', n INTEGER NOT NULL,
       PRIMARY KEY (day, metric, item)) WITHOUT ROWID;
     CREATE TABLE IF NOT EXISTS security_events (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, type TEXT NOT NULL, who TEXT NOT NULL DEFAULT '',
-      ip TEXT NOT NULL DEFAULT '', detail TEXT NOT NULL DEFAULT '');`);
+      ip TEXT NOT NULL DEFAULT '', detail TEXT NOT NULL DEFAULT '');
+    CREATE TABLE IF NOT EXISTS series (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS exceptions (series TEXT NOT NULL, date TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (series, date));`);
   return db;
 }
 
 export const getState = (db) => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'state'").get()?.value ?? '{}');
 export const setState = (db, state) => db.prepare("INSERT INTO kv (key, value) VALUES ('state', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(state));
+
+// ---------- event series and one-date exceptions (src/lib/events.js owns the shape; each row is one JSON document) ----------
+/** First run only: copy src/content/series.json in unchanged. A kv flag stops it coming back after staff delete everything. */
+export function seedSeries(db) {
+  if (db.prepare("SELECT 1 FROM kv WHERE key = 'series_seeded'").get()) return;
+  for (const s of seed) putSeries(db, s);
+  db.prepare("INSERT INTO kv (key, value) VALUES ('series_seeded', '1')").run();
+}
+export const listSeries = (db) => db.prepare('SELECT data FROM series ORDER BY rowid').all().map((r) => JSON.parse(r.data));
+export const getSeries = (db, id) => { const r = db.prepare('SELECT data FROM series WHERE id = ?').get(id); return r && JSON.parse(r.data); };
+export const putSeries = (db, s) => db.prepare('INSERT INTO series (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data').run(s.id, JSON.stringify(s));
+export function deleteSeries(db, id) {
+  db.prepare('DELETE FROM exceptions WHERE series = ?').run(id);
+  return db.prepare('DELETE FROM series WHERE id = ?').run(id).changes > 0;
+}
+export const listExceptions = (db, series) => (series === undefined ? db.prepare('SELECT data FROM exceptions ORDER BY series, date').all()
+  : db.prepare('SELECT data FROM exceptions WHERE series = ? ORDER BY date').all(series)).map((r) => JSON.parse(r.data));
+export const putException = (db, x) => db.prepare('INSERT INTO exceptions (series, date, data) VALUES (?, ?, ?) ON CONFLICT(series, date) DO UPDATE SET data = excluded.data').run(x.series, x.date, JSON.stringify(x));
+export const deleteException = (db, series, date) => db.prepare('DELETE FROM exceptions WHERE series = ? AND date = ?').run(series, date).changes > 0;
 
 /** Daily copy to DATA_DIR/backup/mg-YYYY-MM-DD.db, keeping the newest 7. Safe while the app runs. */
 export function backup(db, dir, now = new Date()) {

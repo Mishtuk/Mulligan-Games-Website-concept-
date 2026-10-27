@@ -51,7 +51,7 @@ test('session cookie: forged, tampered, expired and wrong-name values are refuse
   const good = signSession('admin', Date.now() + 1e6, SECRET, 0);
   assert.equal(verifySession(good, SECRET, k), 'admin');
   assert.equal(verifySession(good, 'other-secret', k), null);
-  assert.equal(verifySession(good.slice(0, -2) + 'xx', SECRET, k), null);
+  assert.equal(verifySession(good.slice(0, -2) + (good.at(-2) === 'x' ? 'yy' : 'xx'), SECRET, k), null); // always a real change (was a ~1/1000 flake)
   assert.equal(verifySession(signSession('admin', Date.now() - 1, SECRET, 0), SECRET, k), null);
   assert.equal(verifySession(signSession('mallory', Date.now() + 1e6, SECRET, 0), SECRET, k), null);
   assert.equal(verifySession('', SECRET, k), null);

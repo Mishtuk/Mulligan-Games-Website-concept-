@@ -97,14 +97,15 @@ Series / 5K / Redemption dates). Four screens: front page, events page, admin ev
 - **Owner:** designer (Desktop or Laptop, whichever has usage). **Files:** `DESIGN.md` only (no prototype needed;
   ASCII layouts and states like the rest of the spec).
 - **Needs:** P1.3 (done). Research is in `docs/research/feature-ideas.md`.
+- **Status:** signed off by the boss 2026-10-26 (DESIGN.md section 15; D22).
 - **Done when:** `DESIGN.md` covers, with layout per width and all states:
-  - [ ] Admin (needed by P2.2): D17 fields in the event editor (beginner friendly, age, casual / competitive,
+  - [x] Admin (needed by P2.2): D17 fields in the event editor (beginner friendly, age, casual / competitive,
         seat-release "arrive by") and the "Copy post text" button on each date in the admin list (D18), with the exact
         text format and the "Copied" feedback.
-  - [ ] Public (needed by P2.3): per-date event page (D16) incl. Cancelled / Changed with "updated <date>" and struck
+  - [x] Public (needed by P2.3): per-date event page (D16) incl. Cancelled / Changed with "updated <date>" and struck
         cancelled dates, D17 tags and arrive-by on card and page, the "New here?" page.
-  - [ ] Counter (needed by P2.4): one-tap "No-show" with Undo on the Today roster.
-  - [ ] Boss review. The admin bullet lands first; P2.2 builds its editor fields and copy button only after it.
+  - [x] Counter (needed by P2.4): one-tap "No-show" with Undo on the Today roster.
+  - [x] Boss review. The admin bullet lands first; P2.2 builds its editor fields and copy button only after it.
 
 ### P1.4 Fold in Facebook + screenshot findings
 - **Owner:** Laptop designer. **Files:** `DESIGN.md`, `prototype/css/tokens.css`, `prototype/data/sample.js`.
@@ -162,16 +163,34 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Needs:** P2.1, `DESIGN.md` admin events sections (P1.3 signed off 2026-10-26). The D17 editor fields and
   "Copy post text" UI wait for P1.3b's admin bullet; the data model, validation and tests for them can start now.
   Every client-side update follows D20 (no data through `innerHTML`).
+- **Status:** P2.2a (data model, validation, storage, admin API, copy text, tests) reviewed and accepted by the boss
+  2026-10-26 (D22). The screens are P2.2b below.
 - **Done when:**
-  - [ ] Event series per `DECISIONS.md` D7 (game, format, kind, fee, capacity, sign-up mode, tool link + code,
+  - [x] Event series per `DECISIONS.md` D7 (game, format, kind, fee, capacity, sign-up mode, tool link + code,
         Warhammer fields, cEDH series tag) and D17 tags (beginner friendly, age, casual / competitive, seat-release
-        time) with server-side validation and errors under the field.
-  - [ ] "Copy post text" on each date in the admin list (D18): plain text with title, day, start and end time, fee,
+        time) with server-side validation and errors under the field. (P2.2a: server returns field errors; showing them
+        under the field is P2.2b.)
+  - [x] "Copy post text" on each date in the admin list (D18): plain text with title, day, start and end time, fee,
         sign-up mode and the event page link, ready for Facebook, Discord, Google Business Profile, Wizards (tested).
+        (P2.2a: `copyText()` + `GET /api/admin/series/:id/copy?date=`; the button is P2.2b.)
   - [ ] Templates: picking game + format pre-fills; staff can save their own template.
-  - [ ] Recurrence reuses `occurrences()`; one date can be cancelled, moved or given a note without touching the series.
-  - [ ] Tests: recurrence (incl. 5th-weekday and DST weeks), one-date exception, validation rejects.
+  - [x] Recurrence reuses `occurrences()` (rewritten in `events.js` for the nested D15 shape); one date can be cancelled, moved or given a note without touching the series.
+  - [x] Tests: recurrence (incl. 5th-weekday and DST weeks), one-date exception, validation rejects.
   - [ ] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs (left out of P2.1).
+
+### P2.2b Events admin screens
+- **Owner:** Desktop coder. **Files:** `src/pages/admin.astro` (events view), admin client JS, `src/lib/events.js`
+  (templates only), `src/lib/state.js`, `test/events.test.js`, `test/state.test.js`.
+- **Needs:** P2.2a (accepted), `DESIGN.md` 9.3, 9.4, 15.2, 15.3. D20 for every client-side update.
+- **Done when:**
+  - [ ] Event editor on the P2.2a API with the D17 fields as 15.2 (Hold seats until + read-back sentence, Who it's
+        for: Beginner friendly, Ages radios, Play style), server field errors shown under each field (`markErr`).
+  - [ ] Templates: picking game + format pre-fills (15.2 template defaults); staff can save their own template.
+  - [ ] "Copy post text" on each date row and the roster header with "Copied", toast and the clipboard-fails dialog
+        (15.3).
+  - [ ] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs.
+  - [ ] The old flat-model `occurrences()` / `expand()` (and `addDays` / `daysIn`) are deleted from `state.js` with
+        their tests in `test/state.test.js` (D15: one model; nothing else imports them).
 
 ### P2.3 Public front page + events page
 - **Owner:** Desktop coder. **Files:** `src/pages/index.astro`, `src/pages/events.astro`, server-rendered per-date
