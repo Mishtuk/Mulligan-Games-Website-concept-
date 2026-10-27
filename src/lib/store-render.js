@@ -1,6 +1,7 @@
 // Server HTML for the store facts that sit in the page frame and the front page (address, phone, parking, links, room photo), filled at
 // <!--mg:name--> markers on every request so an admin edit shows without a restart (D11). D20: only the escaping `h` tag builds markup; links go through safeUrl.
-import { DAYS, fmtTime, h, hours, icon, mapsUrl } from './render.js';
+import { DAYS, fmtDate, fmtTime, h, hours, icon, mapsUrl } from './render.js';
+import proof from '../content/proof.json' with { type: 'json' };
 import { safeUrl } from './events.js';
 
 const SOCIAL = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']];
@@ -34,10 +35,16 @@ export function footAddr({ store }) {
 export function socials({ store }) {
   return SOCIAL.map(([n, k]) => [n, link(store, k)]).filter(([, u]) => u).map(([n, u]) => h`<li><a href="${u}" target="_blank" rel="noopener">${n}<span class="vh"> (opens in a new tab)</span></a></li>`);
 }
-/** Two cEDH facts that come from store facts: the standings link and the parking note. */
+/** Two cEDH facts: what entry costs (src/content/proof.json; the $10 deposit is said once, here) and the parking note. */
+export const entryText = (p = proof) => `Championship Series $${p.cedh.fees.mcs}, 5K $${p.cedh.fees['5k']}, Redemption $${p.cedh.fees.redemption} ($${p.cedh.redemptionAfter5k} after the 5K). A $${p.cedh.deposit} online deposit holds a spot; the rest is paid at the door.`;
 export function cedhLive({ store }) {
-  const circuit = link(store, 'topdeckCircuit') ?? link(store, 'topdeck');
-  return h`${circuit ? h`<div><dt>Standings</dt><dd><a href="${circuit}" target="_blank" rel="noopener">Circuit points on TopDeck${out('TopDeck')}</a></dd></div>` : ''}${store.parking ? h`<div><dt>Parking</dt><dd>${store.parking}</dd></div>` : ''}`;
+  return h`<div><dt>Entry</dt><dd>${entryText()}</dd></div>${store.parking ? h`<div><dt>Parking</dt><dd>${store.parking}</dd></div>` : ''}`;
+}
+/** "Recent turnout": the last four past circuit events (newest first) and one TopDeck link. */
+export function turnout({ now }, p = proof) {
+  const rows = p.circuit.events.filter((r) => r.date < now.ymd).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 4), url = safeUrl(p.circuit.url);
+  if (!rows.length) return '';
+  return h`<div class="turnout"><h4>Recent turnout</h4><ul class="turnout-list">${rows.map((r) => h`<li><span>${fmtDate(r.date)}</span><span>${r.title}</span><b>${r.players} players</b></li>`)}</ul>${url ? h`<a class="turnout-more" href="${url}" target="_blank" rel="noopener">Full standings on TopDeck${out('TopDeck')}</a>` : ''}</div>`;
 }
 /** The whole Visit block: a heading, then three columns (hours, address, good to know) on the band, no card box; the room photo below it when one is chosen. */
 export function visit(ctx) {

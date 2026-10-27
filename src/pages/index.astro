@@ -6,24 +6,34 @@ import Base from '../components/Base.astro';
 import Icon from '../components/Icon.astro';
 import store from '../content/store.json';
 import { safeUrl } from '../lib/events.js';
+import proof from '../content/proof.json';
+import { entryText } from '../lib/store-render.js';
 
 const a = store.address;
 const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
 const tel = safeUrl(store.phoneHref);
-const circuit = safeUrl(store.links?.topdeckCircuit) ?? safeUrl(store.links?.topdeck);
 const discord = safeUrl(store.links?.discord);
+const rv = proof.reviews, reviewUrl = safeUrl(rv.url);
+const tcg = safeUrl(proof.tcgplayer.url);
 const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
 ---
 <Base title="Mulligan Games, Warminster PA: events this week" description="Card and game shop in Warminster, PA. Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights every week. See what's on, sign up and plan your visit." current="home" skip="#week" skipLabel="Skip to this week's events">
-  <Fragment slot="head"><Fragment set:html="<!--mg:shop-ld-->" /></Fragment>
+  <Fragment slot="head">
+    <Fragment set:html="<!--mg:shop-ld-->" />
+    <!-- LCP hint per screen: phones fetch the portrait poster, wide screens the landscape still (never both) -->
+    <link rel="preload" as="image" href="/media/video/cedh-players-tables-loop-poster.webp" media="(max-width: 899px)" fetchpriority="high" />
+    <link rel="preload" as="image" imagesrcset="/img/social/shop-floor-cases-800.webp 800w, /img/social/shop-floor-cases.webp 1440w" imagesizes="100vw" media="(min-width: 900px)" fetchpriority="high" />
+  </Fragment>
   <main id="main">
     <!-- 2. Hero (round 3, D36): the room on a cEDH night fills the width (poster first, loop after load; site.js); white copy on a dark scrim, a strip along the bottom -->
     <section class="phero" aria-labelledby="hero-h">
       <div class="phero-media" id="hero-media">
-        <img src="/media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Players at the cEDH tables in the Mulligan Games play room" fetchpriority="high" />
-        <video id="hero-video" muted loop playsinline preload="none" poster="/media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" aria-hidden="true" tabindex="-1">
-          <source src="/media/video/cedh-players-tables-loop.mp4" type="video/mp4" />
-        </video>
+        <!-- From 900px the landscape still; under 900px the portrait poster and loop. The video has no <source> or poster here: site.js adds them on phones only. -->
+        <picture>
+          <source media="(min-width: 900px)" srcset="/img/social/shop-floor-cases-800.webp 800w, /img/social/shop-floor-cases.webp 1440w" sizes="100vw" width="1440" height="1080" />
+          <img src="/media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Inside Mulligan Games: tables, sealed product and singles cases" fetchpriority="high" />
+        </picture>
+        <video id="hero-video" muted loop playsinline preload="none" width="540" height="960" aria-hidden="true" tabindex="-1"></video>
       </div>
       <div class="wrap phero-in">
         <Fragment set:html={`<!--mg:hero--><div class="phero-copy"><h1 class="phero-h" id="hero-h">Card and game nights every week in Warminster.</h1></div><!--/mg:hero-->`} />
@@ -31,7 +41,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
       <div class="phero-strip">
         <div class="wrap phero-strip-in">
           <Fragment set:html="<!--mg:free-play-->" />{store.freePlay && <p class="freeplay2">{store.freePlay}</p>}<Fragment set:html="<!--/mg:free-play-->" />
-          <p class="media-cap">On screen: cEDH night at the shop</p>
+          <p class="media-cap">On screen: <span class="cap-wide">The shop floor at 445 York Rd</span><span class="cap-narrow">cEDH night at the shop</span></p>
           <button class="vid-btn" id="vid-btn" type="button" data-paused>
             <Icon name="pause" class="i-pause" /><Icon name="play" class="i-play" />
             <span id="vid-label">Play video</span>
@@ -60,9 +70,9 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
         </div>
         <ul class="shots">
           <li class="shot shot-banner"><figure><img src="/img/social/interior-welcome-banner.webp" width="960" height="720" loading="lazy" decoding="async" alt="A Welcome to Mulligan Games banner over the doorway into the play room" /><figcaption>Through this door: the play room</figcaption></figure></li>
-          <li class="shot shot-case"><figure><img src="/img/social/singles-display-case.webp" width="480" height="640" loading="lazy" decoding="async" alt="A lit glass case full of single cards" /><figcaption>The singles case</figcaption></figure></li>
-          <li class="shot shot-corgi"><figure><img src="/img/social/staff-corgi-interior.webp" width="512" height="640" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding a corgi, game posters behind" /><figcaption>Staff, and a corgi</figcaption></figure></li>
-          <li class="shot shot-crew"><figure><img src="/img/social/staff-group.webp" width="640" height="480" loading="lazy" decoding="async" alt="Five Mulligan Games staff at the counter" /><figcaption>The Mulligan crew</figcaption></figure></li>
+          <li class="shot shot-case"><figure><img src="/img/social/singles-case-lit-800.webp" srcset="/img/social/singles-case-lit-800.webp 800w, /img/social/singles-case-lit.webp 1600w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="A lit glass case of single cards, with Japanese and Korean sections" /><figcaption>The singles case</figcaption></figure></li>
+          <li class="shot shot-corgi"><figure><img src="/img/social/shop-corgi-800.webp" srcset="/img/social/shop-corgi-800.webp 800w, /img/social/shop-corgi.webp 1070w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="1000" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding the shop corgi, game posters behind" /><figcaption>Staff, and a corgi</figcaption></figure></li>
+          <li class="shot shot-crew"><figure><img src="/img/social/event-full-room-800.webp" srcset="/img/social/event-full-room-800.webp 800w, /img/social/event-full-room.webp 1600w" sizes="(min-width: 768px) 50vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="The play room full of players at tables on an event night" /><figcaption>An event night</figcaption></figure></li>
         </ul>
       </div>
     </section>
@@ -78,7 +88,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
             <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
             <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
             <Fragment set:html="<!--mg:cedh-live-->" />
-            {circuit && <div><dt>Standings</dt><dd><a href={circuit} target="_blank" rel="noopener">Circuit points on TopDeck<span class="vh"> (opens TopDeck)</span></a></dd></div>}
+            <div><dt>Entry</dt><dd>{entryText()}</dd></div>
             {store.parking && <div><dt>Parking</dt><dd>{store.parking}</dd></div>}
             <Fragment set:html="<!--/mg:cedh-live-->" />
           </dl>
@@ -86,6 +96,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
         <div class="cedh-next">
           <h3>Next cEDH events</h3>
           <Fragment set:html={`<!--mg:cedh--><!--/mg:cedh-->`} />
+          <Fragment set:html={`<!--mg:turnout--><!--/mg:turnout-->`} />
         </div>
       </div>
     </section>
@@ -98,6 +109,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           <p class="sec-note">Preorders are taken at the counter or by phone.</p>
         </div>
         <ul class="rel-list"><Fragment set:html={`<!--mg:releases--><!--/mg:releases-->`} /></ul>
+        {tcg && <p class="tcg-line"><a href={tcg} target="_blank" rel="noopener">{proof.tcgplayer.line}<span class="vh"> (opens TCGplayer)</span></a>{proof.tcgplayer.positive && ` · ${proof.tcgplayer.positive}`}</p>}
       </div>
     </section>
 
@@ -153,6 +165,14 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           </ul>
         </div>
         <Fragment set:html="<!--/mg:discord-->" />
+        <div class="comm-proof">
+          <h3>What people say</h3>
+          <!-- Static: rating and quotes are content in src/content/proof.json (see its asOf) -->
+          <p class="proof-rate">{reviewUrl ? <a href={reviewUrl} target="_blank" rel="noopener">{rv.rating} on {rv.source} · {rv.count} reviews<span class="vh"> (opens Google Maps)</span></a> : `${rv.rating} on ${rv.source} · ${rv.count} reviews`}</p>
+          <ul class="proof">
+            {rv.items.map((q) => <li><q>{q.text}</q><small>{q.name}, {q.age}</small></li>)}
+          </ul>
+        </div>
       </div>
     </section>
   </main>

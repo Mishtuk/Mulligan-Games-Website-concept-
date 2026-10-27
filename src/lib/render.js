@@ -353,7 +353,7 @@ export function releases(ctx) {
           : statBox(days, days === 1 ? 'day left' : 'days left', endTxt, 'hourglass');
     } else if (r.status === 'out') stat = h`<p class="ev-stat">${icon('check')}<span class="ev-stat-unit">On the shelf</span></p>`;
     const soon = r.status === 'preorder' && r.preorderEnds && dayMin(r.preorderEnds) - dayMin(ctx.now.ymd) <= 3 * 1440; // the countdown box shows only on the last 3 days
-    return h`<li class="rel" data-game="${g.id}" data-status="${r.status}"${soon ? h` data-soon=""` : ''}><h3 class="rel-name">${r.name}</h3><p class="ev-type">${gameBadge(ctx, g.id)}<span class="ev-fmt">${label}</span></p><div class="rel-text">${text}</div>${stat.s ? h`<div class="rel-foot">${stat}</div>` : ''}</li>`;
+    return h`<li class="rel" data-game="${g.id}" data-status="${r.status}"${soon ? h` data-soon=""` : ''}><h3 class="rel-name">${r.name}</h3><p class="ev-type">${gameBadge(ctx, g.id)}<span class="ev-fmt">${label}</span></p>${text ? h`<div class="rel-text">${text}</div>` : ''}${stat.s ? h`<div class="rel-foot">${stat}</div>` : ''}</li>`;
   });
   return h`${items}`;
 }

@@ -6,11 +6,19 @@
   /* front page hero video: the poster shows until a real frame is painted; held back for reduced motion / Save-Data / slow links */
   var v = document.getElementById('hero-video'), vbtn = document.getElementById('vid-btn'), box = document.getElementById('hero-media');
   if (v && vbtn && box && v.play) {
+    /* the portrait loop is for phones: from 900px the landscape still shows and the video is never loaded */
+    var narrow = matchMedia('(max-width: 899px)');
+    var addSources = function () {
+      if (v.querySelector('source')) return;
+      v.poster = '/media/video/cedh-players-tables-loop-poster.webp';
+      var el = document.createElement('source'); el.src = '/media/video/cedh-players-tables-loop.mp4'; el.type = 'video/mp4'; v.appendChild(el);
+      v.load();
+    };
     var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null, vlab = document.getElementById('vid-label');
     var hold = rm.matches || c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
     try { pref = sessionStorage.getItem('mg-video'); } catch (e) { /* not stored */ }
     var label = function (playing) { vlab.textContent = playing ? 'Pause video' : 'Play video'; if (playing) vbtn.removeAttribute('data-paused'); else vbtn.setAttribute('data-paused', ''); };
-    var start = function () { v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); };
+    var start = function () { if (!narrow.matches) return; addSources(); v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); };
     var reveal = function () { box.classList.add('is-on'); };
     v.addEventListener('playing', function () {
       label(true);
@@ -25,10 +33,13 @@
       if (go) start(); else v.pause();
     });
     try { rm.addEventListener('change', function (ev) { if (ev.matches) v.pause(); }); } catch (e) { /* old browsers */ }
-    vbtn.classList.add('is-ready'); label(false);
-    if (!((hold && pref !== 'play') || pref === 'pause')) {
-      var later = function () { setTimeout(start, 300); };
-      if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
+    try { narrow.addEventListener('change', function (ev) { if (!ev.matches) v.pause(); }); } catch (e) { /* old browsers */ }
+    if (narrow.matches) { /* phones only: on wide screens the video is never loaded and the pause control stays hidden */
+      vbtn.classList.add('is-ready'); label(false);
+      if (!((hold && pref !== 'play') || pref === 'pause')) {
+        var later = function () { setTimeout(start, 300); };
+        if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
+      }
     }
   }
 
@@ -46,8 +57,8 @@
   /* front page: game chips filter in place. Only from "All games": a page the server already filtered doesn't have the other cards. */
   var chips = document.getElementById('chips'), days = document.getElementById('days');
   if (!chips || !days) return;
-  var start = chips.querySelector('[aria-current]');
-  if (!start || start.getAttribute('data-chip') !== 'all') return;
+  var curChip = chips.querySelector('[aria-current]'); /* not "start": var is function-wide and would overwrite the hero's start() */
+  if (!curChip || curChip.getAttribute('data-chip') !== 'all') return;
   var empty = document.getElementById('filter-empty'), status = document.getElementById('filter-status');
   function apply(id, link) {
     chips.querySelectorAll('.chip').forEach(function (c) {
