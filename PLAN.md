@@ -254,12 +254,12 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   (Inventory + Preorders), `test/inventory.test.js`.
 - **Needs:** P2.2 (event product use), `DESIGN.md` inventory sections, owner answer on POS (OWNER-QUESTIONS Q4).
 - **Done when:**
-  - [ ] Products with on-hand from stock moves (receive, sale, count, event use, prize, adjust); low-stock threshold
+  - [x] Products with on-hand from stock moves (receive, sale, count, event use, prize, adjust); low-stock threshold
         and alert list on the admin home.
-  - [ ] Event editor "Stock it uses" group (9.3, moved from P2.2b). Event product use (fixed or per seat) shows "reserved" for upcoming dates and warns when reserved > on hand.
-  - [ ] Preorders: customer, qty, deposit, status; "arrived" lists who to call.
-  - [ ] CSV export of products; CSV import only if the owner's POS can export (Q4).
-  - [ ] Tests: count math, reservation math, low-stock trigger, preorder status flow.
+  - [x] Event editor "Stock it uses" group (9.3, moved from P2.2b). Event product use (fixed or per seat) shows "reserved" for upcoming dates and warns when reserved > on hand.
+  - [x] Preorders: customer, qty, deposit, status; "arrived" lists who to call.
+  - [x] CSV export of products (D45); CSV import only if the owner's POS can export (Q4, open).
+  - [x] Tests: count math, reservation math, low-stock trigger, preorder status flow.
 
 ### P2.6 Results and prizes
 - **Owner:** Desktop coder. **Files:** `src/lib/results.js`, `server.js`, `src/pages/admin.astro`, `test/results.test.js`.

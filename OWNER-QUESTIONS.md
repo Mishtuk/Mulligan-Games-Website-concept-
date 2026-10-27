@@ -80,3 +80,9 @@ write the answer and date under the question and, if it changes a ruling, add an
 - **Q24 T-shirt:** show it if the research confirms it is for sale.
 - **Player counts:** public.
 - **cEDH entry fee / TCGplayer:** research them (owner signed in to TCGplayer in Chrome on the Laptop).
+
+## Inventory and preorders (2026-10-27; D41-D45)
+25. **Preorder contacts:** we delete a preorder customer's phone/email 30 days after pickup or cancel (name cut to
+    initials), like sign-ups. Keep 30, or another number?
+26. **Preorder status wording:** the screens say "Waiting" for an order not yet in. Would "Ordered" read better at the counter?
+27. **Who sees stock and preorder contacts:** owners only, or every staff login (ties to Q10)?

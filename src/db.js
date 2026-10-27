@@ -25,7 +25,15 @@ export function openDb(dir) {
       payment TEXT NOT NULL DEFAULT 'unpaid' CHECK (payment IN ('unpaid', 'door', 'online', 'comped', 'credit')), walk_in INTEGER NOT NULL DEFAULT 0,
       token_hash TEXT UNIQUE, created_at INTEGER NOT NULL, promoted_at INTEGER, purged INTEGER NOT NULL DEFAULT 0, undo TEXT);
     CREATE INDEX IF NOT EXISTS registrations_slot ON registrations (series, slot);
-    CREATE TABLE IF NOT EXISTS headcount (series TEXT NOT NULL, slot TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (series, slot)) WITHOUT ROWID;`);
+    CREATE TABLE IF NOT EXISTS headcount (series TEXT NOT NULL, slot TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (series, slot)) WITHOUT ROWID;
+    CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, category TEXT NOT NULL CHECK (category IN ('sealed', 'singles', 'accessory', 'miniature', 'paint', 'other')),
+      game TEXT NOT NULL DEFAULT '', sku TEXT NOT NULL DEFAULT '', low INTEGER NOT NULL DEFAULT 0, enabled INTEGER NOT NULL DEFAULT 1);
+    CREATE TABLE IF NOT EXISTS stock_moves (id INTEGER PRIMARY KEY, product INTEGER NOT NULL, qty INTEGER NOT NULL,
+      reason TEXT NOT NULL CHECK (reason IN ('received', 'sold', 'counted', 'event', 'prize', 'adjust', 'pickup')), series TEXT, slot TEXT, who TEXT NOT NULL DEFAULT '', at INTEGER NOT NULL, note TEXT NOT NULL DEFAULT '');
+    CREATE INDEX IF NOT EXISTS stock_moves_product ON stock_moves (product);
+    CREATE TABLE IF NOT EXISTS event_use (series TEXT NOT NULL, product INTEGER NOT NULL, fixed INTEGER, per_seat INTEGER, seats_per_date INTEGER, PRIMARY KEY (series, product)) WITHOUT ROWID;
+    CREATE TABLE IF NOT EXISTS preorders (id INTEGER PRIMARY KEY, product INTEGER NOT NULL, customer TEXT NOT NULL, contact TEXT NOT NULL DEFAULT '', qty INTEGER NOT NULL, deposit INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL CHECK (status IN ('waiting', 'arrived', 'picked', 'cancelled')), created_at INTEGER NOT NULL, closed_at INTEGER, pickup_move INTEGER NOT NULL DEFAULT 0, purged INTEGER NOT NULL DEFAULT 0);`);
   if (!db.prepare('PRAGMA table_info(registrations)').all().some((c) => c.name === 'undo')) db.exec('ALTER TABLE registrations ADD COLUMN undo TEXT'); // P2.4b: databases made before cancel Undo
   return db;
 }
@@ -45,6 +53,7 @@ export const getSeries = (db, id) => { const r = db.prepare('SELECT data FROM se
 export const putSeries = (db, s) => db.prepare('INSERT INTO series (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data').run(s.id, JSON.stringify(s));
 export function deleteSeries(db, id) {
   db.prepare('DELETE FROM exceptions WHERE series = ?').run(id);
+  db.prepare('DELETE FROM event_use WHERE series = ?').run(id);
   return db.prepare('DELETE FROM series WHERE id = ?').run(id).changes > 0;
 }
 export const listExceptions = (db, series) => (series === undefined ? db.prepare('SELECT data FROM exceptions ORDER BY series, date').all()

@@ -65,6 +65,8 @@ import Icon from '../components/Icon.astro';
             <section data-section="roster" hidden></section>
             <section data-section="dashboard" hidden></section>
             <section data-section="events" hidden></section>
+            <section data-section="inventory" hidden></section>
+            <section data-section="preorders" hidden></section>
             <section data-section="store" hidden></section>
             <section data-section="security" hidden></section>
             <section data-section="account" hidden></section>
@@ -109,7 +111,7 @@ import Icon from '../components/Icon.astro';
         pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>',
         dots: '<circle cx="5" cy="12" r="1.75" fill="currentColor"/><circle cx="12" cy="12" r="1.75" fill="currentColor"/><circle cx="19" cy="12" r="1.75" fill="currentColor"/>', minus: '<path d="M5 12h14"/>', usera: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/>',
         noshow: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 9l5 5M21 9l-5 5"/>', eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>', x: '<path d="m6 6 12 12M18 6 6 18"/>',
-        users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.8a3.5 3.5 0 010 6.4M18 14a6.5 6.5 0 013.5 6"/>', stats: '<path d="M5 20V10M12 20V4M19 20v-7"/>', hourglass: '<path d="M6.5 3h11M6.5 21h11M7.5 3c0 5 9 5 9 9s-9 4-9 9M16.5 3c0 5-9 5-9 9s9 4 9 9"/>', seat: '<path d="M7 11V5.5A1.5 1.5 0 018.5 4h7A1.5 1.5 0 0117 5.5V11M5 11h14v4H5zM7 15v5M17 15v5"/>' };
+        users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.8a3.5 3.5 0 010 6.4M18 14a6.5 6.5 0 013.5 6"/>', stats: '<path d="M5 20V10M12 20V4M19 20v-7"/>', hourglass: '<path d="M6.5 3h11M6.5 21h11M7.5 3c0 5 9 5 9 9s-9 4-9 9M16.5 3c0 5-9 5-9 9s9 4 9 9"/>', box: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>', bag: '<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 016 0v2"/>', seat: '<path d="M7 11V5.5A1.5 1.5 0 018.5 4h7A1.5 1.5 0 0117 5.5V11M5 11h14v4H5zM7 15v5M17 15v5"/>' };
       const ico = (n, s = 20) => { const e = h('span', { class: 'ico', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
       const ERR = { signed_out: 'Please sign in again.', origin: 'Reload the page and try again.', current: 'The current password is not right.', too_short: 'The new password needs at least 10 characters.',
         too_easy: 'Pick a harder password.', same: 'That is the same as the old password.', too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.' };
@@ -176,9 +178,9 @@ import Icon from '../components/Icon.astro';
         start();
       });
       // Sidebar (1024+), tab bar and More sheet share these. A badge (pale yellow) shows a count: setBadge('security', n).
-      const NAV = [['today', 'Today', 'clock', 'Today'], ['events', 'Events', 'cal', 'Events'], ['dashboard', 'Dashboard', 'stats', 'Dashboard'], ['store', 'Store info', 'pin', 'Store']];
+      const NAV = [['today', 'Today', 'clock', 'Today'], ['events', 'Events', 'cal', 'Events'], ['inventory', 'Inventory', 'box', 'Stock'], ['preorders', 'Preorders', 'bag', 'Preorders'], ['dashboard', 'Dashboard', 'stats', 'Dashboard'], ['store', 'Store info', 'pin', 'Store']];
       const NAV2 = [['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
-      const BADGE_WORD = { today: 'to decide', security: 'warnings this week' };
+      const BADGE_WORD = { today: 'to decide', inventory: 'low or short', preorders: 'arrived, to call', security: 'warnings this week' };
       const badges = {};
       const nb = (id) => h('span', { class: 'nb', 'data-nb': id, hidden: !badges[id], 'aria-label': badges[id] ? badges[id] + ' ' + BADGE_WORD[id] : null }, badges[id] || '');
       function setBadge(id, n) { badges[id] = n; document.querySelectorAll('[data-nb=' + id + ']').forEach((e) => { e.hidden = !n; e.textContent = n || ''; if (n) e.setAttribute('aria-label', n + ' ' + BADGE_WORD[id]); }); }
@@ -187,7 +189,7 @@ import Icon from '../components/Icon.astro';
         h('li', {}, h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website', h('span', { class: 'vh' }, ' (opens in a new tab)')))];
       const tabLinks = () => [NAV.slice(0, 4).map(([id, , i, short]) => h('li', {}, h('a', { href: '#' + id, 'data-view': id }, ico(i, 24), h('span', {}, short), nb(id)))),
         h('li', {}, h('button', { type: 'button', onclick: () => $('#more').showModal() }, ico('dots', 24), h('span', {}, 'More')))];
-      const moreLinks = () => [h('li', {}, h('a', { class: 'btn btn-2', href: '#security' }, ico('shield'), 'Security log', nb('security'))), h('li', {}, h('a', { class: 'btn btn-2', href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'))];
+      const moreLinks = () => [NAV.slice(4).map(([id, t, i]) => h('li', {}, h('a', { class: 'btn btn-2', href: '#' + id }, ico(i), t))), h('li', {}, h('a', { class: 'btn btn-2', href: '#security' }, ico('shield'), 'Security log', nb('security'))), h('li', {}, h('a', { class: 'btn btn-2', href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'))];
       async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
       document.addEventListener('click', (e) => {
         if (e.target.closest('[data-signout]')) signOut();
@@ -520,11 +522,13 @@ import Icon from '../components/Icon.astro';
       }
 
       // ----- the editor (DESIGN.md 9.3, 15.2) -----
-      function openEditor(v, isNew, tplName) {
-        const sec = $('[data-section=events]'), E = editorForm(v, isNew);
-        const base = JSON.stringify(E.read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn btn-2', type: 'button' }, 'Cancel');
+      async function openEditor(v, isNew, tplName) {
+        const [pr, us] = await Promise.all([api('GET', 'admin/inventory'), isNew ? null : api('GET', 'admin/inventory/use/' + enc(v.id))]);
+        const stock = { products: pr.ok ? pr.data.products : [], look: pr.ok ? pr.data.look : 14, use: us?.ok ? us.data.use : [] };
+        const sec = $('[data-section=events]'), E = editorForm(v, isNew, stock);
+        const snap = () => JSON.stringify([E.read(), E.use()]), base = snap(), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn btn-2', type: 'button' }, 'Cancel');
         let dirty = false;
-        const upd = () => { E.sync(); PV.draw(); dirty = JSON.stringify(E.read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
+        const upd = () => { E.sync(); PV.draw(); dirty = snap() !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
         const close = () => { guard = null; drawEvList(); };
         discard.addEventListener('click', close);
         E.form.addEventListener('input', upd); E.form.addEventListener('change', upd); E.form.addEventListener('dates', upd);
@@ -534,6 +538,8 @@ import Icon from '../components/Icon.astro';
         E.form.addEventListener('submit', async (e) => {
           e.preventDefault(); E.clearAll();
           if (!E.localCheck()) return;
+          const ub = E.use().find((u, i, a) => !(Number.isInteger(u.fixed ?? u.perSeat) && (u.fixed ?? u.perSeat) >= 1) || a.findIndex((x) => x.product === u.product) !== i);
+          if (ub) return toast('Stock it uses: give each product a whole number, 1 or more, and list it once.'); // checked before the event saves, so the two save together
           const body = E.read();
           let r = isNew ? await api('POST', 'admin/series', body) : await api('PUT', 'admin/series/' + enc(v.id), body);
           if (r.status === 409 && r.data.error === 'orphans') { // F3: this edit would drop saved cancellations / changes; say which, and save only on a yes
@@ -542,7 +548,8 @@ import Icon from '../components/Icon.astro';
             r = await api('PUT', 'admin/series/' + enc(v.id), { ...body, confirmOrphans: true });
           }
           if (!r.ok) { if (r.status === 422) E.showErrors(r.data.errors); else toast(say(r)); return; }
-          guard = null; openSeries.add(r.data.series.id); await refresh(); toast('Saved.');
+          const ur = await api('PUT', 'admin/inventory/use/' + enc(r.data.series.id), { use: E.use() }); // stock it uses is saved with the event
+          guard = null; openSeries.add(r.data.series.id); await refresh(); toast(ur.ok ? 'Saved.' : 'Saved, but the stock it uses was not: ' + say(ur));
         });
         E.form.append(h('div', { class: 'savebar' }, msg, discard, tplBtn, h('button', { class: 'btn btn-act', type: 'submit' }, 'Save event')));
         put(sec, h('button', { class: 'btn btn-2', type: 'button', onclick: async () => { if (await leave()) close(); } }, ico('back', 18), 'Back to the list'),
@@ -624,7 +631,7 @@ import Icon from '../components/Icon.astro';
       }
 
       /** Builds the form for series values v. Returns { form, read(), sync(), clearAll(), localCheck(), showErrors(errors) }. */
-      function editorForm(v, isNew) {
+      function editorForm(v, isNew, stock) {
         const rec = v.recurrence || { type: 'weekly', day: 5 }, W = {}, form = h('form', { class: 'eform', novalidate: true, autocomplete: 'off' });
         const val = (n) => form.elements[n].value.trim(), pick = (n) => form.querySelector(`input[name=${n}]:checked`)?.value ?? '';
         const num = (n) => { const s = val(n); return s === '' ? null : /^\d+$/.test(s) ? Number(s) : s; };
@@ -650,6 +657,20 @@ import Icon from '../components/Icon.astro';
         };
         const $$ = (s, r) => [...r.querySelectorAll(s)];
         (rec.type === 'dates' ? rec.dates : [{}]).forEach(addRow);
+        // Stock it uses (9.3): per seat or a fixed number of a product, with what is reserved and a warning when it is short
+        const urows = h('div', { class: 'use-rows' }), uempty = h('p', { class: 'meta' }, 'Nothing yet. Add what this event hands out or opens, like draft boosters or prize packs.');
+        const addUse = (u = {}) => {
+          const p = h('select', { name: 'u-product', 'aria-label': 'Product' }, h('option', { value: '' }, 'Pick a product'), stock.products.map((x) => h('option', { value: String(x.id), selected: u.product === x.id }, x.name)));
+          const mode = h('select', { name: 'u-mode', 'aria-label': 'How much' }, [['per', 'Per seat'], ['fixed', 'Fixed number']].map(([k, t]) => h('option', { value: k, selected: (u.fixed != null) === (k === 'fixed') }, t)));
+          const qty = h('input', { name: 'u-qty', type: 'text', inputmode: 'numeric', value: u.fixed ?? u.perSeat ?? '', 'aria-label': 'How many', autocomplete: 'off' }), note = h('p', { class: 'meta urow-note', 'aria-live': 'polite' });
+          const row = h('div', { class: 'urow' }, p, mode, qty, h('button', { class: 'btn btn-2 btn-sm', type: 'button', 'aria-label': 'Remove this product', onclick: () => { row.remove(); uempty.hidden = urows.children.length > 0; form.dispatchEvent(new Event('dates')); } }, ico('bin', 18)), note);
+          const sync = () => { const x = stock.products.find((y) => String(y.id) === p.value); put(note, x ? [`All events, next ${stock.look} days: ${x.reserved} reserved, ${x.onHand} on hand. `, x.short && h('span', { class: 'tag tag-bad' }, ico('warn', 16), 'Short')] : ''); };
+          p.addEventListener('change', sync); sync();
+          row.useRead = () => ({ product: +p.value, [mode.value === 'fixed' ? 'fixed' : 'perSeat']: int0(qty.value), seatsPerDate: u.seatsPerDate ?? null });
+          urows.append(row); uempty.hidden = true;
+        };
+        stock.use.forEach(addUse); uempty.hidden = urows.children.length > 0;
+        W.stock = h('div', { class: 'wide' }, uempty, urows, h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: () => { addUse(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a product'));
 
         const first = rec.type === 'none' ? rec.date : rec.startDate;
         W.date = fld('f-date', 'First date', inp('date', first, { type: 'date' }), { half: true });
@@ -680,6 +701,7 @@ import Icon from '../components/Icon.astro';
             grp('f-signup', 'How players sign up', radios('signup', SIGNUP_CARDS, v.signup || '', false)), W.waitlist, W.cutoff, W.cutoffHours, W.hold),
           group('Official tool', fld('f-toolName', 'Tool', sel('toolName', tools, v.tool?.name ?? ''), { half: true, hint: 'We link to it. Pairings and results stay there.' }),
             fld('f-toolUrl', 'Link', inp('toolUrl', v.tool?.url, { ph: 'https://' }), { half: true, hint: 'Needed when players sign up on another site.' }), fld('f-toolCode', 'Event code', inp('toolCode', v.tool?.code, { max: 60 }), { half: true, optional: true })),
+          group('Stock it uses', W.stock),
           group('For players', fld('f-prize', 'Prizes', inp('prize', v.prize, { max: 300 }), { optional: true }), fld('f-bring', 'What to bring', inp('bring', v.bring, { max: 300 }), { optional: true }),
             fld('f-description', 'Description', h('textarea', { name: 'description', rows: 4, maxlength: 2000, value: v.description || '' }), { optional: true, hint: 'Put Commander brackets, house rules and loaner decks here.' }),
             h('p', { class: 'lbl wide who' }, "Who it's for"), chk('beginnerFriendly', 'Beginner friendly. New players are welcome and someone will help them.', v.beginnerFriendly),
@@ -742,7 +764,8 @@ import Icon from '../components/Icon.astro';
           if (pick('ages') === 'rule' && !val('ageNote')) { showErrors({ ageNote: 'Write the age rule, for example "13 and up".' }); return false; }
           return true;
         }
-        return { form, read, sync, clearAll, showErrors, localCheck };
+        const use = () => [...urows.children].map((r) => r.useRead()).filter((u) => u.product);
+        return { form, read, sync, clearAll, showErrors, localCheck, use };
       }
 
       // ---------- store info (D7, P2.3b; DESIGN.md 9.7). D20: every value goes in with textContent / attributes ----------
@@ -1106,6 +1129,8 @@ import Icon from '../components/Icon.astro';
         for (const s of EV.series) for (const o of EV.upcoming[s.id] || []) if (o.date === day && !o.cancelled) list.push({ s, o, d: null });
         list.sort((a, b) => (a.o.start || '').localeCompare(b.o.start || ''));
         const head = h('div', { class: 'today-head' }, h('h1', {}, 'Today, ' + UTC(day, { weekday: 'long', month: 'short', day: 'numeric' })));
+        const sum = await refreshBadges(), rem = sum && [sum.low && ['#inventory/low', plural(sum.low, 'low in stock', 'low in stock'), 'warn'], sum.short && ['#inventory/short', plural(sum.short, 'will run short', 'will run short'), 'warn'], sum.arrived && ['#preorders/arrived', plural(sum.arrived, 'preorder arrived, call', 'preorders arrived, call')]].filter(Boolean);
+        if (rem?.length) head.append(h('p', { class: 'reminders' }, rem.map(([href, t, i], n) => [n > 0 && ' · ', i && ico(i, 18), h('a', { href }, t)])));
         if (!list.length) {
           let nx = null;
           for (const s of EV.series) for (const o of EV.upcoming[s.id] || []) if (o.date > day && !o.cancelled && (!nx || (o.date + (o.start || '')) < (nx.o.date + (nx.o.start || '')))) nx = { s, o };
@@ -1136,9 +1161,249 @@ import Icon from '../components/Icon.astro';
         put(sec, host); mountRoster(host, sid, slot, { page: true }).load();
       }
 
+      // ---------- inventory and preorders (P2.5; DESIGN.md 9.5, 9.6). D20: every name, customer and contact goes in through h() / textContent, never as HTML ----------
+      const CAT_NAME = { sealed: 'Sealed', singles: 'Singles', accessory: 'Accessories', miniature: 'Miniatures', paint: 'Paint', other: 'Other' };
+      const PO_STATUS = [['waiting', 'Waiting', 'hourglass'], ['arrived', 'Arrived', 'box'], ['picked', 'Picked up', 'check'], ['cancelled', 'Cancelled', 'x']];
+      const PO_WORD = Object.fromEntries(PO_STATUS.map(([k, t]) => [k, t.toLowerCase()]));
+      let INV = null, PO = null;
+      const inv = { f: 'all', q: '', game: 'all', look: 14, open: new Set(), counting: new Set(), focus: null }, po = { f: 'open', shown: new Set(), focus: null };
+      /** Nav badges (Inventory: low + short, Preorders: arrived) and the numbers Today shows. */
+      async function refreshBadges() {
+        const r = await api('GET', 'admin/inventory/summary');
+        if (!r.ok) return null;
+        setBadge('inventory', r.data.low + r.data.short); setBadge('preorders', r.data.arrived);
+        return r.data;
+      }
+      /** A small dialog with a form. send(form) returns an api() result; ok closes it, 422 errors go under their fields. */
+      function formDialog(title, kids, submit, send) {
+        const err = h('p', { class: 'ferr', role: 'alert', hidden: true });
+        const form = h('form', { class: 'dform', novalidate: true, autocomplete: 'off' }, kids, err);
+        const d = h('dialog', { class: 'ask wide', 'aria-labelledby': 'fd-t' }, h('h2', { id: 'fd-t' }, title), form);
+        form.append(h('div', { class: 'row' }, h('button', { class: 'btn btn-act', type: 'submit' }, submit), h('button', { class: 'btn btn-2', type: 'button', onclick: () => d.close() }, 'Cancel')));
+        d.addEventListener('close', () => d.remove());
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); form.querySelectorAll('.fld.bad').forEach(clearErr); err.hidden = true;
+          const r = await send(form);
+          if (r.ok) return d.close();
+          const bad = Object.entries(r.data.errors || {});
+          for (const [k, m] of bad) { const c = form.elements[k]; if (c?.closest('.fld')) markErr(c, m); }
+          if (bad.length) form.querySelector('[aria-invalid]')?.focus(); else { err.textContent = say(r); err.hidden = false; }
+        });
+        document.body.append(d); d.showModal(); form.querySelector('input,select')?.focus();
+      }
+      const fsel = (name, opts, cur) => h('select', { name }, opts.map(([k, t]) => h('option', { value: String(k), selected: String(cur ?? '') === String(k) }, t)));
+      const finp = (name, cur, x = {}) => h('input', { name, type: 'text', value: cur ?? '', inputmode: x.mode, maxlength: x.max, placeholder: x.ph, autocomplete: 'off' });
+      let nfd = 0;
+      const ff = (label, ctl, x = {}) => fld('fd-' + ++nfd, label, ctl, x);
+      const int0 = (v) => (/^\s*\d+\s*$/.test(v) ? Number(v) : v);
+
+      // ----- Inventory -----
+      async function renderInventory([f]) {
+        guard = null;
+        if (f === 'low' || f === 'short' || CAT_NAME[f]) inv.f = f;
+        if (await loadInv()) drawInv();
+        refreshBadges();
+      }
+      async function loadInv() {
+        const r = await api('GET', 'admin/inventory?look=' + inv.look);
+        if (!r.ok) { toast(say(r)); return false; }
+        INV = r.data; return true;
+      }
+      const redrawInv = async () => { if (await loadInv()) drawInvList(); refreshBadges(); };
+      const gameShortOf = (id) => INV.games.find((g) => g.id === id)?.short || id;
+      const prodWords = (p) => [CAT_NAME[p.category], p.game && gameShortOf(p.game), !p.enabled && 'Hidden'].filter(Boolean).join(' · ');
+      let invBox = null, chipBox = null, banner = null;
+      function drawInv() {
+        const sec = $('[data-section=inventory]');
+        const search = h('input', { type: 'search', placeholder: 'Search products...', value: inv.q, 'aria-label': 'Search products', autocomplete: 'off' });
+        search.addEventListener('input', () => { inv.q = search.value; drawInvList(); });
+        const game = fsel('game', [['all', 'All games'], ...INV.games.map((g) => [g.id, g.short])], inv.game), look = fsel('look', INV.looks.map((n) => [n, n + ' days']), inv.look);
+        game.addEventListener('change', () => { inv.game = game.value; drawInvList(); });
+        look.addEventListener('change', async () => { inv.look = +look.value; await redrawInv(); look.focus(); });
+        banner = h('p', { class: 'banner', role: 'status' }); chipBox = h('nav', { class: 'jump', 'aria-label': 'Filter products' }); invBox = h('div', { class: 'prods' });
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Inventory'), h('div', { class: 'row' },
+          h('a', { class: 'btn btn-2', href: '/api/admin/inventory/products.csv', download: 'mulligan-products.csv' }, ico('down'), 'Export CSV'),
+          h('button', { class: 'btn btn-2', type: 'button', onclick: receiveDialog }, ico('plus'), 'Receive stock'), h('button', { class: 'btn btn-act', type: 'button', onclick: () => productDialog(null) }, ico('plus'), 'Add product'))),
+          banner, h('div', { class: 'inv-tools' }, h('div', { class: 'fld' }, search), chipBox, h('div', { class: 'rtools' }, ff('Game', game, { half: true }), ff('Reserved for events in the next', look, { half: true }))), invBox);
+        drawInvList();
+      }
+      function drawInvList() {
+        const lowN = INV.alerts.low, shortN = INV.alerts.short, q = inv.q.trim().toLowerCase();
+        const link = (f, t) => h('a', { href: '#inventory/' + f, onclick: (e) => { e.preventDefault(); inv.f = f; drawInvList(); } }, t);
+        banner.className = 'banner' + (lowN || shortN ? '' : ' banner-ok');
+        put(banner, ico(lowN || shortN ? 'warn' : 'check'), h('span', {}, lowN || shortN ? [lowN ? plural(lowN, 'product is low', 'products are low') : '', lowN && shortN ? '. ' : '', shortN ? `${shortN} will run short for events in the next ${inv.look} days` : '', '. ', lowN ? link('low', 'Show low') : '', lowN && shortN ? ' or ' : '', shortN ? link('short', lowN ? 'show short' : 'Show short') : '', '.'] : `Nothing is low and nothing will run short in the next ${inv.look} days.`));
+        const chip = (id, t, n) => h('button', { class: 'filt', type: 'button', 'aria-pressed': String(inv.f === id), onclick: () => { inv.f = id; drawInvList(); } }, t, n != null && h('span', { class: 'chip-n' }, n));
+        put(chipBox, chip('all', 'All', INV.products.length), chip('low', 'Low', lowN), chip('short', 'Short', shortN), Object.entries(CAT_NAME).map(([k, t]) => chip(k, t)));
+        const list = INV.products.filter((p) => (inv.game === 'all' || p.game === inv.game) && (!q || p.name.toLowerCase().includes(q)) && (inv.f === 'low' ? p.lowNow : inv.f === 'short' ? p.short : inv.f === 'all' || p.category === inv.f));
+        put(invBox, list.length ? list.map(prodCard) : h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, INV.products.length ? 'No products match.' : 'No products yet.'), h('p', {}, INV.products.length ? 'Clear the search or the filter.' : 'Add a product to start counting stock.')));
+        if (inv.focus) { const n = $(`[data-id="${inv.focus.id}"] ${inv.focus.q}`); inv.focus = null; n?.focus(); }
+      }
+      function prodCard(p) {
+        const num = (label, v, cls = '') => h('div', { class: 'pn ' + cls }, h('span', { class: 'pl' }, label), h('b', {}, v));
+        const tag = (cls, icon, t) => h('span', { class: 'tag ' + cls }, ico(icon, 16), t);
+        const stepBtn = (d, icon, label) => h('button', { class: 'stepper pstep', type: 'button', 'data-k': d > 0 ? 'plus' : 'minus', onclick: () => adjust(p, d) }, ico(icon), h('span', { class: 'vh' }, label + ' ' + p.name));
+        const acts = h('div', { class: 'pact' }, stepBtn(-1, 'minus', 'Sold one,'), stepBtn(1, 'plus', 'Received one,'),
+          h('button', { class: 'btn btn-2', type: 'button', 'data-k': 'count', onclick: () => { inv.counting.has(p.id) ? inv.counting.delete(p.id) : inv.counting.add(p.id); inv.focus = { id: p.id, q: inv.counting.has(p.id) ? '[name=n]' : '[data-k=count]' }; drawInvList(); } }, 'Count', h('span', { class: 'vh' }, ' ' + p.name)),
+          h('button', { class: 'btn btn-2', type: 'button', 'data-k': 'more', 'aria-expanded': String(inv.open.has(p.id)), onclick: () => { inv.open.has(p.id) ? inv.open.delete(p.id) : inv.open.add(p.id); inv.focus = { id: p.id, q: '[data-k=more]' }; drawInvList(); } }, 'Details', h('span', { class: 'vh' }, ' for ' + p.name)));
+        return h('article', { class: 'prod' + (p.short || (p.out && p.low) ? ' bad' : p.lowNow ? ' warn' : ''), 'data-id': p.id },
+          h('div', { class: 'pname' }, h('h3', {}, p.name), h('div', { class: 'row ptags' }, h('span', { class: 'meta' }, prodWords(p)), p.out && tag('tag-bad', 'warn', 'Out'), !p.out && p.lowNow && tag('tag-warn', 'warn', 'Low'), p.short && tag('tag-bad', 'warn', 'Short'))),
+          num('On hand', p.onHand), num('Reserved', p.reserved), num('Free', p.free, p.free < 0 ? 'neg' : ''), num('Low at', p.low || 'No alert', 'small'), acts,
+          inv.counting.has(p.id) && countForm(p), inv.open.has(p.id) && prodMore(p));
+      }
+      function countForm(p) {
+        const input = h('input', { name: 'n', type: 'text', inputmode: 'numeric', value: p.onHand, 'aria-label': 'Counted on the shelf', autocomplete: 'off' }), e = h('p', { class: 'ferr', role: 'alert', hidden: true });
+        const f = h('form', { class: 'cform', novalidate: true }, h('label', {}, 'Counted'), input, h('button', { class: 'btn btn-act', type: 'submit' }, 'Save count'), h('button', { class: 'btn btn-2', type: 'button', onclick: () => { inv.counting.delete(p.id); inv.focus = { id: p.id, q: '[data-k=count]' }; drawInvList(); } }, 'Cancel'), e);
+        f.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const r = await api('POST', `admin/inventory/products/${p.id}/count`, { n: int0(input.value) });
+          if (!r.ok) { e.textContent = r.status === 422 ? 'Counted must be a whole number, 0 or more.' : say(r); e.hidden = false; return input.focus(); }
+          inv.counting.delete(p.id); inv.focus = { id: p.id, q: '[data-k=count]' };
+          if (r.data.none) { toast(`${p.name}: ${p.onHand}, no change.`); return drawInvList(); }
+          const diff = r.data.onHand - p.onHand;
+          toast(`${p.name}: ${r.data.onHand}.`, { fn: () => undoMove(p, -diff, 'Undo of a count') });
+          redrawInv();
+        });
+        return f;
+      }
+      /** Undo = an "Adjusted" move the other way; the server refuses it if that would go below 0, and the toast says so. */
+      async function undoMove(p, qty, note) { const u = await api('POST', `admin/inventory/products/${p.id}/moves`, { qty, reason: 'adjust', note }); if (!u.ok) toast(say(u)); redrawInv(); }
+      /** − / + : one sold or received, at once, with Undo (an "Adjusted" move the other way). */
+      async function adjust(p, d) {
+        inv.focus = { id: p.id, q: `[data-k=${d > 0 ? 'plus' : 'minus'}]` };
+        const r = await api('POST', `admin/inventory/products/${p.id}/moves`, { qty: d, reason: d > 0 ? 'received' : 'sold' });
+        if (!r.ok) { toast(say(r)); return drawInvList(); }
+        toast(`${p.name}: ${r.data.onHand}.`, { fn: () => undoMove(p, -d, 'Undo') });
+        redrawInv();
+      }
+      function prodMore(p) {
+        const take = h('form', { class: 'cform', novalidate: true }), reason = fsel('reason', [['sold', 'Sold'], ['event', 'Used at an event'], ['prize', 'Prize'], ['adjust', 'Adjusted (lost, damaged)']], 'sold'), qty = finp('qty', '', { mode: 'numeric', max: 6 }), note = finp('note', '', { max: 200, ph: 'Note (optional)' }), te = h('p', { class: 'ferr', role: 'alert', hidden: true });
+        qty.setAttribute('aria-label', 'How many to take out'); reason.setAttribute('aria-label', 'Why'); note.setAttribute('aria-label', 'Note');
+        put(take, h('label', {}, 'Take out'), qty, reason, note, h('button', { class: 'btn btn-2', type: 'submit' }, 'Take out'), te);
+        take.addEventListener('submit', async (ev) => {
+          ev.preventDefault();
+          const n = int0(qty.value);
+          if (!Number.isInteger(n) || n < 1) { te.textContent = 'Use a whole number, 1 or more.'; te.hidden = false; return qty.focus(); }
+          const r = await api('POST', `admin/inventory/products/${p.id}/moves`, { qty: -n, reason: reason.value, note: note.value });
+          if (!r.ok) { te.textContent = say(r); te.hidden = false; return qty.focus(); }
+          inv.focus = { id: p.id, q: '[data-k=more]' };
+          toast(`${p.name}: ${r.data.onHand}.`, { fn: () => undoMove(p, n, 'Undo') });
+          redrawInv();
+        });
+        const res = p.reservations;
+        return h('div', { class: 'pmore' },
+          h('h4', {}, `Reserved for events in the next ${INV.look} days`),
+          res.length ? h('ul', { class: 'plist' }, res.map((l) => h('li', {}, `${l.title}, ${wd(l.date)}: ${l.qty}${l.fixed ? '' : ' (per seat)'}`))) : h('p', { class: 'meta' }, 'No event will use this in that time. Set what an event uses in its editor.'),
+          take,
+          h('h4', {}, 'Last moves'), p.moves.length ? h('ul', { class: 'plist' }, p.moves.map((m) => h('li', {}, `${m.qty > 0 ? '+' : ''}${m.qty} ${INV.reasons[m.reason] || m.reason}, ${stamp(m.at)}${m.who ? ', ' + m.who : ''}${m.note ? ': ' + m.note : ''}`))) : h('p', { class: 'meta' }, 'Nothing yet.'),
+          h('div', { class: 'row' }, h('button', { class: 'btn btn-2', type: 'button', onclick: () => productDialog(p) }, ico('pencil', 18), 'Edit'), h('button', { class: 'btn btn-bad', type: 'button', onclick: () => dropProduct(p) }, ico('bin', 18), 'Delete')));
+      }
+      async function dropProduct(p) {
+        if (!(await ask(`Delete ${p.name}?`, 'This removes the product, its stock history, its closed preorders and its use in events. It cannot be undone.', 'Delete the product', 'Keep it'))) return;
+        const r = await api('DELETE', `admin/inventory/products/${p.id}`);
+        if (!r.ok) return toast(say(r));
+        inv.open.delete(p.id); toast(`${p.name} deleted.`); redrawInv();
+      }
+      function productDialog(p) {
+        const kids = [ff('Name', finp('name', p?.name, { max: 100 })), ff('Kind', fsel('category', Object.entries(CAT_NAME), p?.category || 'sealed'), { half: true }),
+          ff('Game', fsel('game', [['', 'None'], ...INV.games.map((g) => [g.id, g.short])], p?.game || ''), { half: true, optional: true }),
+          ff('Low-stock number', finp('low', p ? p.low : 0, { mode: 'numeric', max: 6 }), { half: true, hint: '0 means no alert.' }), ff('Barcode or SKU', finp('sku', p?.sku, { max: 40 }), { half: true, optional: true }),
+          p ? null : ff('On hand now', finp('onHand', '0', { mode: 'numeric', max: 6 }), { half: true, optional: true }),
+          h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: 'enabled', checked: p ? p.enabled : true }), h('span', {}, 'Show in lists and alerts. Untick to hide a product you no longer sell.'))];
+        formDialog(p ? 'Edit ' + p.name : 'Add a product', kids, p ? 'Save product' : 'Add product', async (f) => {
+          const e = f.elements, body = { name: e.name.value, category: e.category.value, game: e.game.value, low: int0(e.low.value), sku: e.sku.value, enabled: e.enabled.checked, ...(p ? {} : { onHand: int0(e.onHand.value) }) };
+          const r = p ? await api('PUT', `admin/inventory/products/${p.id}`, body) : await api('POST', 'admin/inventory/products', body);
+          if (r.ok) { toast(p ? 'Saved.' : `${r.data.product.name} added.`); redrawInv(); }
+          return r;
+        });
+      }
+      function receiveDialog() {
+        if (!INV.products.length) return toast('Add a product first.');
+        formDialog('Receive stock', [ff('Product', fsel('product', [['', 'Pick a product'], ...INV.products.map((p) => [p.id, p.name])], '')), ff('How many arrived', finp('qty', '', { mode: 'numeric', max: 6 })), ff('Note', finp('note', '', { max: 200, ph: 'Distributor order' }), { optional: true })], 'Add to stock', async (f) => {
+          const e = f.elements, n = int0(e.qty.value);
+          if (!e.product.value) return { ok: false, data: { errors: { product: 'Pick a product.' } } };
+          if (!Number.isInteger(n) || n < 1) return { ok: false, data: { errors: { qty: 'Use a whole number, 1 or more.' } } };
+          const r = await api('POST', `admin/inventory/products/${e.product.value}/moves`, { qty: n, reason: 'received', note: e.note.value });
+          if (r.ok) { toast(`${r.data.product.name}: ${r.data.onHand}.`); redrawInv(); }
+          return r;
+        });
+      }
+
+      // ----- Preorders -----
+      async function renderPreorders([f]) {
+        guard = null;
+        if (f === 'arrived' || f === 'all' || f === 'open') po.f = f;
+        if (await loadPO()) drawPO();
+        refreshBadges();
+      }
+      async function loadPO() {
+        const r = await api('GET', 'admin/inventory/preorders');
+        if (!r.ok) { toast(say(r)); return false; }
+        PO = r.data; return true;
+      }
+      const redrawPO = async () => { if (await loadPO()) drawPO(); refreshBadges(); };
+      const isOpen = (o) => o.status === 'waiting' || o.status === 'arrived';
+      const contactLink = (c, big) => {
+        const mail = c.includes('@'), href = mail ? 'mailto:' + encodeURIComponent(c).replace(/%40/g, '@') : 'tel:' + c.replace(/[^\d+]/g, ''); // fixed scheme, encoded: no ?subject= or javascript:
+        return big ? h('a', { class: 'btn btn-act', href }, (mail ? 'Email ' : 'Call ') + c) : h('a', { href }, c);
+      };
+      function drawPO() {
+        const sec = $('[data-section=preorders]'), all = PO.preorders, arrived = all.filter((o) => o.status === 'arrived');
+        const chip = (id, t, n) => h('button', { class: 'filt', type: 'button', 'aria-pressed': String(po.f === id), onclick: () => { po.f = id; drawPO(); } }, t, h('span', { class: 'chip-n' }, n));
+        const head = h('div', { class: 'head' }, h('h1', {}, 'Preorders'), h('button', { class: 'btn btn-act', type: 'button', onclick: newPreorderDialog }, ico('plus'), 'New preorder'));
+        const chips = h('nav', { class: 'jump', 'aria-label': 'Filter preorders' }, chip('open', 'Open', all.filter(isOpen).length), chip('arrived', 'Arrived: call these', arrived.length), chip('all', 'Everything', all.length));
+        let body;
+        if (!all.length) body = h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, 'No preorders yet.'), h('p', {}, 'Add one when a customer asks at the counter.'));
+        else if (po.f === 'arrived') body = arrived.length ? h('ul', { class: 'polist' }, arrived.map((o) => poRow(o, true))) : h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, 'Nobody is waiting for a call.'), h('p', {}, 'Mark a preorder as arrived and it shows here with a call button.'));
+        else {
+          const groups = new Map();
+          for (const o of all) if (po.f === 'all' || isOpen(o)) (groups.get(o.product) ?? groups.set(o.product, []).get(o.product)).push(o);
+          body = groups.size ? [...groups].map(([pid, list]) => {
+            const open = all.filter((o) => o.product === pid && isOpen(o)), who = new Set(open.map((o) => o.customer.toLowerCase())), waiting = list.filter((o) => o.status === 'waiting');
+            return h('section', { class: 'po-group' }, h('header', {}, h('h3', {}, list[0].productName),
+              h('p', { class: 'meta' }, `${open.reduce((n, o) => n + o.qty, 0)} ordered, ${plural(who.size, 'customer', 'customers')}, $${money(open.reduce((n, o) => n + o.deposit, 0))} in deposits.`),
+              waiting.length > 0 && h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: () => arriveAll(pid, list[0].productName, waiting) }, 'Mark all waiting as arrived', h('span', { class: 'vh' }, ' for ' + list[0].productName))),
+              h('ul', { class: 'polist' }, list.map((o) => poRow(o, false))));
+          }) : h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, 'Nothing open.'), h('p', {}, 'Everything is picked up or cancelled. Choose "Everything" to see it.'));
+        }
+        put(sec, head, chips, body);
+        if (po.focus) { const n = $(`[data-id="${po.focus.id}"] ${po.focus.q}`); po.focus = null; n?.focus(); }
+      }
+      function poRow(o, big) {
+        const shown = big || po.shown.has(o.id);
+        const contact = o.purged || !o.contact ? h('span', { class: 'meta' }, 'Contact details deleted') : shown ? h('span', { class: 'rr-contact' }, contactLink(o.contact, big))
+          : h('button', { class: 'linkb', type: 'button', 'data-k': 'contact', onclick: () => { po.shown.add(o.id); po.focus = { id: o.id, q: 'a' }; drawPO(); } }, ico('eye', 18), 'Show contact', h('span', { class: 'vh' }, ' for ' + o.customer));
+        return h('li', { class: 'po' + (o.status === 'arrived' ? ' arrived' : ''), 'data-id': o.id },
+          h('div', { class: 'po-who' }, h('strong', { class: 'rr-name' }, o.customer), h('p', { class: 'meta' }, `${o.qty} x ${o.productName}, deposit $${money(o.deposit)}, ordered ${md(etDay(o.createdAt))}`), contact),
+          h('div', { class: 'po-st', role: 'group', 'aria-label': 'Status of ' + o.customer }, PO_STATUS.map(([k, t, i]) => h('button', { class: 'stbtn', type: 'button', 'data-k': k, 'aria-pressed': String(o.status === k), onclick: () => setPO(o, k) }, ico(i, 16), t))));
+      }
+      async function setPO(o, to) {
+        if (o.status === to) return;
+        po.focus = { id: o.id, q: `[data-k=${to}]` };
+        const r = await api('POST', `admin/inventory/preorders/${o.id}/status`, { status: to });
+        if (!r.ok) { toast(say(r)); return redrawPO(); }
+        toast(`${o.customer}: ${PO_WORD[to]}.${r.data.stockNote ? ' ' + r.data.stockNote : ''}`, { fn: async () => { const u = await api('POST', `admin/inventory/preorders/${o.id}/status`, { status: o.status }); if (!u.ok) toast(say(u)); redrawPO(); } });
+        redrawPO();
+      }
+      async function arriveAll(pid, name, waiting) {
+        const r = await api('POST', 'admin/inventory/preorders/arrive-all', { product: pid });
+        if (!r.ok) return toast(say(r));
+        toast(`${plural(r.data.ids.length, 'order', 'orders')} for ${name} arrived.`, { fn: async () => { const u = await api('POST', 'admin/inventory/preorders/arrive-all', { product: pid, undo: r.data.ids }); if (!u.ok) toast(say(u)); redrawPO(); } }); // one transaction
+        redrawPO();
+      }
+      function newPreorderDialog() {
+        const prod = fsel('product', [['', 'Pick a product'], ...PO.products.map((p) => [p.id, p.name]), ['new', 'A product that isn’t listed']], ''), np = ff('New product name', finp('newProduct', '', { max: 100 }));
+        np.hidden = true; prod.addEventListener('change', () => { np.hidden = prod.value !== 'new'; });
+        formDialog('New preorder', [ff('Product', prod), np, ff('Customer', finp('customer', '', { max: 80 })), ff('Phone or email', finp('contact', '', { max: 120 }), { hint: 'Shown only to staff here, and deleted 30 days after pickup or cancel.' }),
+          ff('How many', finp('qty', '1', { mode: 'numeric', max: 3 }), { half: true }), ff('Deposit ($)', finp('deposit', '0', { mode: 'numeric', max: 5 }), { half: true })], 'Add preorder', async (f) => {
+          const e = f.elements, r = await api('POST', 'admin/inventory/preorders', { product: e.product.value, newProduct: e.newProduct.value, customer: e.customer.value, contact: e.contact.value, qty: int0(e.qty.value), deposit: int0(e.deposit.value) });
+          if (r.ok) { po.f = 'open'; toast(`Preorder for ${r.data.preorder.customer} added.`); redrawPO(); }
+          return r;
+        });
+      }
+
       // ---------- navigation ----------
-      const VIEWS = { today: renderToday, roster: renderRosterPage, dashboard: renderDashboard, events: renderEvents, store: renderStore, security: renderSecurity, account: renderAccount };
-      const TITLE = { today: 'Today', roster: 'Roster', dashboard: 'Dashboard', events: 'Events', store: 'Store info', security: 'Security log', account: 'Account' };
+      const VIEWS = { today: renderToday, roster: renderRosterPage, dashboard: renderDashboard, events: renderEvents, inventory: renderInventory, preorders: renderPreorders, store: renderStore, security: renderSecurity, account: renderAccount };
+      const TITLE = { today: 'Today', roster: 'Roster', dashboard: 'Dashboard', events: 'Events', inventory: 'Inventory', preorders: 'Preorders', store: 'Store info', security: 'Security log', account: 'Account' };
       let cur = '', restoring = false;
       function show() {
         const parts = location.hash.slice(1).split('/'), v = VIEWS[parts[0]] ? parts[0] : 'today', lit = v === 'roster' ? 'events' : v;
@@ -1156,7 +1421,7 @@ import Icon from '../components/Icon.astro';
         document.querySelectorAll('.who').forEach((e) => (e.textContent = S.user));
         $('#gate').hidden = true; $('#app').hidden = false;
         $('#default-warning').hidden = !S.defaultPassword;
-        show();
+        show(); refreshBadges();
         api('GET', 'admin/security').then((sr) => { if (sr.ok) setBadge('security', sr.data.events.filter((e) => e.at > Date.now() - 7 * 864e5 && ['warn', 'bad'].includes(evInfo(e).kind)).length); });
       }
       addEventListener('hashchange', async () => {

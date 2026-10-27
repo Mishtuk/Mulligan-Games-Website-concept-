@@ -2,6 +2,7 @@
 // Privacy (P2.4a). Adapted from the Warminster VFW privacy page; every statement here comes from the code, so change this page when the code changes:
 //   Sign-up form          src/lib/registrations.js (fields, RETENTION_DAYS, purgeContacts), server.js runPurge (daily, on the hourly timer)
 //   Personal sign-up link src/lib/registrations.js register / byToken (random link, only its SHA-256 is stored), server.js mySignup (noindex, no Referer)
+//   Preorders             src/lib/inventory.js (cleanPreorder, PREORDER_RETENTION_DAYS, purgePreorders), server.js runPurge; admin-only routes
 //   Visitor counting      src/stats/index.js (cookieless, daily totals, salt kept in memory for one day)
 //   Security log          src/audit.js (no player details)
 //   Backups               src/db.js backup (7 daily copies)
@@ -10,6 +11,7 @@
 import Base from '../components/Base.astro';
 import store from '../content/store.json';
 import { RETENTION_DAYS } from '../lib/registrations.js';
+import { PREORDER_RETENTION_DAYS } from '../lib/inventory.js';
 import { safeUrl } from '../lib/events.js';
 
 const tel = safeUrl(store.phoneHref);
@@ -34,6 +36,10 @@ const tel = safeUrl(store.phoneHref);
             <div><dt>Your private link</dt><dd>After you sign up, the page gives you a private link. It is the only way to cancel your seat or check your waitlist place online. We do not email it. Keep it. Anyone who has the link can cancel your sign-up. The link stops working when the event ends. It is not listed in search engines.</dd></div>
           </dl>
           <p>The form also has a hidden field that catches automated spam. Anything caught that way is not stored. Our security log notes the network (IP) address of a spam or blocked post, never what was typed in it, and keeps only the latest 500 entries.</p>
+        </section>
+        <section aria-labelledby="preorders">
+          <h2 id="preorders">Preorders at the counter</h2>
+          <p>When you preorder at the counter, staff type your name and a phone number or email into the staff area, so they can tell you when it arrives. Only staff see it. {PREORDER_RETENTION_DAYS} days after you pick it up or cancel, the phone number or email is deleted and your name is cut down to initials (backups as above, up to 7 more days).</p>
         </section>
         <section aria-labelledby="visitors">
           <h2 id="visitors">Counting visitors</h2>

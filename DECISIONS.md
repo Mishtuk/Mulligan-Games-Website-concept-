@@ -508,3 +508,31 @@ used "MCS ..." jargon -> plain "Championship Series" / "5K" / "Redemption"; Entr
 "holds a spot"); DESIGN note now says the line keeps the rating only (D39 allows it).
 **Carried, not blocking:** "Last Championship Series, Oct 4: 69 players" repeats the first turnout row; the Redemption
 (Nov 8) is not in "Next cEDH events"; at 1920 the 1440w still is slightly soft. Port list: `docs/review/round-5-port.md`.
+
+### D41. Stock is a ledger (P2.5, 2026-10-27, boss)
+On hand = SUM(stock_moves) for the product. A move that would take it below 0 is refused (422 "Only N on hand"). Count
+now saves the difference as a `counted` move; Undo writes the opposite `adjust` move (refused below 0). A preorder pickup
+writes a `pickup` move (note "Preorder #id", no personal data) when there is stock; if not, the order still closes and
+the toast says stock was not reduced; undoing a pickup puts back only what was taken. A product with waiting or arrived
+preorders can't be deleted; deleting one removes its moves, event use and closed preorders.
+
+### D42. Reserved and alerts (P2.5, 2026-10-27, boss)
+Reserved = what events use on dates from today to today + 7/14/30/60 days (default 14); cancelled dates and hidden
+events don't count, moved dates count on the new date (D23 slot keys). Per date: a fixed qty, or per seat x seats, where
+seats = the date's capacity, else a "seats per date" guess, else sign-ups so far. Short = reserved > on hand. Low = on
+hand <= low_at (0 = no alert). Alerts cover shown products only.
+
+### D43. Preorder flow (P2.5, 2026-10-27, boss)
+Statuses waiting, arrived, picked, cancelled. Moves: waiting -> arrived | cancelled; arrived -> waiting | picked |
+cancelled; picked -> arrived | waiting; cancelled -> waiting | arrived. A contact (phone 7-15 digits, or email) is
+required; qty 1-999; deposit whole dollars 0-99999. "Mark all waiting as arrived" and its Undo are each one transaction.
+
+### D44. Preorder retention (P2.5, 2026-10-27, boss; owner-confirmable, Q25)
+PREORDER_RETENTION_DAYS (30) days after an order is picked up or cancelled, the daily purge deletes the contact and cuts
+the name to initials ("S. B.", as sign-ups). Qty, deposit and status stay; a purged order can't be reopened. Contacts
+appear only on admin routes, never in logs; backups hold them up to 7 more days; the privacy page says so.
+
+### D45. Product CSV export (P2.5, 2026-10-27, boss)
+Columns name, category, game, sku, on_hand, low_at, shown. Cells starting with = + - @ tab or CR get a leading ';
+cells with , " CR LF are quoted. text/csv attachment `mulligan-products.csv`, no-store; each export is logged as
+`inventory_export` with no customer data. Import waits on Q4 (POS).

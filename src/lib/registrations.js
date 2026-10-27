@@ -22,7 +22,7 @@ const digits = (s) => String(s ?? '').replace(/\D/g, '');
 const lower = (s) => line(s).toLowerCase();
 /** "Sam Baker" -> "Sam B." (shown in the double sign-up message, so it never gives away a full name). */
 export const shortName = (n) => { const w = line(n).split(' '); return w.length > 1 ? `${w[0]} ${[...w[w.length - 1]][0]}.` : w[0] ?? ''; };
-const initials = (n) => line(n).split(' ').filter(Boolean).map((w) => `${[...w][0].toUpperCase()}.`).join(' ');
+export const initials = (n) => line(n).split(' ').filter(Boolean).map((w) => `${[...w][0].toUpperCase()}.`).join(' ');
 const hashToken = (t) => createHash('sha256').update(t).digest('hex');
 const keyOf = (o) => ({ series: o.seriesId, slot: o.slot, cap: o.capacity || null, day: o.date });
 
@@ -46,7 +46,7 @@ export function playerIdLabel(tool) {
 }
 
 // ---------- database ----------
-function tx(db, fn) {
+export function tx(db, fn) {
   db.exec('BEGIN IMMEDIATE');
   try { const r = fn(); db.exec('COMMIT'); return r; } catch (e) { try { db.exec('ROLLBACK'); } catch {} throw e; }
 }

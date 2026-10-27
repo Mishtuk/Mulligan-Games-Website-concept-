@@ -25,6 +25,7 @@ import { eventLd, ldScript, shopLd } from './src/lib/jsonld.js';
 import { endM, seatState } from './src/lib/seats.js';
 import { publicForm } from './src/forms.js';
 import * as regs from './src/lib/registrations.js';
+import * as inv from './src/lib/inventory.js';
 import { sitemap } from './src/lib/sitemap.js';
 import { createStats } from './src/stats/index.js';
 
@@ -79,7 +80,8 @@ function runPurge() {
   try {
     const today = etDay();
     if (db.prepare("SELECT value FROM kv WHERE key = 'purged_day'").get()?.value === today) return;
-    const n = regs.purgeContacts(db, today);
+    const n = regs.purgeContacts(db, today), p = inv.purgePreorders(db, Date.now()); // preorder contacts: PREORDER_RETENTION_DAYS after pickup / cancel
+    if (p) log(`retention: wiped the contact details of ${p} closed preorders`);
     db.prepare("INSERT INTO kv (key, value) VALUES ('purged_day', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(today);
     if (n) log(`retention: wiped the contact details of ${n} sign-ups`);
   } catch (e) { log('retention purge failed', e.message); }
@@ -630,6 +632,92 @@ function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
   if (action === 'move') return done(regs.moveWaitlist(db, o, rid, b.dir), 'roster_move');
   return bad('not_found', 404);
 }
+// ---------- inventory and preorders (admin, P2.5): GET inventory?look= | GET inventory/summary | GET inventory/products.csv | POST products | PUT/DELETE products/:id |
+// POST products/:id/moves {qty, reason, note} | POST products/:id/count {n} | GET/PUT use/:series {use} | GET/POST preorders | POST preorders/arrive-all {product} | POST preorders/:id/status {status}.
+// Session + origin check come from route(). Customer contact details never leave these admin-only routes.
+const MOVE_ERR = { short: 'There isn’t that much on hand.', qty: 'Use a whole number that isn’t 0.', reason: 'Pick a reason.', not_found: 'That product is gone.' };
+function inventoryApi(req, url, body, [a1, a2, a3], ip, note, user) {
+  const m = req.method, plain = body && typeof body === 'object' && !Array.isArray(body), b = plain ? body : {};
+  if (m !== 'GET' && !allow(`inv:${ip}`, 600)) { note('inventory_blocked', 'rate limit'); return bad('rate', 429); }
+  const ctx = () => publicCtx(url), id = /^\d{1,9}$/.test(a2 ?? '') ? Number(a2) : null;
+  const look = inv.LOOKS.includes(Number(url.searchParams.get('look'))) ? Number(url.searchParams.get('look')) : 14;
+  const pic = (withMoves) => { const c = ctx(); return inv.picture(db, { series: c.series, exceptions: c.exceptions, counts: c.counts, today: c.now.ymd, look, withMoves }); };
+  if (!a1 && m === 'GET') return json({ ...pic(true), look, games: GAMES, cats: inv.CATS, reasons: inv.REASONS, looks: inv.LOOKS });
+  if (a1 === 'summary' && m === 'GET') { const { alerts } = pic(false); return json({ ...alerts, arrived: inv.arrivedCount(db) }); }
+  if (a1 === 'products.csv' && m === 'GET') {
+    note('inventory_export', 'products csv');
+    return new Response(inv.csv(inv.exportRows(db)), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="mulligan-products.csv"', 'Cache-Control': 'no-store' } });
+  }
+  if (a1 === 'products') {
+    if (!a2 && m === 'POST') {
+      if (!plain) return bad('body');
+      const { errors, clean } = inv.cleanProduct(b);
+      if (Object.keys(errors).length) return invalid(errors);
+      const pid = inv.createProduct(db, clean, user);
+      note('product_create', String(pid));
+      return json({ product: inv.getProduct(db, pid) }, 201);
+    }
+    if (id === null) return bad('not_found', 404);
+    if (m === 'PUT') {
+      if (!plain) return bad('body');
+      const { errors, clean } = inv.cleanProduct(b);
+      if (Object.keys(errors).length) return invalid(errors);
+      if (!inv.updateProduct(db, id, clean)) return bad('not_found', 404);
+      note('product_update', String(id));
+      return json({ product: inv.getProduct(db, id) });
+    }
+    if (m === 'DELETE') {
+      const r = inv.deleteProduct(db, id);
+      if (!r.ok) return r.error === 'not_found' ? bad('not_found', 404) : json({ error: r.error, message: 'Orders are still waiting or arrived for this product. Pick them up or cancel them first.' }, 409);
+      note('product_delete', String(id));
+      return json({ ok: true });
+    }
+    if (m === 'POST' && (a3 === 'moves' || a3 === 'count')) {
+      if (!plain) return bad('body');
+      const r = a3 === 'count' ? inv.countTo(db, id, b.n, user) : inv.move(db, { product: id, qty: b.qty, reason: b.reason, note: b.note, who: user });
+      if (!r.ok) return json({ error: r.error, message: MOVE_ERR[r.error] ? (r.error === 'short' ? `Only ${r.onHand} on hand.` : MOVE_ERR[r.error]) : undefined, onHand: r.onHand }, r.error === 'not_found' ? 404 : 422);
+      if (!r.none) note(a3 === 'count' ? 'stock_count' : 'stock_move', `${id} ${a3 === 'count' ? 'counted' : b.reason}`); // reason is checked by then; a count's body reason is never logged
+      return json({ ...r, product: inv.getProduct(db, id) });
+    }
+    return bad('not_found', 404);
+  }
+  if (a1 === 'use') {
+    const s = a2 && getSeries(db, a2);
+    if (!s) return bad('not_found', 404);
+    if (m === 'GET') return json({ use: inv.listUse(db, s.id), look, products: pic(false).products.map((p) => ({ id: p.id, name: p.name, onHand: p.onHand, reserved: p.reserved, short: p.short })) });
+    if (m !== 'PUT' || !plain) return bad('not_found', 404);
+    const r = inv.cleanUse(db, b.use);
+    if (r.error) return json({ error: 'invalid', message: r.error }, 422);
+    inv.setUse(db, s.id, r.clean);
+    note('event_use_set', `${s.id} ${r.clean.length} products`);
+    return json({ use: inv.listUse(db, s.id) });
+  }
+  if (a1 === 'preorders') {
+    if (!a2 && m === 'GET') return json({ preorders: inv.listPreorders(db), products: inv.listProducts(db).filter((p) => p.category !== 'singles').map((p) => ({ id: p.id, name: p.name })) });
+    if (!a2 && m === 'POST') {
+      if (!plain) return bad('body');
+      const r = inv.cleanPreorder(db, b);
+      if (r.errors) return invalid(r.errors);
+      const o = inv.createPreorder(db, r.clean);
+      note('preorder_create', String(o.id));
+      return json({ preorder: o }, 201);
+    }
+    if (a2 === 'arrive-all' && m === 'POST') { // {product} or {product, undo: [ids]} (the Undo, one transaction)
+      const pid = Number.isInteger(b.product) ? b.product : -1;
+      if (b.undo !== undefined && !(Array.isArray(b.undo) && b.undo.length <= 500 && b.undo.every(Number.isInteger))) return bad('body');
+      const ids = inv.arriveAll(db, pid, b.undo ?? null);
+      note(b.undo ? 'preorder_arrive_all_undo' : 'preorder_arrive_all', `${pid} ${ids.length} orders`);
+      return json({ ids });
+    }
+    if (id !== null && a3 === 'status' && m === 'POST') {
+      const r = inv.setStatus(db, id, b.status, user);
+      if (!r.ok) return json({ error: r.error, message: r.error === 'purged' ? 'Their details were deleted after pickup, so this order can’t be reopened. Make a new preorder.' : undefined }, r.error === 'not_found' ? 404 : 409);
+      note('preorder_status', `${id} ${b.status}`);
+      return json({ preorder: r.order, stockNote: r.stockNote });
+    }
+  }
+  return bad('not_found', 404);
+}
 /** After a series or one-date edit changed the seats: people waiting move in while a seat is free (lowering the seats bumps nobody). */
 function repromote(url) {
   const ctx = publicCtx(url);
@@ -659,6 +747,7 @@ async function adminApi(req, url, user) {
   }
   if (section === 'roster') return rosterApi(req, url, body, [a1, a2, a3, a4], ip, note);
   if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
+  if (section === 'inventory') return inventoryApi(req, url, body, [a1, a2, a3], ip, note, user);
   if (section === 'store') return storeApi(req, url, body, ip, note, photoFiles);
   if (section === 'templates') return templatesApi(req, body, [a1], ip, note);
   if (key === 'GET security') return json({ events: audit.recent(500) });
@@ -675,7 +764,7 @@ async function adminApi(req, url, user) {
 }
 
 // ---------- HTTP ----------
-const MAX_BODY = 256 * 1024, MAX_PHOTO_BODY = 2 * 1024 * 1024, MAX_SMALL_BODY = 8 * 1024; // sign-up and roster bodies are a few short fields
+const MAX_BODY = 256 * 1024, MAX_PHOTO_BODY = 2 * 1024 * 1024, MAX_SMALL_BODY = 8 * 1024; // sign-up, roster and inventory bodies are a few short fields
 function readBody(nreq, max = MAX_BODY) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -702,7 +791,7 @@ const server = createServer(async (nreq, nres) => {
     for (const [k, v] of Object.entries(nreq.headers)) for (const x of [v].flat()) headers.append(k, x);
     headers.set('x-mg-peer', nreq.socket.remoteAddress ?? ''); // overwrites any copy the client sent; see clientIp()
     // Only a signed-in admin posting a picture may send up to 2 MB; everyone else gets 256 KB, checked before anything is buffered.
-    const max = nreq.method === 'POST' && url.pathname === '/api/admin/photos' && signedIn({ headers: { get: (k) => nreq.headers[k] } }, url) ? MAX_PHOTO_BODY : /^\/api\/(signup|admin\/roster\/)/.test(url.pathname) ? MAX_SMALL_BODY : MAX_BODY;
+    const max = nreq.method === 'POST' && url.pathname === '/api/admin/photos' && signedIn({ headers: { get: (k) => nreq.headers[k] } }, url) ? MAX_PHOTO_BODY : /^\/api\/(signup|admin\/(roster|inventory)\/)/.test(url.pathname) ? MAX_SMALL_BODY : MAX_BODY;
     if (Number(nreq.headers['content-length']) > max) throw Object.assign(new Error('too large'), { status: 413 });
     const body = ['GET', 'HEAD'].includes(nreq.method) ? undefined : await readBody(nreq, max);
     await send(nreq, nres, url, await route(new Request(url, { method: nreq.method, headers, body }), url));
