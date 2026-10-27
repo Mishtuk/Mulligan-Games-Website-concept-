@@ -67,7 +67,6 @@ const nav = [['All events', '/events/', 'events'], ['This week', '/#week', 'home
           </ul>
         </nav>
         <div class="scheme" role="group" aria-label="Colour theme">
-          <span class="scheme-k" aria-hidden="true">Theme</span>
           <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
           <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button>
         </div>
@@ -77,17 +76,32 @@ const nav = [['All events', '/events/', 'events'], ['This week', '/#week', 'home
     <slot />
 
     <footer class="site-foot">
+      <!-- the footer is an index (round 4, F10): brand | Visit | Hours | Explore, then a hairline row. Visit and Hours are filled live (mg:foot-addr). -->
       <div class="wrap foot-in">
-        <div>
-          <p class="foot-plate"><img src="/img/logo/logo-plate-330.webp" alt="" width="330" height="102" loading="lazy" /></p>
-          <Fragment set:html="<!--mg:foot-addr-->" />
-          <p class="foot-name">{store.name}</p>
-          <p>{a.street}, {a.city}, {a.region} {a.zip}<br />{tel ? <a href={tel}>{store.phone}</a> : store.phone}</p>
-          <Fragment set:html="<!--/mg:foot-addr-->" />
+        <div class="foot-brand">
+          <p class="foot-plate"><img src="/img/logo/logo-plate-330.webp" alt={store.name} width="330" height="102" loading="lazy" /></p>
+          <p>Card games, tables and a crew who know the formats.</p>
         </div>
-        <ul class="foot-links">
-          <li><a href="/new-here/">New here?</a></li>
-          <li><a href="/events/">All events</a></li>
+        <Fragment set:html="<!--mg:foot-addr-->" />
+        <div class="foot-visit">
+          <h2>Visit</h2>
+          <p>{a.street}<br />{a.city}, {a.region} {a.zip}</p>
+          <p>{tel ? <a href={tel}>{store.phone}</a> : store.phone}</p>
+          <p><a href={maps} target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
+        </div>
+        <div class="foot-hours"><h2>Hours</h2><p><a href="/#visit">See the hours</a></p></div>
+        <Fragment set:html="<!--/mg:foot-addr-->" />
+        <nav class="foot-explore" aria-labelledby="foot-explore-h">
+          <h2 id="foot-explore-h">Explore</h2>
+          <ul>
+            <li><a href="/events/">All events</a></li>
+            <li><a href="/#week">This week</a></li>
+            <li><a href="/#cedh">cEDH</a></li>
+            <li><a href="/#new">Preorders</a></li>
+            <li><a href="/new-here/">New here?</a></li>
+          </ul>
+        </nav>
+        <ul class="foot-small foot-links">
           <li><a href="/events.ics">Calendar feed</a></li>
           <li><a href="/privacy/">Privacy</a></li>
           <Fragment set:html="<!--mg:socials-->" />

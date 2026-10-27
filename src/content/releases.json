@@ -1,8 +1,7 @@
 [
   { "id": "startrek", "game": "magic", "name": "Star Trek", "status": "preorder", "preorderEnds": "2026-11-01",
-    "note": "Preorders available in store only.", "event": "startrek-prerelease",
+    "event": "startrek-prerelease",
     "source": "FB posts Oct 5 to 7 (preorders end Nov 1)" },
   { "id": "delta-reign", "game": "pokemon", "name": "Mega Evolution: Delta Reign", "status": "preorder", "preorderEnds": "2026-11-01",
-    "note": "Preorders available in store only.",
     "source": "FB posts Oct 5 to 7 (preorders end Nov 1)" }
 ]

@@ -42,7 +42,6 @@ import Icon from '../components/Icon.astro';
           <details class="acct"><summary><Icon name="users" /><span>Signed in as <span class="who"></span></span></summary>
             <div class="acct-pop"><a href="#account"><Icon name="lock" />Change password</a><button type="button" data-signout><Icon name="door" />Sign out</button></div></details>
           <div class="scheme" role="group" aria-label="Colour theme">
-            <span class="scheme-k" aria-hidden="true">Theme</span>
             <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
             <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button>
           </div>
@@ -53,7 +52,6 @@ import Icon from '../components/Icon.astro';
           <a href="#today" aria-label="Mulligan Games shop admin, Today"><span class="plate plate-sm"><img src="/img/logo/logo-plate-330.webp" alt="" width="330" height="102" /></span></a>
           <p class="top-title" id="top-title">Today</p>
           <div class="scheme top-scheme" role="group" aria-label="Colour theme">
-            <span class="scheme-k" aria-hidden="true">Theme</span>
             <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
             <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button>
           </div>
@@ -81,8 +79,7 @@ import Icon from '../components/Icon.astro';
         <div class="dlg-body"><ul class="more-list" id="mlinks"></ul>
           <ul class="more-list">
             <li><a class="btn btn-2" href="#account"><Icon name="lock" />Change password</a></li>
-            <li><div class="scheme" role="group" aria-label="Colour theme"><span class="scheme-k" aria-hidden="true">Theme</span>
-              <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
+            <li><div class="scheme" role="group" aria-label="Colour theme">  <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
               <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button></div></li>
             <li><button type="button" class="btn btn-2" data-signout><Icon name="door" />Sign out<span class="vh"> of <span class="who"></span></span></button></li>
           </ul></div></div>
@@ -594,7 +591,6 @@ import Icon from '../components/Icon.astro';
         if (b.signup === 'here') { state = 'open'; act = link('btn btn-act', 'Sign up'); if (cap) stat = e('p', 'ev-stat', ic('seat'), e('span', 'ev-stat-big', cap), e('span', 'ev-stat-unit', cap === 1 ? 'seat left' : 'seats left'), e('span', 'ev-stat-small', 'of ' + cap)); }
         else if (b.signup === 'counter') { state = 'counter'; act = [e('p', 'ev-how', ic('door'), 'Pre-register at the counter.'), link('btn btn-2', ic('phone'), 'Call the shop')]; }
         else if (b.signup === 'external') { state = 'external'; act = b.inviteOnly ? e('p', 'ev-how', ic('lock'), 'Invite only. Seats come from the Championship Series.') : tool.url ? link('btn btn-act', tool.name ? 'Sign up on ' + tool.name : 'Sign up online', e('span', 'vh', ` (opens ${tool.name || 'another site'})`), ic('external', 'ic-ext')) : e('p', 'ev-how', `Sign up ${tool.name ? 'on ' + tool.name : 'online'}.`); }
-        else if (b.signup === 'walkin') act = e('p', 'ev-how', ic('door'), 'Walk in. No sign-up needed.');
         const m = b.arriveByMins === null || b.arriveByMins === '' ? null : +b.arriveByMins;
         const arrive = m !== null && Number.isFinite(m) && isT(st) && ['here', 'counter'].includes(b.signup) ? e('p', 'ev-arrive', ic('clock'), `Arrive by ${T12(hmOf(mins(st) - m))} to keep your seat.`) : null;
         const more = b.prize ? e('p', 'ev-prize', b.prize) : b.description ? e('p', '', b.description) : null;
@@ -1075,7 +1071,7 @@ import Icon from '../components/Icon.astro';
             const f = full(), name = h('input', { type: 'text', 'data-k': 'walk', autocomplete: 'off', maxlength: 80, placeholder: 'Walk-in name', value: st.walk, oninput: (e) => (st.walk = e.target.value) });
             const bar = h('form', { class: 'walkbar', novalidate: true, onsubmit: (e) => { e.preventDefault(); const m = e.submitter?.value || 'auto'; if (!name.value.trim()) { toast('Type a name first.'); name.focus(); return; } if (m === 'over') ask('Seat anyway?', `${ev.title} is full. Seating ${name.value.trim()} makes it ${seats()}.`, 'Seat anyway', 'Not now', 'btn-act').then((ok) => ok && walkIn(name.value, 'over', false)); else walkIn(name.value, m, false); } },
               h('label', { class: 'fld' }, h('span', { class: 'vh' }, 'Walk-in name'), name),
-              f ? [h('button', { class: 'btn btn-act', type: 'submit', value: 'waitlist' }, 'Add to waitlist'), h('button', { class: 'btn btn-2', type: 'submit', value: 'over' }, `Seat anyway (${seats()})`)] : h('button', { class: 'btn btn-act', type: 'submit', value: 'auto' }, 'Add and check in'));
+              f ? [h('button', { class: 'btn btn-act', type: 'submit', value: 'waitlist' }, 'Add to waitlist'), h('button', { class: 'btn btn-2', type: 'submit', value: 'over' }, `Seat anyway (${seats()})`)] : h('button', { class: 'btn btn-act', type: 'submit', value: 'auto', 'aria-label': 'Add and check in' }, h('span', {}, 'Add'), h('span', { class: 'wb-long' }, ' and check in')));
             const search = h('input', { type: 'search', 'data-k': 'q', autocomplete: 'off', placeholder: 'Find a name or ID', value: st.q, oninput: (e) => { st.q = e.target.value; draw(); } });
             out.push(h('div', { class: 'rtools' }, h('label', { class: 'fld' }, h('span', { class: 'vh' }, 'Find a name or ID'), search), h('button', { class: 'filt', type: 'button', 'aria-pressed': String(st.notHere), onclick: () => { st.notHere = !st.notHere; draw(); } }, st.notHere ? 'Showing: not here yet' : 'Not here yet'),
               h('button', { class: 'btn btn-2', type: 'button', onclick: (e) => preReg(e.currentTarget) }, ico('plus', 18), 'Add a pre-registration')),

@@ -12,7 +12,7 @@ const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURICompone
         <h1 class="empty-h">We couldn’t find that page.</h1>
         <p>Try the events list, or the front page. Or come by or call.</p>
         <Fragment set:html={`<!--mg:hours--><!--/mg:hours-->`} />
-        <p class="visit-acts"><a class="btn btn-act" href="/events/">See all events</a><a class="btn btn-2" href="/">Front page</a>{tel && <a class="btn btn-2" href={tel}>Call {store.phone}</a>}<a class="btn btn-2" href={maps} target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
+        <p class="visit-acts nf-acts"><a class="btn btn-act" href="/events/">See all events</a><a class="btn btn-2" href="/">Front page</a>{tel && <a class="btn btn-2" href={tel}>Call {store.phone}</a>}<a class="btn btn-2" href={maps} target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
       </div>
     </div>
   </main>

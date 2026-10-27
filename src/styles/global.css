@@ -3,8 +3,8 @@
  * Warm cream / charcoal surfaces like the brick front at 445 York Rd; the sign's deep blue (#2F5FB0) is the ONE accent
  * (buttons and links that act). Game colours appear only as dots, thin rules and icons.
  * Light and dark use light-dark(), keyed off color-scheme. The <meta name="color-scheme"> is mapped back to the
- * property so the Light | Dark switch works; elements that set color-scheme: dark (open-now strip, footer, admin
- * chrome) get the dark value of every token.
+ * property so the Light | Dark switch works; the inner wrappers of the open-now strip, cEDH band and footer (and the admin
+ * chrome) set color-scheme: dark, so their content gets the dark value of every token while the band itself follows the page.
  * Contrast (WCAG formula, 2026-10-26; all pass AA, see DESIGN.md "Contrast"):
  *   light: ink 13.7 (15.3 on surface), ink-2 6.7 (6.2 on surface-2), accent text 5.4, white on accent 6.2,
  *          white on brick mark 6.1, white on header brick 9.3, error text 7.1 (5.9 on its tint)
@@ -46,7 +46,7 @@
   --mark:        light-dark(#9C4A32, #C77A5E);   /* brick: date diamonds only */
   --on-mark:     light-dark(#FFFFFF, #1B1715);
 
-  --band:        light-dark(#3E2A22, #120F0D);   /* open-now strip, cEDH band, footer (used with color-scheme: dark) */
+  --band:        light-dark(#3E2A22, #2A1D17);   /* open-now strip, cEDH band, footer: warm brown in light, a brick-brown lighter than the page in dark (round 4, F4) */
   --on-band:     #F5EFE4;
   --on-band-2:   #CDBFB0;
   --head-bg:     var(--brick);
@@ -187,8 +187,8 @@ img { max-width: 100%; height: auto; display: block; }
 @keyframes pulse { 50% { opacity: 0.35; } }
 
 /* ---------- 1. open-now strip ---------- */
-.openbar { background: var(--band); color: var(--on-band); font-size: var(--t-sm); color-scheme: dark; }
-.openbar-in { display: flex; align-items: center; gap: 0 var(--s4); min-height: var(--tap); }
+.openbar { background: var(--band); color: var(--on-band); font-size: var(--t-sm); }
+.openbar-in { color-scheme: dark; display: flex; align-items: center; gap: 0 var(--s4); min-height: var(--tap); }
 .openbar p { margin: 0; }
 .ob-status { display: flex; align-items: center; gap: var(--s2); margin-right: auto !important; font-weight: 500; }
 .ob-status strong { font-weight: 800; }
@@ -236,7 +236,6 @@ img { max-width: 100%; height: auto; display: block; }
   display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-pill);
   border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
 }
-.scheme-k { padding: 0 var(--s2) 0 var(--s3); font-size: var(--t-xs); font-weight: 750; color: var(--ink-2); }
 .scheme button {
   display: inline-flex; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0 0.8rem; border: 0; border-radius: var(--r-pill);
   background: transparent; color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer;
@@ -244,8 +243,13 @@ img { max-width: 100%; height: auto; display: block; }
 .scheme button .ic { width: 1.05rem; height: 1.05rem; }
 .scheme button:hover { background: var(--surface-2); }
 .scheme button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+/* on the brick header: quieter outline, cream fill for the chosen side (round 4, F16) */
+.site-head .scheme { background: transparent; border-color: rgb(255 255 255 / 0.35); color: var(--on-band); }
+.site-head .scheme button { color: var(--on-band); }
+.site-head .scheme button:hover { background: rgb(255 255 255 / 0.12); }
+.site-head .scheme button[aria-pressed="true"] { background: var(--on-band); color: #2B211C; }
 @media (scripting: none) { .scheme, #print-btn { display: none; } } /* the switch needs site.js; without it the page follows the system */
-@media (max-width: 420px) { .scheme-k { display: none; } .scheme button { padding: 0 0.6rem; } .plate img { width: 8.25rem; } }
+@media (max-width: 420px) { .scheme button { padding: 0 0.6rem; } .plate img { width: 8.25rem; } }
 
 /* the day card (front page week strip) */
 .daycard {
@@ -263,10 +267,10 @@ img { max-width: 100%; height: auto; display: block; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s2) var(--s5); margin-bottom: var(--s5); }
 .sec-head h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; }
 .sec-note { margin: 0; color: var(--ink-2); }
-@media (min-width: 1024px) { .sec { padding-block: var(--s8); } }
+@media (min-width: 1024px) { .sec { padding-block: 4.5rem; } }
 
 /* ---------- 3. this week ---------- */
-.week { padding-top: var(--s6); }
+.week-note { margin: calc(-1 * var(--s3)) 0 var(--s5); }
 .chips { display: flex; gap: var(--s2); overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)) var(--s4); padding: var(--s1) var(--gutter) var(--s2); scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter); }
 .chip {
   flex: none; scroll-snap-align: start; display: inline-flex; align-items: center; gap: 0.45rem;
@@ -279,6 +283,11 @@ img { max-width: 100%; height: auto; display: block; }
 .chip[aria-current="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .chip[aria-current="true"] .gi { color: currentColor; }
 .chip[aria-current="true"] .chip-n { background: color-mix(in oklab, var(--paper) 22%, transparent); color: inherit; }
+@media (min-width: 900px) { /* one row at 1280: the count is plain text, the chip a little smaller */
+  .chips { gap: 0.4rem; }
+  .chip { min-height: 2.75rem; padding: 0 0.6rem; gap: 0.35rem; font-size: var(--t-sm); border-width: 1px; }
+  .chip-n { background: none; padding: 0; min-width: 0; }
+}
 @media (min-width: 1024px) { .chips { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; } }
 
 .loading { display: flex; align-items: center; gap: var(--s3); padding: var(--s6) 0; color: var(--ink-2); }
@@ -293,19 +302,12 @@ img { max-width: 100%; height: auto; display: block; }
 .day-dia span { position: relative; }
 .day-name { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; }
 .day-meta { flex-basis: 100%; padding-left: 3.75rem; margin-top: -0.5rem; font-family: var(--font); font-stretch: 100%; font-size: var(--t-sm); font-weight: 500; color: var(--ink-2); }
-.day-closed .day-h { position: static; }
-.day-closed .day-dia::before { background: none; border: 2px dashed var(--line-strong); }
-.day-closed .day-dia { color: var(--ink-2); }
 .day-skip { margin: 0; color: var(--ink-2); font-size: var(--t-sm); }
 
-.slots { display: grid; gap: var(--s5); }
-.slot { display: grid; gap: var(--s2); }
-.slot-t { margin: 0; display: flex; align-items: baseline; gap: var(--s2); }
-.slot-t time { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 1.5rem; line-height: 1; }
-.slot-n { font-size: var(--t-sm); font-weight: 650; color: var(--ink-2); }
-.slot-cards { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
-/* these start together: a bracket down the left */
-.slot[data-multi] .slot-cards { border-left: 3px solid var(--ink); padding-left: var(--s3); }
+.slots { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); } /* each card shows its own time (round 4, F5) */
+/* consecutive closed days: one quiet line ("Monday and Tuesday · closed"); the empty spans keep each day's #anchor */
+.day-off { padding-block: var(--s3); border-top: 1px solid var(--line); }
+.day-off p { margin: 0; font-size: var(--t-sm); color: var(--ink-2); }
 
 @media (min-width: 1024px) {
   .day { grid-template-columns: 12.5rem minmax(0, 1fr); column-gap: var(--s6); align-items: start; padding-block: var(--s5) var(--s6); }
@@ -313,34 +315,23 @@ img { max-width: 100%; height: auto; display: block; }
   .day-dia { width: 3.6rem; height: 3.6rem; font-size: 1.6rem; }
   .day-name { font-size: 2.25rem; }
   .day-meta { padding-left: 0; margin-top: 0; }
-  .day-closed { padding-block: var(--s3); align-items: center; }
-  .day-closed .day-h { flex-direction: row; align-items: center; gap: var(--s3); }
-  .day-closed .day-dia { width: 2.6rem; height: 2.6rem; font-size: 1.15rem; }
-  .day-closed .day-name { font-size: var(--t-xl); }
-  .day-closed .day-meta { display: none; }
-  .slot { grid-template-columns: 5.5rem minmax(0, 1fr); align-items: start; gap: var(--s4); }
-  .slot-t { flex-direction: column; gap: var(--s1); padding-top: var(--s2); }
 }
 
 /* ---------- the event card: trading-card anatomy ----------
- * name bar (title + cost pip = fee) / type line (game + format) / text box / stat box (seats) */
+ * name bar (title + fee as plain text) with the game line as its second line / one hairline / text box / stat box only when the card needs attention (round 4, F1) */
 .ev {
   position: relative; min-width: 0; display: flex; flex-direction: column;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--lift);
 }
 .ev-bar {
-  display: flex; align-items: center; gap: var(--s3); padding: 0.7rem 0.8rem 0.6rem 1rem;
-  background: var(--surface); border-top: 3px solid var(--gc); border-bottom: 1px solid var(--line); /* game colour: a thin rule, never a field */
+  display: flex; align-items: center; gap: var(--s3); padding: 0.7rem 0.8rem 0.15rem 1rem;
+  background: var(--surface); border-top: 3px solid var(--gc); /* game colour: a thin rule, never a field */
 }
 .ev-title { flex: 1; min-width: 0; font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 800; line-height: 1.1; }
 .ev-title a { text-decoration: none; }
 .ev-title a:hover { text-decoration: underline; }
-.ev-cost {
-  flex: none; margin: 0; min-width: 2.9rem; height: 2.9rem; padding: 0 0.55rem; border-radius: var(--r-pill);
-  display: grid; place-items: center; background: var(--surface); border: 1.5px solid var(--ink);
-  font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 900; font-size: 1.05rem; line-height: 1; font-variant-numeric: tabular-nums;
-}
-.ev-type { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); margin: 0; padding: 0.5rem 1rem; border-bottom: 1px solid var(--line); font-size: var(--t-sm); }
+.ev-cost { flex: none; margin: 0; font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 900; font-size: var(--t-lg); line-height: 1; font-variant-numeric: tabular-nums; }
+.ev-type { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); margin: 0; padding: 0 1rem 0.6rem; border-bottom: 1px solid var(--line); font-size: var(--t-sm); }
 .gbadge { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 800; color: var(--ink); }
 .gbadge .gi { color: var(--gc); width: 1.3em; height: 1.3em; }
 .ev-fmt { display: inline-flex; align-items: center; gap: var(--s2); color: var(--ink-2); font-weight: 600; }
@@ -349,6 +340,7 @@ img { max-width: 100%; height: auto; display: block; }
 .ev-text p { margin: 0; }
 .ev-when { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; font-weight: 650; }
 .ev-when .ic { color: var(--ink-2); }
+.ev-when > span:not(.tag) { flex: 1 1 10rem; min-width: 0; } /* the text wraps inside its span, so the clock never sits alone */
 .ev-prize { color: var(--ink-2); }
 .ev-note .tag { margin-right: 0.25rem; }
 .ev-foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s3); padding: 0.6rem 1rem 1rem; }
@@ -356,18 +348,20 @@ img { max-width: 100%; height: auto; display: block; }
 /* stat box: the card's power/toughness corner */
 .ev-stat {
   margin: 0 0 0 auto; display: grid; grid-template-columns: auto auto 1fr; align-items: center; column-gap: 0.35rem;
-  min-width: 6.75rem; padding: 0.35rem 0.6rem 0.4rem; border: 2px solid var(--line-strong); border-radius: var(--r-box);
-  background: var(--surface-2); line-height: 1.1;
+  min-width: 6.75rem; padding: 0.35rem 0.6rem 0.4rem; border: 2px solid transparent; border-radius: var(--r-box);
+  background: none; line-height: 1.1;
 }
 .ev-stat .ic { width: 1.1rem; height: 1.1rem; }
 .ev-stat-big { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 1.65rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .ev-stat-unit { font-size: var(--t-xs); font-weight: 750; }
 .ev-stat-small { grid-column: 1 / -1; font-size: var(--t-xs); font-weight: 600; color: var(--ink-2); }
-/* states (DESIGN.md "Event card: states"); each also carries its own icon and words */
+/* states (DESIGN.md "Event card: states"); each also carries its own icon and words. The box shows only where the card needs attention. */
 .ev[data-state="open"] .ev-stat .ic { color: var(--ok); }
 .ev[data-state="few"] .ev-stat, .ev[data-state="needs"] .ev-stat { border-color: var(--warn); background: var(--warn-bg); }
 .ev[data-state="few"] .ev-stat .ic, .ev[data-state="needs"] .ev-stat .ic { color: var(--warn); }
-.ev[data-state="waitlist"] .ev-stat { border-color: var(--wait); }
+.ev[data-state="waitlist"] .ev-stat { border-color: var(--wait); background: var(--surface-2); }
+.ev[data-state="full"] .ev-stat, .ev[data-state="cancelled"] .ev-stat { border-color: var(--line-strong); background: var(--surface-2); }
+.rel[data-soon] .ev-stat { border-color: var(--warn); background: var(--warn-bg); } /* the countdown box only on the last 3 days */
 .ev[data-state="waitlist"] .ev-stat .ic { color: var(--wait); }
 .ev[data-state="full"] .ev-stat .ic, .ev[data-state="closed"] .ev-stat .ic { color: var(--ink-2); }
 .ev[data-state="external"] .ev-stat .ic { color: var(--gc); }
@@ -379,7 +373,7 @@ img { max-width: 100%; height: auto; display: block; }
 .ev-stamp {
   position: absolute; right: 1rem; bottom: 1rem; margin: 0; display: inline-flex; align-items: center; gap: 0.35rem;
   padding: 0.2rem 0.65rem; border: 3px solid var(--bad); border-radius: var(--r-box); background: var(--surface); color: var(--bad);
-  font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 900; font-size: 1.2rem; transform: rotate(-5deg);
+  font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 900; font-size: 1.2rem;
 }
 
 .empty { display: grid; gap: var(--s3); justify-items: start; padding: var(--s5); border: 2px dashed var(--line-strong); border-radius: var(--r-card); background-color: var(--surface); }
@@ -404,10 +398,8 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ---------- 4. cEDH band (dark in both themes) ---------- */
-.cedh {
-  color-scheme: dark; background-color: var(--band); color: var(--on-band);
-}
-.cedh-in { display: grid; gap: var(--s6); padding-block: var(--s7); }
+.cedh { background-color: var(--band); color: var(--on-band); }
+.cedh-in { color-scheme: dark; display: grid; gap: var(--s6); padding-block: var(--s7); }
 .cedh h2 { font-size: clamp(2.5rem, 1.6rem + 4vw, 4.75rem); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
 .cedh-lede { font-size: 1.1875rem; max-width: 38ch; margin: var(--s4) 0 var(--s5); }
 .cedh-facts { display: grid; gap: var(--s4); margin: 0; }
@@ -429,18 +421,16 @@ img { max-width: 100%; height: auto; display: block; }
 .cedh-last { margin: var(--s4) 0 0; color: var(--on-band-2); }
 .cedh-last strong { color: var(--on-band); }
 @media (min-width: 1024px) {
-  .cedh-in { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); column-gap: var(--s8); padding-block: var(--s8); }
+  .cedh-in { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); column-gap: var(--s8); padding-block: 4.5rem; }
   .cedh-facts { grid-template-columns: 1fr 1fr; }
   .tix-acts { grid-column: 2; }
 }
 
 /* ---------- 5. new and preorders ---------- */
 .rel-list { list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: var(--s1) var(--gutter) var(--s3); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(15.5rem, 80%); gap: var(--s4); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); }
-.rel { scroll-snap-align: start; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--lift); }
-.rel-art { height: 4.5rem; display: grid; place-items: center; background: var(--surface-2); border-top: 3px solid var(--gc); border-bottom: 1px solid var(--line); }
-.rel-art .gi { width: 2.5rem; height: 2.5rem; color: var(--gc); }
+.rel { scroll-snap-align: start; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--gc); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--lift); }
 .rel-name { padding: var(--s3) var(--s4) var(--s1); font-size: 1.4rem; font-stretch: var(--wdth-head); font-weight: 850; line-height: 1.05; }
-.rel .ev-type { border-bottom: 1px solid var(--line); }
+.rel .ev-type { padding: 0 var(--s4) var(--s2); border-bottom: 0; }
 .rel-text { flex: 1; padding: var(--s3) var(--s4) var(--s2); font-size: var(--t-sm); }
 .rel-text p { margin: 0 0 var(--s2); }
 .rel-foot { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-end; justify-content: space-between; padding: 0 var(--s4) var(--s4); }
@@ -456,10 +446,11 @@ img { max-width: 100%; height: auto; display: block; }
 .hours th { font-weight: 750; }
 .hours td { text-align: right; }
 .hours tr[data-today] { background: var(--highlight); color: var(--on-highlight); }
-.hours tr[data-today] .tag { background: var(--on-highlight); color: var(--highlight); margin-left: var(--s2); }
+.hrs-d { display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; }
+.hours td .tag { margin-left: var(--s2); }
+.hours tr[data-today] .tag { background: var(--on-highlight); color: var(--highlight); }
 .hours tr[data-closed] td { color: var(--ink-2); }
 .hours tr[data-today][data-closed] td { color: var(--on-highlight); }
-.hours .hours-note { display: block; font-size: var(--t-xs); font-weight: 600; }
 address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 1.3; margin-bottom: var(--s4); }
 .visit-acts { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .faq { margin: 0; }
@@ -467,27 +458,32 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .faq dd { margin: 0 0 var(--s3); color: var(--ink-2); }
 
 /* ---------- 7. community ---------- */
-.comm-in { display: grid; gap: var(--s6); }
-.community h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s3); }
-.community h3 { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s3); }
-.socials { list-style: none; margin: var(--s4) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); }
+.comm-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s5); }
+.socials { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); }
 .socials a { display: inline-flex; align-items: center; min-height: var(--tap); font-weight: 700; }
-.proof, .lately { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
-.proof li, .lately li { padding-left: 1.4rem; position: relative; }
-.proof li::before, .lately li::before { content: ""; position: absolute; left: 0.2rem; top: 0.55em; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--line-strong); }
-.proof small, .lately small { display: block; color: var(--ink-2); font-size: var(--t-sm); }
-.quote-slot { margin-top: var(--s4); padding: var(--s4); border: 2px dashed var(--line-strong); border-radius: var(--r-card); color: var(--ink-2); font-size: var(--t-sm); }
-@media (min-width: 768px) { .comm-in { grid-template-columns: 1fr 1fr; } .comm-discord { grid-column: 1 / -1; } }
-@media (min-width: 1024px) { .comm-in { grid-template-columns: 1.1fr 1fr 1fr; column-gap: var(--s7); } .comm-discord { grid-column: auto; } }
-
-/* ---------- footer ---------- */
-.site-foot { color-scheme: dark; background: var(--band); color: var(--on-band-2); font-size: var(--t-sm); }
-.foot-in { display: grid; gap: var(--s4); padding-block: var(--s6); }
-.foot-in p { margin: 0; }
+/* ---------- footer: an index (round 4, F10): brand | Visit | Hours | Explore, then a hairline row ----------
+ * color-scheme: dark sits on .foot-in so the band itself resolves in the page scheme (F4). */
+.site-foot { background: var(--band); color: var(--on-band-2); font-size: var(--t-sm); }
+.foot-in { color-scheme: dark; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s5); padding-block: var(--s7) var(--s5); }
+.foot-in p { margin: 0 0 var(--s2); }
 .foot-in a { color: var(--on-band); }
+.foot-in h2 { margin: 0 0 var(--s2); font-family: var(--font); font-stretch: 100%; font-size: var(--t-xs); font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; color: var(--on-band-2); }
+.foot-in ul { list-style: none; margin: 0; padding: 0; }
+.foot-in li { padding-block: 1px; }
+.foot-brand, .foot-explore, .foot-small { grid-column: 1 / -1; }
 .foot-plate { display: inline-flex; padding: 5px 8px; border-radius: var(--r-box); background: var(--plate); margin-bottom: var(--s3) !important; }
 .foot-plate img { width: 7.5rem; height: auto; }
-@media (min-width: 768px) { .foot-in { grid-template-columns: 1fr 1fr; align-items: end; } .foot-small { grid-column: 1 / -1; } }
+.foot-brand p:last-child { max-width: 26ch; }
+.foot-explore ul { display: flex; flex-wrap: wrap; gap: 0 var(--s4); }
+.foot-explore a, .foot-visit a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.foot-small { display: flex; flex-wrap: wrap; gap: 0 var(--s4); padding-top: var(--s4); border-top: 1px solid rgb(255 255 255 / 0.14); }
+.foot-small a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+@media (min-width: 900px) {
+  .foot-in { grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: var(--s6); }
+  .foot-brand, .foot-explore { grid-column: auto; }
+  .foot-small { grid-column: 1 / -1; }
+  .foot-explore ul { display: block; }
+}
 
 /* ---------- motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
@@ -498,6 +494,10 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
  * .vh is position:absolute; inside an overflow:auto row that is not positioned it escapes the clip and
  * makes the whole page scroll sideways (about 1,400px wide at 360px). */
 .chips, .site-nav, .deck ol, .rel-list { position: relative; }
+
+/* F4: in dark the bands are only a little lighter than the page, so they get a hairline edge */
+@media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) :is(.openbar, .cedh, .site-foot) { border-block: 1px solid rgb(255 255 255 / 0.08); } }
+:root:has(> head > meta[name="color-scheme"][content="dark"]) :is(.openbar, .cedh, .site-foot) { border-block: 1px solid rgb(255 255 255 / 0.08); }
 
 /* empty state with a shop photo (public pages): the room is still open for free play */
 .empty-photo { grid-template-columns: 6.5rem minmax(0, 1fr); align-items: start; column-gap: var(--s4); padding: var(--s4); }
@@ -588,45 +588,34 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .fld .hint-s { font-size: var(--t-xs); font-weight: 500; color: var(--ink-2); }
 /* Mulligan Games concept: the events page (events.html). Reuses site.css (chips, day heads, slots, event card). */
 .ep { padding-block: var(--s4) var(--s7); }
-/* page head: title, one line on how sign-ups work, the calendar button; a shop photo beside it (D27, look A) */
-.ep-head { display: grid; grid-template-areas: "photo" "copy"; gap: var(--s4); margin-bottom: var(--s5); }
-.ep-copy { grid-area: copy; display: grid; justify-items: start; gap: var(--s3); }
+/* page head: title and one line; the controls sit in one row under the chips (F13) */
+.ep-head { margin-block: var(--s2) var(--s4); display: grid; gap: var(--s2); }
 .ep-head h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
 .ep-lede { margin: 0; max-width: 46ch; font-size: 1.125rem; color: var(--ink-2); }
-.ep-photo { grid-area: photo; position: relative; margin: 0 calc(-1 * var(--gutter)); aspect-ratio: 16 / 7; overflow: hidden; background: var(--surface-2); }
-.ep-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; }
-.ep-photo figcaption {
-  position: absolute; left: var(--s3); bottom: var(--s3); max-width: calc(100% - 1.5rem); padding: 0.35rem 0.7rem; border-radius: var(--r-pill);
-  background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
-}
-@media (min-width: 768px) {
-  .ep-head { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); grid-template-areas: "copy photo"; align-items: center; column-gap: var(--s7); margin-block: var(--s4) var(--s6); }
-  .ep-photo { margin: 0; aspect-ratio: 4 / 3; border-radius: var(--r-photo); }
-}
-@media (min-width: 1024px) { .ep-photo { aspect-ratio: 16 / 10; } }
-.ep-format { display: flex; align-items: center; gap: var(--s3); margin: 0 0 var(--s5); }
+.ep-format { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); margin: 0 0 var(--s4); }
 .ep-format label { font-weight: 750; }
-.ep-format select { min-height: var(--tap); padding: 0 2rem 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 650; max-width: 100%; }
-.ep-sec { margin-top: var(--s6); }
+.ep-format .btn-sm { min-height: 2.75rem; } /* small, but still a 44px target */
+.ep-format select { min-height: 2.75rem; padding: 0 2rem 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 650; max-width: 100%; }
+.ep-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-left: auto; }
+.ep-print { display: none; }
+@media (min-width: 900px) { .ep-print { display: inline-flex; } }
+@media (max-width: 480px) { .ep-tools { margin-left: 0; } }
+.ep-sec { margin-top: var(--s5); }
+.ep-sec > .sec-note { margin: 0 0 var(--s3); font-size: var(--t-sm); }
 .ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 2px solid var(--line); }
 .ep .chips { margin-bottom: var(--s3); }
 
-/* print button sits with the format filter */
-.ep-format { flex-wrap: wrap; }
-@media (min-width: 640px) { .ep-format #print-btn { margin-left: auto; } }
 
 /* ---------- round 3 (D36): calmer wide layout ----------
  * Tonight: the cards flow into one two-column grid in time order (each card shows its own time; no time column).
- * Special events: two dates side by side, each a narrow date column + its card(s), so no row leaves half the page empty. */
+ * Special events: two dates side by side, each a kicker date above its card(s), so no row leaves half the page empty. */
 @media (min-width: 1024px) {
   .ep .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
-  .ep .slot, .ep .slot-cards { display: contents; }
-  .ep .slot-t { display: none; }
   #special { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s6); align-items: start; }
-  #special .day { grid-template-columns: 6.5rem minmax(0, 1fr); column-gap: var(--s4); }
+  #special .day { grid-template-columns: 1fr; row-gap: var(--s2); }
   #special .day:nth-child(2) { border-top: 0; }
-  #special .day-h { position: static; }
-  #special .day-name { font-size: var(--t-lg); }
+  #special .day-h { position: static; flex-direction: row; padding: 0; }
+  #special .day-name { font-family: var(--font); font-stretch: 100%; letter-spacing: 0.04em; text-transform: uppercase; font-size: var(--t-sm); font-weight: 800; color: var(--mark); } /* the date as a kicker above its card (F12) */
   #special .slots { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -645,15 +634,17 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 /* every week: one block per weekday, cards side by side */
 .wk { display: grid; gap: var(--s3); padding-block: var(--s4) var(--s5); border-top: 2px solid var(--line); }
 .wk:first-child { border-top: 0; }
-.wk-name { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; display: flex; align-items: center; gap: var(--s3); }
+.wk-name { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s3); }
+.wk-next { font-family: var(--font); font-stretch: 100%; font-size: var(--t-sm); font-weight: 600; color: var(--ink-2); }
+.wk-next::before { content: "· "; } /* the dot only while it sits beside the day name */
 .wk-cards { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
-.wk-closed { padding-block: var(--s3); }
-.wk-closed .wk-name { font-size: 1.35rem; color: var(--ink-2); }
+/* phones get one line per series, from 640px the cards (both are in the markup) */
+@media (max-width: 639px) { .wk-cards { display: none; } }
+@media (min-width: 640px) { .wk .wk-rows { display: none; } }
 @media (min-width: 1024px) {
   .wk { grid-template-columns: 12.5rem minmax(0, 1fr); column-gap: var(--s6); align-items: start; }
-  .wk-closed { align-items: center; }
   .wk-name { padding-top: var(--s2); font-size: 2.1rem; }
-  .wk-closed .wk-name { font-size: 1.5rem; padding-top: 0; }
+  .wk-next { flex-basis: 100%; } .wk-next::before { content: none; } .wk-next::first-letter { text-transform: uppercase; } /* its own line under the day name */
 }
 .ep .day-h { position: static; }
 @media (min-width: 1024px) { .ep .day-h { position: sticky; } }
@@ -667,7 +658,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
  * Dark in both themes (like the open-now strip and the cEDH band), so the white headline always reads. */
 .phero {
   position: relative; isolation: isolate; overflow: hidden; color-scheme: dark;
-  display: grid; grid-template-rows: 1fr auto; min-height: clamp(30rem, 72svh, 48rem);
+  display: grid; grid-template-rows: 1fr auto; min-height: clamp(28rem, 62svh, 40rem); /* the phone strip clears the bottom bar (F17) */
   background: #17110E; color: #FFFFFF;
 }
 .phero-media {
@@ -738,7 +729,8 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
       linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
   }
   .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
-  .phero-media img, .phero-media video { object-position: 50% 42%; }
+  .phero-media img, .phero-media video { object-position: 50% 82%; } /* the playmat, not a head (F8) */
+  .phero-media { background-position: 50% 82%; }
 }
 
 /* the week, seven cards (first thing in "This week") */
@@ -759,6 +751,12 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .wdeck li[data-today] .dc-cap { color: var(--ink); font-weight: 800; background: none; padding: 0; }
 .wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); transform: none; animation: none; }
 @media (min-width: 768px) { .wdeck ol { margin-inline: 0; padding-inline: 0; overflow: visible; } }
+@media (max-width: 767px) { /* seven fitted tiles, no sideways scroll (F18); the aria-label keeps the words */
+  .wdeck ol { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); overflow: visible; margin-inline: 0; padding-inline: 0; gap: 3px; }
+  .wdeck .dc-num { font-size: 1.5rem; }
+  .wdeck .dc-dow { font-size: 0.75rem; }
+  .wdeck .dc-cap { display: none; }
+}
 
 /* ---------- this week: a calmer layout on wide screens (round 3) ----------
  * The day stays on the left; the start time sits above its cards instead of in a third column, so cards get the width. */
@@ -767,12 +765,10 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   #days .day-name { font-size: 2rem; }
   /* a day's cards flow into one two-column grid in time order (each card shows its own time), so no slot leaves half a row empty */
   #days .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
-  #days .slot, #days .slot-cards { display: contents; }
-  #days .slot-t { display: none; }
 }
 
 /* ---------- inside the shop: photo gallery ---------- */
-.shop { padding-top: var(--s6); }
+.shop { background: var(--surface); border-block: 1px solid var(--line); }
 .shots { position: relative; list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) var(--s2); display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: var(--s3); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
 .shot { scroll-snap-align: start; }
 .shot figure { position: relative; margin: 0; height: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
@@ -799,18 +795,15 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .cedh-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
 
 /* ---------- visit: one card, three columns (round 3; like the owner's VFW "New here?" block) ---------- */
-.visit { background: var(--paper); border-block: 0; }
+.visit { background: var(--surface); border-block: 1px solid var(--line); }
 .visit .sec-head h2 { margin-bottom: 0; }
-.visit-in {
-  display: grid; gap: var(--s6); padding: var(--s5) var(--s4);
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--lift);
-}
+.visit-in { display: grid; gap: var(--s6); } /* no card box: the band is the container (F3); the columns keep their hairlines */
 .visit .visit-in h3 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 850; margin: 0 0 var(--s3); }
 .visit address { font-size: 1.2rem; }
 .visit-small { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
 .visit-small strong { color: var(--ink); }
 .visit .faq dd:last-child { margin-bottom: 0; }
-@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; padding: var(--s6); } .visit-faq { grid-column: 1 / -1; } }
+@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; } .visit-faq { grid-column: 1 / -1; } }
 @media (min-width: 1024px) {
   .visit-in { grid-template-columns: 1fr 1fr 1.15fr; column-gap: var(--s7); }
   .visit-faq { grid-column: auto; }
@@ -830,16 +823,13 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .dl-title a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 .dl-bits { color: var(--ink-2); font-size: var(--t-sm); font-weight: 600; }
 .day-line[data-state="cancelled"] .dl-title a { text-decoration: line-through; color: var(--ink-2); }
-.day-more { margin: var(--s4) 0 0; font-weight: 750; }
-.day-more a { display: inline-flex; align-items: center; min-height: var(--tap); }
 /* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
 @media (max-width: 1023px) {
   .dl-bits { flex-basis: 100%; padding-left: 1.25rem; }
-  #days .day-closed, #days .day[data-quiet], #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
-  #days .day-closed .day-dia, #days .day[data-quiet] .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
-  #days .day-closed .day-name, #days .day[data-quiet] .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
-  #days .day-closed .day-meta, #days .day[data-quiet] .day-meta, #days .day:has(> .day-lines) .day-meta { padding-left: 3rem; margin-top: -0.4rem; }
-  #days .day-closed .day-skip { display: none; } /* the header already says "closed" */
+  #days .day[data-quiet], #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
+  #days .day[data-quiet] .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+  #days .day[data-quiet] .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
+  #days .day[data-quiet] .day-meta, #days .day:has(> .day-lines) .day-meta { padding-left: 3rem; margin-top: -0.4rem; }
 }
 
 
@@ -883,7 +873,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .dp-kick { margin: 0; font-size: var(--t-sm); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mark); }
 .dp-name { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
 .dp-head .ev-title { flex: 1; font-size: clamp(1.9rem, 1.3rem + 2.6vw, 3rem); font-weight: 800; }
-.dp-head .ev-cost { min-width: 0; height: auto; padding: 0; border: 0; border-radius: 0; background: none; font-size: var(--t-xl); }
+.dp-head .ev-cost { font-size: var(--t-xl); }
 .dp-head .ev-type { padding: 0; border: 0; font-size: var(--t-md); }
 .dp-head .ev-when { margin: 0; font-size: var(--t-md); }
 .dp-head .pg-banner { margin: 0; }
@@ -970,6 +960,10 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .su-keep { display: grid; gap: var(--s2); padding: var(--s4); border: 2px solid var(--line-strong); border-radius: var(--r-card); background: var(--surface); }
 .su-link { overflow-wrap: anywhere; font-weight: 650; }
 
+/* 404: the four buttons in two even columns (F24) */
+.nf-acts { display: grid; grid-template-columns: 1fr 1fr; }
+.nf-acts .btn { text-align: center; }
+
 /* ---------- safety nets ---------- */
 /* reduced motion: nothing moves, smooth scrolling off; the hero video stays a poster unless the visitor presses Play (site.js) */
 @media (prefers-reduced-motion: reduce) {
@@ -999,13 +993,13 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 /* ---------- print: the schedule on the counter window (black on white, no controls) ---------- */
 .print-only { display: none; }
 @media print {
-  :root, header, footer, .openbar, .site-head, .site-foot, [class*="band"] { color-scheme: light !important; }
+  :root, header, footer, .openbar, .openbar-in, .cedh-in, .foot-in, .site-head, .site-foot, [class*="band"] { color-scheme: light !important; }
   html, body { background: #fff !important; color: #000 !important; font-size: 11pt; }
   body { padding-bottom: 0 !important; }
   *, *::before, *::after { color: #000 !important; background-color: transparent !important; box-shadow: none !important; text-shadow: none !important; }
   .skip, .phero-strip, .wdeck, .site-nav, .scheme, .chips, .btn, .no-print, .mobile-bar, .toast, video, .phero-media, .media-cap, .empty-photo > img, .site-foot img:not(.keep) { display: none !important; }
   /* boss D35: the events page photo, the filter controls, the live open-now status and the Tonight repeat stay off paper */
-  .ep-photo, .ep-format, .cal-menu, .ob-status, #today-wrap, .site-foot .foot-plate { display: none !important; }
+  .ep-format, .cal-menu, .ob-status, #today-wrap, .site-foot .foot-plate { display: none !important; }
   .site-head, .openbar, [class*="band"] { background-image: none !important; }
   .plate, .foot-plate { background: #fff !important; box-shadow: none !important; border: 1px solid #000; }
   .plate img, .foot-plate img { display: block !important; }

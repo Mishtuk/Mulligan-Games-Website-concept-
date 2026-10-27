@@ -22,7 +22,7 @@ const P = ICONS;
 export const icon = (name, cls = '') => h`<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${new Html(P[name] ?? '')}</svg>`;
 
 // ---------- words ----------
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const parse = (ymd) => new Date(`${ymd}T00:00:00Z`);
 export const dayName = (ymd) => DAYS[dow(ymd)];
@@ -103,7 +103,7 @@ const arriveLine = (o, st) => (o.arriveBy && ['here', 'counter'].includes(o.sign
   ? h`<p class="ev-arrive">${icon('clock')}Arrive by ${fmtTime(o.arriveBy)} to keep your seat.</p>` : '');
 
 /** The card's one action and its stat box (DESIGN.md 5.3 states). `href` = where "Sign up" goes (the date page). */
-function actionArea(ctx, o, st, href) {
+function actionArea(ctx, o, st, href, page = false) {
   const tool = o.tool ?? {}, toolUrl = safeUrl(tool.url), store = ctx.store;
   let act = '', stat = '';
   switch (st.state) {
@@ -121,7 +121,7 @@ function actionArea(ctx, o, st, href) {
       act = h`<p class="ev-how">${st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.'}</p>`;
       stat = !st.cap ? '' : st.left ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', `of ${st.cap}`, 'seat') : statBox('Full', '', '', 'lock');
       break;
-    case 'walkin': act = h`<p class="ev-how">${icon('door')}Walk in. No sign-up needed.</p>`; break;
+    case 'walkin': act = page ? h`<p class="ev-how">${icon('door')}Walk in. No sign-up needed.</p>` : ''; break; // walk-in is said once per section, not on every card (round 4, F2)
     case 'counter': {
       const tel = safeUrl(store.phoneHref);
       act = h`<p class="ev-how">${icon('door')}Pre-register at the counter.</p>${tel ? h`<a class="btn btn-2" href="${tel}">${icon('phone')}Call the shop</a>` : ''}`;
@@ -139,10 +139,10 @@ function actionArea(ctx, o, st, href) {
 }
 
 // ---------- the event card ----------
-/** opts: { compact } hide the description; { every } collapsed weekly card: "Every Friday, 7 PM" + "Next: ..." line (nextNote). */
+/** opts: { compact } hide the description; { every } collapsed weekly card: "7 PM to 10 PM" + a "Next: ..." line only when the next date is cancelled or changed (nextNote). */
 export function card(ctx, o, opts = {}) {
   const st = seatState(o, ctx.now.m, regsOf(ctx, o)), href = eventHref(ctx, o), key = (opts.again ? 'tt' : '') + idKey(o), g = gameOf(ctx, o.game);
-  const time = opts.every ? `Every ${DAYS[o.recurrence?.day ?? dow(o.originalDate)]}, ${fmtTime(o.baseStart ?? o.start)}${o.end ? ` to ${fmtTime(o.end)}` : ''}` : timeLine(o);
+  const time = opts.every ? `${fmtTime(o.baseStart ?? o.start)}${o.end ? ` to ${fmtTime(o.end)}` : ''}` : timeLine(o); // under its weekday heading a weekly card says just "7 PM to 10 PM"
   let body = '';
   if (o.cancelled) body = h`<p class="ev-note">${o.note || 'This date is cancelled.'} ${updatedWords(o.updated, ctx.now.ymd)}</p>`;
   else {
@@ -158,18 +158,8 @@ ${o.cancelled ? h`<p class="ev-stamp">${icon('cancel')}Cancelled</p>` : ''}${foo
 </article>`;
 }
 
-/** Cards that share a start time sit in one slot under one time label. */
-function slots(ctx, items, cardOpts = {}, withDate = false) {
-  const groups = [];
-  for (const x of items) {
-    const o = x.o ?? x, last = groups[groups.length - 1];
-    if (last && last.date === o.date && last.start === o.start) last.items.push(x); else groups.push({ date: o.date, start: o.start, items: [x] });
-  }
-  return groups.map((s) => {
-    const multi = s.items.length > 1;
-    return h`<div class="slot"${multi ? ' data-multi' : ''}><p class="slot-t">${s.start ? h`<time datetime="${s.date}T${s.start}">${fmtTime(s.start)}</time>` : h`<span>Time to be announced</span>`}${multi ? h`<span class="slot-n">${s.items.length} events start at ${fmtTime(s.start)}</span>` : ''}</p><div class="slot-cards">${s.items.map((x) => (x.o ? card(ctx, x.o, { ...cardOpts, ...x.opts }) : card(ctx, x, cardOpts)))}</div></div>`;
-  });
-}
+/** The cards of one list, in time order. Each card shows its own time, so there are no time labels or groups (round 4, F5). */
+const cardList = (ctx, items, cardOpts = {}) => items.map((x) => (x.o ? card(ctx, x.o, { ...cardOpts, ...x.opts }) : card(ctx, x, cardOpts)));
 
 // ---------- strip, hero ----------
 function openText(ctx) {
@@ -242,7 +232,7 @@ const chipLink = (ctx, path, g, n, current, countWord, params) => h`<a class="ch
 const shownGames = (ctx) => [{ id: 'all', short: 'All games' }, ...ctx.games.filter((g) => g.shown !== false)];
 const validChip = (ctx, c) => (c && ctx.games.some((g) => g.id === c) ? c : 'all');
 
-const signupShort = (s) => (s.inviteOnly ? 'Invite only' : s.signup === 'walkin' ? 'Walk in' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
+const signupShort = (s) => (s.inviteOnly ? 'Invite only' : s.signup === 'walkin' ? '' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
   : s.signup === 'external' ? `Sign up on ${s.tool?.name || 'another site'}` : 'Ask at the counter');
 const dayMeta = (ctx, ymd) => {
   const hrs = hoursFor(ctx.store, ymd);
@@ -252,7 +242,7 @@ const dayMeta = (ctx, ymd) => {
   return t;
 };
 
-/** Seat words for a one-line event ("6 seats left", "Walk in", "Full, 2 waiting"). */
+/** Seat words for a one-line event ("6 seats left", "Full, 2 waiting"; walk-in rows leave this out, see dayLine). */
 function seatWords(o, st) {
   switch (st.state) {
     case 'open': return st.cap ? `${st.left} ${st.left === 1 ? 'seat' : 'seats'} left` : 'Sign up';
@@ -268,10 +258,13 @@ function seatWords(o, st) {
   }
 }
 /** A later day's event on one line: dot, time, title (the link), then game, fee and seats. */
-function dayLine(ctx, o) {
+function dayLine(ctx, o, bit = '') {
   const st = seatState(o, ctx.now.m, regsOf(ctx, o)), g = gameOf(ctx, o.game);
-  return h`<li class="day-line" data-game="${g.id}" data-fgame="${o.game}" data-ffam="${g.family ?? o.game}" data-state="${st.state}"><span class="dl-dot" aria-hidden="true"></span><span class="dl-time">${o.start ? fmtTime(o.start) : 'TBA'}</span><span class="dl-title"><a href="${eventHref(ctx, o)}">${o.title}</a></span><span class="dl-bits">${[g.short, fmtFee(o.fee), seatWords(o, st)].filter(Boolean).join(' · ')}</span></li>`;
+  return h`<li class="day-line" data-game="${g.id}" data-fgame="${o.game}" data-ffam="${g.family ?? o.game}" data-state="${st.state}"><span class="dl-dot" aria-hidden="true"></span><span class="dl-time">${o.start ? fmtTime(o.start) : 'TBA'}</span><span class="dl-title"><a href="${eventHref(ctx, o)}">${o.title}</a></span><span class="dl-bits">${[g.short, fmtFee(o.fee), st.state === 'walkin' ? '' : seatWords(o, st), bit].filter(Boolean).join(' · ')}</span></li>`;
 }
+
+/** Consecutive closed days as one quiet line ("Monday and Tuesday · closed"); an empty span per day keeps its #anchor. days = [{ id, name }]. */
+const dayOff = (days) => h`<div class="day-off" data-quiet="">${days.map((d) => h`<span id="${d.id}"></span>`)}<p>${days.length > 2 ? `${days[0].name} to ${days[days.length - 1].name}` : days.map((d) => d.name).join(' and ')} · closed</p></div>`;
 
 function laterRows(ctx, chip) {
   const from = addDays(ctx.now.ymd, 7), to = addDays(ctx.now.ymd, 35), seen = new Map(), rows = [];
@@ -284,7 +277,7 @@ function laterRows(ctx, chip) {
 }
 function laterItem(ctx, x) {
   const o = x.o, g = gameOf(ctx, o.game);
-  return h`<li data-fgame="${o.game}" data-ffam="${g.family ?? o.game}"><p class="later-date" aria-hidden="true">${dayShort(o.date)}<b>${dayNum(o.date)}</b>${monthShort(o.date)}</p><p class="later-what"><a href="${eventHref(ctx, o)}">${o.title}</a><span class="vh">, ${fmtLong(o.date)}</span>${x.more ? h` <span class="tag">and ${x.more} more ${x.more === 1 ? 'date' : 'dates'}</span>` : ''}</p><p class="later-meta">${gameBadge(ctx, o.game)}<span>${o.start ? fmtTime(o.start) : 'Time to be announced'}</span>${fmtFee(o.fee) ? h`<span>${fmtFee(o.fee)}</span>` : ''}<span>${signupShort(o)}</span></p></li>`;
+  return h`<li data-fgame="${o.game}" data-ffam="${g.family ?? o.game}"><p class="later-date" aria-hidden="true">${dayShort(o.date)}<b>${dayNum(o.date)}</b>${monthShort(o.date)}</p><p class="later-what"><a href="${eventHref(ctx, o)}">${o.title}</a><span class="vh">, ${fmtLong(o.date)}</span>${x.more ? h` <span class="tag">and ${x.more} more ${x.more === 1 ? 'date' : 'dates'}</span>` : ''}</p><p class="later-meta">${gameBadge(ctx, o.game)}<span>${o.start ? fmtTime(o.start) : 'Time to be announced'}</span>${fmtFee(o.fee) ? h`<span>${fmtFee(o.fee)}</span>` : ''}${signupShort(o) ? h`<span>${signupShort(o)}</span>` : ''}</p></li>`;
 }
 
 /** Game chips + this week's days + Further out. The game comes from ?game= (chips are plain links; site.js filters in place). */
@@ -293,34 +286,36 @@ export function week(ctx) {
   const all = upcoming(ctx, now.ymd, addDays(now.ymd, 6)), liveAll = all.filter(live);
   const chips = shownGames(ctx).map((g) => chipLink(ctx, `${keep(ctx, '', { game: g.id === 'all' ? '' : g.id })}#week`, g, liveAll.filter((o) => inGame(ctx, o, g.id)).length, chip === g.id, 'this week'));
   const days = [];
-  let shownAny = false, nextSeen = false, lines = 0;
+  let shownAny = false, nextSeen = false, run = [];
+  const flush = () => { if (run.length) days.push(dayOff(run)); run = []; };
   const ranToday = expand(ctx.series, now.ymd, now.ymd, ctx.exceptions).some(live); // something ran or runs today (even if it is over)
   for (let i = 0; i < 7; i++) {
     const ymd = addDays(now.ymd, i), hrs = hoursFor(ctx.store, ymd), dayAll = all.filter((o) => o.date === ymd), evs = dayAll.filter((o) => inGame(ctx, o, chip));
     const head = h`<h3 class="day-h" id="dh-${ymd}"><span class="day-dia" aria-hidden="true"><span>${dayNum(ymd)}</span></span><span class="day-name">${i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayName(ymd)}</span>${i === 0 ? h`<span class="tag tag-today">${dayName(ymd)}</span>` : i === 1 ? h`<span class="tag">${dayName(ymd)}</span>` : ''}<span class="day-meta">${dayMeta(ctx, ymd)}</span></h3>`;
     if (hrs.known && hrs.closed && !dayAll.length) {
-      if (chip === 'all') days.push(h`<section class="day day-closed" data-quiet="" id="d-${ymd}" aria-labelledby="dh-${ymd}">${head}<p class="day-skip">The shop is closed${i === 0 ? ' today' : ''}.</p></section>`);
+      if (chip === 'all') run.push({ id: `d-${ymd}`, name: dayName(ymd) });
       continue;
     }
+    flush();
     if (!evs.length) {
       if (chip === 'all') days.push(h`<section class="day" data-quiet="" id="d-${ymd}" aria-labelledby="dh-${ymd}">${head}<p class="day-skip">${i === 0 && ranToday ? 'Nothing else scheduled today. ' : 'No scheduled events. '}Free play all day.</p></section>`);
       continue;
     }
     shownAny = true;
     if (i > 0 && nextSeen) { // round 3: after today and the next day with events, each day is one line per event
-      lines += evs.filter(live).length;
       days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}">${head}<ul class="day-lines">${evs.map((o) => dayLine(ctx, o))}</ul></section>`);
       continue;
     }
     if (i > 0) nextSeen = true;
-    days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}"${i === 0 ? h` data-today=""` : ''}>${head}<div class="slots">${slots(ctx, evs, { compact: true })}</div></section>`);
+    days.push(h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}"${i === 0 ? h` data-today=""` : ''}>${head}<div class="slots">${cardList(ctx, evs, { compact: true })}</div></section>`);
   }
+  flush();
   const n = liveAll.filter((o) => inGame(ctx, o, chip)).length, g = chip === 'all' ? null : gameOf(ctx, chip);
   const empty = !shownAny && chip !== 'all' ? emptyPanel(ctx, chip, g) : '';
   const rows = laterRows(ctx, chip);
-  return h`${deck(ctx, all)}<nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
+  return h`<p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>${deck(ctx, all)}<nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
 <p class="vh" id="filter-status" role="status" aria-live="polite">${g ? `Showing ${g.short}: ` : 'Showing all games: '}${n} ${n === 1 ? 'event' : 'events'} this week.</p>
-<div class="days" id="days">${empty}${days}${lines ? h`<p class="day-more"><a href="${keep(ctx, '/events/', { game: chip === 'all' ? '' : chip })}">See all ${n} events on the events page</a></p>` : ''}</div>
+<div class="days" id="days">${empty}${days}</div>
 <div class="empty lattice" id="filter-empty" role="note" hidden><p class="empty-h">Nothing for this game this week.</p><p>Try another game, or look at every date.</p><a class="btn btn-2" href="${keep(ctx, '', {})}#week" data-chip="all">Show all games</a></div>
 <aside class="later" aria-labelledby="later-h"><h3 id="later-h">Further out</h3><ul class="later-list" id="later">${rows.length ? rows.map((x) => laterItem(ctx, x)) : h`<li><p class="later-what">Nothing big on the calendar yet.</p></li>`}</ul><a class="more" href="${keep(ctx, '/events/', {})}">See every date${icon('chevron')}</a></aside>`;
 }
@@ -338,7 +333,7 @@ export function cedh(ctx) {
     const st = seatState(o, ctx.now.m, regsOf(ctx, o)), tool = o.tool ?? {}, url = safeUrl(tool.url);
     const act = o.inviteOnly ? h`<p class="ev-how">${icon('lock')}Invite only. Seats come from the Championship Series.</p>`
       : url ? h`<a class="btn btn-act" href="${url}" target="_blank" rel="noopener">${tool.name ? `Sign up on ${tool.name}` : 'Sign up online'}${ext(tool.name)}</a>` : h`<a class="btn btn-2" href="${eventHref(ctx, o)}">Event details</a>`;
-    return h`<li class="tix"><p class="tix-date" aria-hidden="true">${dayShort(o.date)}<b>${dayNum(o.date)}</b>${monthShort(o.date)}</p><div class="tix-what"><h4><a href="${eventHref(ctx, o)}">${o.title}</a></h4><p>${fmtLong(o.date)}${o.start ? `, ${fmtTime(o.start)}` : ''}${Number.isInteger(o.fee) && o.fee ? `. Entry ${fmtFee(o.fee)}` : ''}.</p></div><div class="tix-acts">${act}${st.count ? statBox(st.count, 'registered', tool.name ? `on ${tool.name}` : '', 'users') : ''}</div></li>`;
+    return h`<li class="tix"><p class="tix-date" aria-hidden="true">${dayShort(o.date)}<b>${dayNum(o.date)}</b>${monthShort(o.date)}</p><div class="tix-what"><h4><a href="${eventHref(ctx, o)}">${o.title}</a></h4><p>${[o.start && fmtTime(o.start), o.fee > 0 && fmtFee(o.fee)].filter(Boolean).join(' · ')}</p></div><div class="tix-acts">${act}${st.count ? statBox(st.count, 'registered', '', 'users') : ''}</div></li>`; // the date block says the day, the button names the tool
   })}</ol>`;
 }
 
@@ -357,7 +352,8 @@ export function releases(ctx) {
         : days === 0 ? h`<p class="ev-stat">${icon('hourglass')}<span class="ev-stat-unit">Last day today</span><span class="ev-stat-small">${endTxt}</span></p>`
           : statBox(days, days === 1 ? 'day left' : 'days left', endTxt, 'hourglass');
     } else if (r.status === 'out') stat = h`<p class="ev-stat">${icon('check')}<span class="ev-stat-unit">On the shelf</span></p>`;
-    return h`<li class="rel" data-game="${g.id}" data-status="${r.status}"><div class="rel-art" aria-hidden="true">${icon(P[g.id] ? g.id : 'other', 'gi')}</div><h3 class="rel-name">${r.name}</h3><p class="ev-type">${gameBadge(ctx, g.id)}<span class="ev-fmt">${label}</span></p><div class="rel-text">${text}</div>${stat.s ? h`<div class="rel-foot">${stat}</div>` : ''}</li>`;
+    const soon = r.status === 'preorder' && r.preorderEnds && dayMin(r.preorderEnds) - dayMin(ctx.now.ymd) <= 3 * 1440; // the countdown box shows only on the last 3 days
+    return h`<li class="rel" data-game="${g.id}" data-status="${r.status}"${soon ? h` data-soon=""` : ''}><h3 class="rel-name">${r.name}</h3><p class="ev-type">${gameBadge(ctx, g.id)}<span class="ev-fmt">${label}</span></p><div class="rel-text">${text}</div>${stat.s ? h`<div class="rel-foot">${stat}</div>` : ''}</li>`;
   });
   return h`${items}`;
 }
@@ -366,13 +362,15 @@ export function releases(ctx) {
 export function hours(ctx) {
   const { store, now } = ctx;
   if (!Array.isArray(store.hours)) return h`<p>We’re confirming our opening hours. Call <a href="${safeUrl(store.phoneHref)}">${store.phone}</a> for today’s hours.</p>`;
-  const todayDow = dow(now.ymd), rows = [1, 2, 3, 4, 5, 6, 0].map((d) => {
+  const todayDow = dow(now.ymd), why = [], rows = [1, 2, 3, 4, 5, 6, 0].map((d) => {
     const w = store.hours.find((x) => x.day === d) ?? { closed: true }, closed = !!w.closed || !w.open;
     const off = (d - todayDow + 7) % 7, ymd = addDays(now.ymd, off), ov = hoursFor(store, ymd);
-    const note = ov.override ? h`<span class="hours-note">${`${dayShort(ymd)} ${fmtDate(ymd)}: ${ov.closed ? 'closed' : `${fmtTime(ov.open)} to ${fmtTime(ov.close)}`}.${ov.note ? ` ${ov.note}` : ''}`}</span>` : '';
-    return h`<tr${d === todayDow ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><th scope="row">${DAYS[d]}${d === todayDow ? h`<span class="tag">Today</span>` : ''}</th><td>${closed ? 'Closed' : `${fmtTime(w.open)} to ${fmtTime(w.close)}`}${note}</td></tr>`;
+    // round 4, F15: the cell shows the changed hours and a date tag; the reason is one plain line under the table
+    if (ov.override) why.push(`${dayShort(ymd)} ${fmtDate(ymd)}${ov.note ? `: ${ov.note}` : ov.closed ? ' is closed.' : ' has different hours.'}`); // the owner's note verbatim (no re-casing of names like "cEDH")
+    const shown = ov.override ? ov.closed : closed;
+    return h`<tr${d === todayDow ? h` data-today=""` : ''}${shown ? h` data-closed=""` : ''}><th scope="row"><span class="hrs-d">${DAYS[d]}${d === todayDow ? h`<span class="tag">Today</span>` : ''}</span></th><td>${ov.override ? (ov.closed ? 'Closed' : `${fmtTime(ov.open)} to ${fmtTime(ov.close)}`) : closed ? 'Closed' : `${fmtTime(w.open)} to ${fmtTime(w.close)}`}${ov.override ? h`<span class="tag tag-upd">${fmtDate(ymd)}</span>` : ''}</td></tr>`;
   });
-  return h`<table class="hours"><caption class="vh">Opening hours</caption><thead class="vh"><tr><th scope="col">Day</th><th scope="col">Hours</th></tr></thead><tbody id="hours-body">${rows}</tbody></table>${store.hoursConfirmed === false ? h`<p class="note">Hours from public listings. The owners will confirm them before launch.</p>` : ''}`;
+  return h`<table class="hours"><caption class="vh">Opening hours</caption><thead class="vh"><tr><th scope="col">Day</th><th scope="col">Hours</th></tr></thead><tbody id="hours-body">${rows}</tbody></table>${why.length ? h`<p class="note">${why.join(' ')}</p>` : ''}${store.hoursConfirmed === false ? h`<p class="note">Hours from public listings. The owners will confirm them before launch.</p>` : ''}`;
 }
 export function todayHours(ctx) {
   const hrs = hoursFor(ctx.store, ctx.now.ymd);
@@ -403,10 +401,13 @@ export function events(ctx) {
   const horizon = addDays(now.ymd, 60), pool = ctx.series.filter((s) => s.enabled !== false);
   const chips = shownGames(ctx).map((g) => chipLink(ctx, keep(ctx, '/events/', { game: g.id === 'all' ? '' : g.id }), g,
     pool.filter((s) => inGame(ctx, s, g.id) && occurrences(s, now.ymd, horizon, ctx.exceptions).some((o) => endM(o) > now.m)).length, chip === g.id, 'events'));
-  // special events: one card per series (its next date), grouped by day; repeating nights are collapsed below
+  // Tonight (or Today): every date on today's calendar day in time order, specials and weekly nights together; the cards repeat below, so their ids are different
+  const tonight = upcoming(ctx, now.ymd, now.ymd).filter((o) => passes(o)).sort((a, b) => (a.start || '').localeCompare(b.start || '') || a.title.localeCompare(b.title));
+  // special events: one card per series (its next date), grouped by day; repeating nights are collapsed below. While Tonight shows, today's dates are left out of here (round 4, F12)
+  const walkNote = h`<p class="sec-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>`;
   const specials = [];
   for (const s of ctx.series.filter((x) => passes(x) && x.recurrence?.type !== 'weekly')) {
-    const occs = occurrences(s, now.ymd, horizon, ctx.exceptions).filter((o) => endM(o) > now.m).sort((a, b) => a.date.localeCompare(b.date) || (a.start || '').localeCompare(b.start || ''));
+    const occs = occurrences(s, now.ymd, horizon, ctx.exceptions).filter((o) => endM(o) > now.m && !(tonight.length && o.date === now.ymd)).sort((a, b) => a.date.localeCompare(b.date) || (a.start || '').localeCompare(b.start || ''));
     if (!occs.length) continue;
     const rest = occs.slice(1).filter(live);
     let also = '';
@@ -416,29 +417,41 @@ export function events(ctx) {
   }
   specials.sort((a, b) => a.o.date.localeCompare(b.o.date) || (a.o.start || '').localeCompare(b.o.start || '') || a.o.title.localeCompare(b.o.title));
   const dates = [...new Set(specials.map((x) => x.o.date))];
-  const specialHtml = dates.map((ymd) => h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}"><h3 class="day-h" id="dh-${ymd}"><span class="day-dia" aria-hidden="true"><span>${dayNum(ymd)}</span></span><span class="day-name">${dayShort(ymd)} ${fmtDate(ymd)}</span>${ymd === now.ymd ? h`<span class="tag tag-today">Today</span>` : ''}</h3><div class="slots">${slots(ctx, specials.filter((x) => x.o.date === ymd))}</div></section>`);
+  const specialHtml = dates.map((ymd) => h`<section class="day" id="d-${ymd}" aria-labelledby="dh-${ymd}"><h3 class="day-h" id="dh-${ymd}"><span class="day-name">${dayShort(ymd)} ${fmtDate(ymd)}</span>${ymd === now.ymd ? h`<span class="tag tag-today">Today</span>` : ''}</h3><div class="slots">${cardList(ctx, specials.filter((x) => x.o.date === ymd))}</div></section>`);
   // every week: one card per repeating series, by weekday
   const todayDow = dow(now.ymd);
   let weeklyCount = 0;
-  const weekly = [1, 2, 3, 4, 5, 6, 0].map((d) => {
-    const cards = ctx.series.filter((s) => passes(s) && s.recurrence?.type === 'weekly' && s.recurrence.day === d)
+  const weekly = [];
+  let off = [];
+  const flushOff = () => { if (off.length) weekly.push(dayOff(off)); off = []; };
+  for (const d of [1, 2, 3, 4, 5, 6, 0]) {
+    const items = ctx.series.filter((s) => passes(s) && s.recurrence?.type === 'weekly' && s.recurrence.day === d)
       .sort((a, b) => (a.start || '99').localeCompare(b.start || '99') || a.title.localeCompare(b.title)).map((s) => {
         const occs = occurrences(s, now.ymd, addDays(now.ymd, 70), ctx.exceptions).filter((o) => endM(o) > now.m);
-        if (!occs.length) return '';
+        if (!occs.length) return null;
         const first = occs[0], shown = first.cancelled ? (occs.find(live) ?? first) : first;
-        let nextNote = `Next: ${dayShort(shown.date)} ${fmtDate(shown.date)}.`;
-        if (first.cancelled && shown !== first) nextNote += ` ${fmtDate(first.date)} is cancelled.`;
+        // the day heading says the next date once; a card or row repeats it only when that date is cancelled or changed
+        let nextNote = '';
+        if (first.cancelled && shown !== first) nextNote = `Next: ${dayShort(shown.date)} ${fmtDate(shown.date)}. ${fmtDate(first.date)} is cancelled.`;
         if (shown.cancelled) nextNote = `Next: ${dayShort(shown.date)} ${fmtDate(shown.date)} is cancelled.`;
+        if (!nextNote && (first.changed || first.moved)) nextNote = `Next: ${dayShort(shown.date)} ${fmtDate(shown.date)}.`;
+        const bit = shown.cancelled ? `${fmtDate(shown.date)} cancelled` : first.cancelled ? `${fmtDate(first.date)} cancelled` : first.changed || first.moved ? 'changed' : '';
         weeklyCount++;
-        return card(ctx, shown, { every: true, nextNote });
-      }).filter((x) => x !== '');
-    const hrs = hoursFor(ctx.store, addDays(now.ymd, (d - todayDow + 7) % 7)), closedDay = hrs.known && Array.isArray(ctx.store.hours) && !!ctx.store.hours.find((x) => x.day === d)?.closed;
-    if (!cards.length && (!closedDay || chip !== 'all' || format)) return '';
-    return h`<section class="wk${closedDay && !cards.length ? ' wk-closed' : ''}" aria-labelledby="wk-${d}"><h3 class="wk-name" id="wk-${d}">${DAYS[d]}${d === todayDow ? h` <span class="tag tag-today">Today</span>` : ''}</h3>${cards.length ? h`<div class="wk-cards">${cards}</div>` : h`<p class="day-skip">The shop is closed.</p>`}</section>`;
-  });
-  // Tonight (or Today): every date on today's calendar day in time order, specials and weekly nights together; the cards repeat below, so their ids are different
-  const tonight = upcoming(ctx, now.ymd, now.ymd).filter((o) => passes(o)).sort((a, b) => (a.start || '').localeCompare(b.start || '') || a.title.localeCompare(b.title));
-  const tonightHtml = tonight.length ? h`<section class="ep-sec" id="today-wrap" aria-labelledby="today-h"><h2 id="today-h">${now.m - dayMin(now.ymd) >= 17 * 60 ? 'Tonight' : 'Today'}</h2><div id="today"><div class="slots">${slots(ctx, tonight, { again: true })}</div></div></section>` : '';
+        return { shown, nextNote, bit };
+      }).filter(Boolean);
+    const closedDay = hoursFor(ctx.store, addDays(now.ymd, (d - todayDow + 7) % 7)).known && Array.isArray(ctx.store.hours) && !!ctx.store.hours.find((x) => x.day === d)?.closed;
+    if (!items.length) {
+      if (closedDay && chip === 'all' && !format) off.push({ id: `wk-${d}`, name: DAYS[d] });
+      else flushOff();
+      continue;
+    }
+    flushOff();
+    const next = items.map((x) => x.shown.date).sort()[0];
+    // phones get one line per series (dayLine), from 640px the cards; both are in the markup and the stylesheet shows one
+    weekly.push(h`<section class="wk" aria-labelledby="wk-${d}"><h3 class="wk-name" id="wk-${d}">${DAYS[d]}${d === todayDow ? h` <span class="tag tag-today">Today</span>` : h` <span class="wk-next">next ${fmtDate(next)}</span>`}</h3><div class="wk-cards">${items.map((x) => card(ctx, x.shown, { every: true, nextNote: x.nextNote }))}</div><ul class="day-lines wk-rows">${items.map((x) => dayLine(ctx, x.shown, x.bit))}</ul></section>`);
+  }
+  flushOff();
+  const tonightHtml = tonight.length ? h`<section class="ep-sec" id="today-wrap" aria-labelledby="today-h"><h2 id="today-h">${now.m - dayMin(now.ymd) >= 17 * 60 ? 'Tonight' : 'Today'}</h2>${walkNote}<div id="today"><div class="slots">${cardList(ctx, tonight, { again: true })}</div></div></section>` : '';
   const total = specials.length + weeklyCount;
   const g = chip === 'all' ? null : gameOf(ctx, chip);
   let empty = '';
@@ -447,11 +460,11 @@ export function events(ctx) {
     empty = h`<div class="empty empty-photo" role="note"><img src="/img/social/staff-corgi-interior.webp" width="512" height="640" alt="A Mulligan Games staff member holding a corgi in the play room" loading="lazy"><div class="empty-in"><p class="empty-h">No ${[g?.short, format].filter(Boolean).join(' ') || ''} events right now.</p>${future ? h`<p>The next one is ${future.title} on ${fmtLong(future.date)}${future.start ? ` at ${fmtTime(future.start)}` : ''}.</p>` : h`<p>Nothing is scheduled yet. Ask at the counter.</p>`}${ctx.store.freePlay ? h`<p>${ctx.store.freePlay}.</p>` : ''}<a class="btn btn-2" href="${keep(ctx, '/events/', {})}" data-chip="all">Show all games</a></div></div>`;
   }
   const calHref = chip === 'all' ? '/events.ics' : `/events.ics?game=${chip}`, subHref = ctx.baseUrl ? ctx.baseUrl.replace(/^https?:/, 'webcal:') + calHref : '';
-  return h`<div class="ep-head"><div class="ep-copy"><h1>Events</h1><p class="ep-lede">Every game night at the shop. Pick a game, check the fee and open seats, and hold a seat. You pay at the store.</p><details class="cal-menu" id="cal-menu"><summary class="btn btn-2">${icon('calendar')}Add to my calendar</summary><div class="cal-pop"><a class="btn btn-2" href="${calHref}">${g ? `${g.short} events` : 'All events'}<span class="vh"> (saves a calendar file)</span></a>${subHref ? h`<a class="btn btn-2" href="${subHref}">Subscribe<span class="vh"> (opens your calendar app and keeps it up to date)</span></a>` : ''}</div></details></div><figure class="ep-photo"><img src="/img/social/interior-welcome-banner-800.webp" width="800" height="600" alt="The Welcome to Mulligan Games banner over the doorway into the play room" fetchpriority="high"><figcaption>The play room is through this door</figcaption></figure></div>
+  return h`<div class="ep-head"><h1>Events</h1><p class="ep-lede">Every game night at the shop. Pick a game, check the seats, pay at the store.</p></div>
 <nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
-<form class="ep-format" action="/events/" method="get">${chip !== 'all' ? h`<input type="hidden" name="game" value="${chip}">` : ''}${ctx.keepNow ? h`<input type="hidden" name="now" value="${ctx.keepNow}">` : ''}<label for="fmt">Format</label><select id="fmt" name="format"><option value="">All formats</option>${formats.map((f) => h`<option${f === format ? ' selected' : ''}>${f}</option>`)}</select><button class="btn btn-2 btn-sm" type="submit">Show</button><button type="button" class="btn btn-2 no-print" id="print-btn">Print the schedule</button></form>
+<form class="ep-format" action="/events/" method="get">${chip !== 'all' ? h`<input type="hidden" name="game" value="${chip}">` : ''}${ctx.keepNow ? h`<input type="hidden" name="now" value="${ctx.keepNow}">` : ''}<label for="fmt">Format</label><select id="fmt" name="format"><option value="">All formats</option>${formats.map((f) => h`<option${f === format ? ' selected' : ''}>${f}</option>`)}</select><button class="btn btn-2 btn-sm" type="submit">Show</button><span class="ep-tools"><details class="cal-menu" id="cal-menu"><summary class="btn btn-2 btn-sm">${icon('calendar')}Add to my calendar</summary><div class="cal-pop"><a class="btn btn-2" href="${calHref}">${g ? `${g.short} events` : 'All events'}<span class="vh"> (saves a calendar file)</span></a>${subHref ? h`<a class="btn btn-2" href="${subHref}">Subscribe<span class="vh"> (opens your calendar app and keeps it up to date)</span></a>` : ''}</div></details><button type="button" class="btn btn-2 btn-sm no-print ep-print" id="print-btn">Print the schedule</button></span></form>
 <p class="vh" id="filter-status" role="status" aria-live="polite">${g ? `Showing ${g.short}` : 'Showing all games'}${format ? `, ${format}` : ''}: ${total} ${total === 1 ? 'event' : 'events'}.</p>
-${empty}${tonightHtml}${specialHtml.length ? h`<section class="ep-sec" aria-labelledby="special-h"><h2 id="special-h">Special events and tournaments</h2><div id="special">${specialHtml}</div></section>` : ''}${weeklyCount ? h`<section class="ep-sec" aria-labelledby="weekly-h"><h2 id="weekly-h">Every week</h2><div>${weekly}</div></section>` : ''}
+${empty}${tonightHtml}${specialHtml.length ? h`<section class="ep-sec" aria-labelledby="special-h"><h2 id="special-h">Special events and tournaments</h2><div id="special">${specialHtml}</div></section>` : ''}${weeklyCount ? h`<section class="ep-sec" aria-labelledby="weekly-h"><h2 id="weekly-h">Every week</h2>${walkNote}<div>${weekly}</div></section>` : ''}
 <p class="print-only">${ctx.store.name} · ${ctx.store.address.street}, ${ctx.store.address.city} ${ctx.store.address.region} · ${ctx.store.phone}</p>`;
 }
 
@@ -519,7 +532,7 @@ export function eventPage(ctx, o, form = {}) {
   const alsoOn = same.length ? h`<section class="dp-also" aria-labelledby="ao-${key}"><h2 id="ao-${key}">Also on ${dayName(o.date)}</h2><ul class="day-lines">${same.map((x) => dayLine(ctx, x))}</ul></section>` : '';
   const pic = EVENT_PICS[o.game] ?? EVENT_PICS.default, rel = relDay(o.date, ctx.now.ymd);
   const kicker = `${fmtLong(o.date)}${rel === 'today' ? (o.start && toMin(o.start) >= 17 * 60 ? ' · Tonight' : ' · Today') : rel === 'tomorrow' ? ' · Tomorrow' : ''}`;
-  const foot = o.cancelled || st.past ? '' : actionArea(ctx, o, st, `${href}#signup`);
+  const foot = o.cancelled || st.past ? '' : actionArea(ctx, o, st, `${href}#signup`, true);
   const formOpen = o.signup === 'here' && !o.inviteOnly && !o.cancelled && !st.past && ['open', 'few', 'needs', 'waitlist'].includes(st.state);
   const signupNote = h`${form.message ? h`<p class="su-msg" role="alert">${form.message}</p>` : ''}${formOpen ? signupForm(ctx, o, st, form) : ''}`;
   const arrive = !o.cancelled && !st.past && o.arriveBy && ['here', 'counter'].includes(o.signup) ? h`<p class="ev-arrive">${icon('clock')}${arriveText(o)}</p>` : '';

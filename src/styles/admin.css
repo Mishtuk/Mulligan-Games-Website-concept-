@@ -37,7 +37,6 @@
 @media (min-width: 600px) { .top-scheme { display: inline-flex; } }
 .top-scheme button { padding: 0 .65rem; } /* keeps the 44px height (R24) */
 .adm-top .scheme, .adm-side .scheme, .adm-top .acct summary, .adm-side .acct summary { color-scheme: dark; border-color: #FFFFFF44; background: transparent; color: var(--on-band); }
-.adm-top .scheme-k, .adm-side .scheme-k { color: var(--on-band-2); }
 .adm-top .scheme button, .adm-side .scheme button { color: var(--on-band); }
 .adm-top .scheme button:hover, .adm-side .scheme button:hover { background: #FFFFFF1F; }
 .adm-top .scheme button[aria-pressed="true"], .adm-side .scheme button[aria-pressed="true"] { background: var(--on-band); color: var(--charcoal); }
@@ -62,7 +61,6 @@
 .more-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
 .more-list .btn, .more-list .scheme { width: 100%; justify-content: flex-start; }
 .more-list .scheme { justify-content: space-between; }
-.more-list .scheme-k { display: inline; }
 .more-list .scheme button { flex: 1; justify-content: center; min-height: var(--tap); }
 @media (min-width: 1024px) {
   .adm { --toast-bottom: 1.25rem; }
@@ -89,7 +87,7 @@
 .adm .toast { z-index: 100; }
 .adm .toast-btn { min-height: 3rem; min-width: 3rem; justify-content: center; }
 body:has(section:not([hidden]) .walkbar) { --toast-bottom: 9.5rem; }
-@media (max-width: 599px) { body:has(section:not([hidden]) .walkbar) { --toast-bottom: 13.5rem; } } /* the bar is two rows on a phone */
+@media (max-width: 599px) { body:has(section:not([hidden]) .walkbar) { --toast-bottom: 10.5rem; } body:has(section:not([hidden]) .walkbar .btn ~ .btn) { --toast-bottom: 13.5rem; } } /* the bar is one row on a phone; a full event's two buttons wrap to a second row */
 @media (min-width: 1024px) { body:has(section:not([hidden]) .walkbar) { --toast-bottom: 6.5rem; } }
 body:has(.savebar) { --toast-bottom: 7rem; }
 
@@ -114,10 +112,13 @@ body:has(.savebar) { --toast-bottom: 7rem; }
 .roster-sub { margin: 0; font-weight: 650; color: var(--ink-2); }
 .roster-tool { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); font-size: var(--t-sm); font-weight: 650; }
 .back { display: inline-flex; align-items: center; min-height: 2.75rem; font-weight: 700; }
-.rstats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s2); }
-.rstat { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: var(--r-box); border: 2px solid var(--line-strong); background: var(--surface-2); font-weight: 750; font-size: var(--t-sm); }
-.rstat-warn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
-.rstat-wait { border-color: var(--wait); color: var(--wait); }
+.rstats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--s2); }
+.rstat { display: inline-flex; align-items: center; gap: .4rem; font-weight: 750; font-size: var(--t-sm); } /* counts are text, not buttons (round 4, F22); only a warning keeps its box */
+.rstat + .rstat::before { content: "·"; margin-right: var(--s2); color: var(--ink-2); font-weight: 400; }
+.rstat-warn { padding: .3rem .7rem; border-radius: var(--r-box); border: 2px solid var(--warn); background: var(--warn-bg); color: var(--warn); }
+.rstat + .rstat-warn::before { content: none; }
+.rstat-wait { color: var(--wait); }
+@media (max-width: 599px) { .rstats { column-gap: var(--s4); } .rstat + .rstat::before { content: none; } } /* the line wraps, so a "·" would start a row */
 .runit { display: grid; gap: var(--s2); padding: var(--s3) var(--s4); border: 2px solid var(--warn); border-radius: var(--r-card); background: var(--warn-bg); color: var(--warn); }
 .runit p { margin: 0; font-weight: 750; }
 .rtools { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-end; }
@@ -177,6 +178,14 @@ details.off > summary { display: flex; align-items: center; min-height: 3rem; fo
 .walkbar .fld { flex: 1 1 11rem; margin: 0; }
 @media (min-width: 1024px) { .walkbar { bottom: 1rem; } }
 @media (max-width: 599px) { .walkbar .fld { flex: 1 1 100%; } .walkbar .btn { flex: 1 1 0; padding-inline: var(--s2); font-size: var(--t-sm); } }
+/* round 4, F23: name + "Add" on one row (about 72px) when there is one button; a full event's two buttons keep the row below */
+.walkbar .btn:has(.wb-long) { gap: .28em; }
+@media (max-width: 639px) {
+  .walkbar:not(:has(.btn ~ .btn)) { flex-wrap: nowrap; }
+  .walkbar:not(:has(.btn ~ .btn)) .fld { flex: 1 1 0; min-width: 0; }
+  .walkbar:not(:has(.btn ~ .btn)) .btn { flex: none; padding-inline: var(--s4); font-size: var(--t-md); }
+  .wb-long { display: none; }
+}
 .counter { display: grid; gap: var(--s3); }
 .cnt { display: flex; align-items: center; gap: var(--s4); }
 .cnt-n { min-width: 4ch; text-align: center; font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }

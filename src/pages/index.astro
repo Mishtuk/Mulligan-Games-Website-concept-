@@ -108,7 +108,6 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
       <div class="wrap">
         <div class="sec-head">
           <h2 id="visit-h">Visit</h2>
-          <p class="sec-note">{a.street}, {a.city}.{store.freePlay && ` ${store.freePlay}.`}</p>
         </div>
         <div class="visit-in">
           <div class="visit-hours">
@@ -142,19 +141,19 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
 
     <!-- 7. Community -->
     <section class="sec community" id="community" aria-labelledby="comm-h">
-      <div class="wrap comm-in">
-        <div class="comm-discord">
-          <Fragment set:html="<!--mg:discord-->" />
+      <div class="wrap">
+        <Fragment set:html="<!--mg:discord-->" />
+        <div class="sec-head">
           <h2 id="comm-h">Between events</h2>
-          {discord
-            ? <><p>Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
-              <p><a class="btn btn-act" href={discord} target="_blank" rel="noopener"><Icon name="chat" />Join the Discord<span class="vh"> (opens Discord)</span></a></p></>
-            : <p>Follow the shop to hear about new events first.</p>}
+          <p class="sec-note">{discord ? 'Chat with the regulars, find a pod and hear about new events first on the shop Discord.' : 'Follow the shop to hear about new events first.'}</p>
+        </div>
+        <div class="comm-acts">
+          {discord && <a class="btn btn-act" href={discord} target="_blank" rel="noopener"><Icon name="chat" />Join the Discord<span class="vh"> (opens Discord)</span></a>}
           <ul class="socials">
             {social.map(([n, u]) => <li><a href={u} target="_blank" rel="noopener">{n}<span class="vh"> (opens in a new tab)</span></a></li>)}
           </ul>
-          <Fragment set:html="<!--/mg:discord-->" />
         </div>
+        <Fragment set:html="<!--/mg:discord-->" />
       </div>
     </section>
   </main>

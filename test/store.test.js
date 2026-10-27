@@ -142,6 +142,9 @@ test('editing hours shows on the strip, hero, hours table and JSON-LD at once, w
   assert.ok((await text(`/?now=2026-10-31T01:00`)).includes('<strong>Open now</strong> till 2 AM'), 'Friday night runs past midnight into Saturday');
   assert.ok((await text(`/?now=2026-10-31T02:00`)).includes('<strong>Closed now.</strong>'));
   assert.ok(home.includes('<table class="hours"') && home.includes('2 AM'));
+  const flat = home.replace(/[  ]/g, ' ');
+  assert.ok(flat.includes('<li>Mon closed</li>') && flat.includes('<li>Tue–Thu 10 AM to 5 PM</li>') && flat.includes('<li>Fri 2 PM to 2 AM</li>'), 'round 4 F10: the footer hours, neighbouring days grouped');
+  assert.ok((await text(`/events/?now=${TUE}`)).includes('<div class="day-off" data-quiet=""><span id="wk-1"></span><p>Monday · closed</p></div>'), 'round 4 F9: a closed day is one quiet line that keeps its #anchor');
   await save({ hours: week((d) => ({ open: '12:00', close: '00:00' })) }); // typed as midnight in the time box
   assert.ok((await text(`/?now=${TUE}`)).includes('<strong>Open now</strong> till midnight'));
   await save({ hours: HOURS });
@@ -151,6 +154,7 @@ test('holiday and special-hours overrides win over the weekly row and show their
   assert.equal(r.status, 200);
   const closed = await text(`/?now=2026-10-27T11:00`);
   assert.ok(closed.includes('<strong>Closed today.</strong>') && closed.includes('Staff day'));
+  assert.ok(closed.replace(/[  ]/g, ' ').includes('<p class="note">Tue Oct 27: Staff day Wed Oct 28: Opening late for a release</p>'), 'round 4 F15: the reasons in one line under the table, each note as typed');
   const special = await text(`/?now=2026-10-28T11:00`);
   assert.ok(special.includes('<strong>Closed now.</strong> Opens at noon') && special.includes('Opening late for a release'));
   assert.ok((await text(`/?now=2026-10-28T13:00`)).includes('<strong>Open now</strong> till 8 PM'));
@@ -190,7 +194,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
     links: { facebook: 'https://www.facebook.com/shop', discord: 'https://discord.gg/abc' }, photo: 'room-a.webp', photoAlt: 'Tables set for draft' });
   assert.equal(r.status, 200);
   const home = await text(`/?now=${NOW}`);
-  for (const t of ['9 Test Ln, Hatboro', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln, Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', '<p class="freeplay2">Free play after 3</p>', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
+  for (const t of ['9 Test Ln, Hatboro', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln<br>Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', '<p class="freeplay2">Free play after 3</p>', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
   assert.ok(!home.includes('445 York') && !home.includes('baked bar') && !home.includes('baked foot') && !home.includes('baked visit'));
   assert.ok(home.includes('<figure class="photo has-img"><img src="/media/photos/room-a.webp" alt="Tables set for draft"') && !home.includes('no-photo'));
   const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(home)[1]);
@@ -262,12 +266,13 @@ test('B6: the admin preview says what the public card says (fixed phrases, and "
     beginnerFriendly: true, kidsWelcome: true, playStyle: 'casual', arriveBy: '18:45' };
   const shown = [{ signup: 'here' }, { signup: 'here', capacity: 1 }, { signup: 'counter' }, { signup: 'walkin' }, { signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/e' } }, { signup: 'external' }, { signup: 'external', inviteOnly: true }, { signup: 'walkin', playStyle: 'competitive' }]
     .map((o) => String(card(ctx, { ...base, ...o })).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).join(' ');
-  for (const p of ['Walk in. No sign-up needed.', 'Pre-register at the counter.', 'Call the shop', 'Invite only. Seats come from the Championship Series.', 'to keep your seat.', 'Beginner friendly', 'Kids welcome', 'Casual', 'Competitive',
+  for (const p of ['Pre-register at the counter.', 'Call the shop', 'Invite only. Seats come from the Championship Series.', 'to keep your seat.', 'Beginner friendly', 'Kids welcome', 'Casual', 'Competitive',
     'Sign up online', 'Sign up on ', ' seats left', ' seat left']) {
     assert.ok(shown.includes(p), `render.js still says "${p}"`);
     assert.ok(pv.includes(p.trim()), `the preview says "${p.trim()}" too`);
   }
   assert.ok(!/ 1 seats left/.test(shown));
+  assert.ok(!shown.includes('Walk in'), 'round 4: walk-in is said once per section, not on the card (or its preview)');
 });
 test('F9: an event that runs past midnight is still "On now" at 00:30', async () => {
   const { hero } = await import('../src/lib/render.js');
@@ -277,4 +282,11 @@ test('F9: an event that runs past midnight is still "On now" at 00:30', async ()
   const at = (t) => String(hero({ games: GAMES, store: seed, series: [s], exceptions: [], now: etNow(t), keepNow: null, query: new URLSearchParams() }));
   assert.ok(at('2026-10-31T00:30').includes('On now: Late Draft.'), 'Friday 7 PM to 1 AM, seen at 00:30 Saturday');
   assert.ok(!at('2026-10-31T01:30').includes('On now'), 'over at 1 AM');
+});
+test('round 4 F10: the footer hours group neighbouring days with the same hours', async () => {
+  const { hoursLines } = await import('../src/lib/store-render.js');
+  const o = (day, open, close) => ({ day, open, close }), c = (day) => ({ day, closed: true });
+  assert.deepEqual(hoursLines({ hours: [c(1), c(2), o(3, '14:00', '22:00'), o(4, '14:00', '22:00'), o(5, '14:00', '24:00'), o(6, '14:00', '24:00'), o(0, '13:00', '22:00')] }).map((l) => l.replace(/ /g, ' ')),
+    ['Mon–Tue closed', 'Wed–Thu 2 PM to 10 PM', 'Fri–Sat 2 PM to midnight', 'Sun 1 PM to 10 PM']);
+  assert.deepEqual(hoursLines({ hours: null }), []);
 });

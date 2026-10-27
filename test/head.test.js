@@ -9,7 +9,7 @@ const html = (p) => readFileSync(new URL(`../dist/${p}${p ? '/' : ''}index.html`
 test('every public page has the theme switch, site.js, absolute og:image and the icon / manifest tags', { skip: !existsSync(new URL('../dist/index.html', import.meta.url)) }, () => {
   for (const p of PAGES) {
     const h = html(p);
-    assert.ok(h.includes('data-scheme="light"') && h.includes('data-scheme="dark"') && h.includes('>Theme<'), `${p}: switch`);
+    assert.ok(h.includes('data-scheme="light"') && h.includes('data-scheme="dark"') && !h.includes('>Theme<'), `${p}: switch, without a "Theme" label`);
     assert.ok(h.includes('<script src="/js/site.js"'), `${p}: site.js`);
     assert.match(h, /property="og:image" content="(<!--mg:origin-->)?https?:\/\/[^"]+\/img\/og\/mulligan-games-og\.jpg"/, `${p}: absolute og:image`);
     for (const t of ['og:type', 'og:site_name', 'og:image:width', 'og:image:height', 'og:image:alt', 'twitter:card', 'theme-color', 'rel="apple-touch-icon"', 'rel="manifest"']) assert.ok(h.includes(t), `${p}: ${t}`);

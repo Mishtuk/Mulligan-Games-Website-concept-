@@ -1,6 +1,6 @@
 // Server HTML for the store facts that sit in the page frame and the front page (address, phone, parking, links, room photo), filled at
 // <!--mg:name--> markers on every request so an admin edit shows without a restart (D11). D20: only the escaping `h` tag builds markup; links go through safeUrl.
-import { h, hours, icon, mapsUrl } from './render.js';
+import { DAYS, fmtTime, h, hours, icon, mapsUrl } from './render.js';
 import { safeUrl } from './events.js';
 
 const SOCIAL = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']];
@@ -14,10 +14,21 @@ export function bar({ store }) {
   const t = tel(store);
   return h`<p class="ob-addr">${addr(store).street}, ${addr(store).city}</p>${t ? h`<a class="ob-link" href="${t}">${icon('phone')}<span class="ob-long">${store.phone}</span><span class="ob-short">Call</span></a>` : ''}<a class="ob-link" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>`;
 }
-/** Footer name, address and phone. */
+/** The footer's weekly hours as short lines ("Wed–Thu 2 PM to 10 PM", "Mon–Tue closed"): neighbouring days with the same hours share a line. */
+export function hoursLines(store) {
+  if (!Array.isArray(store.hours)) return [];
+  const runs = [];
+  for (const d of [1, 2, 3, 4, 5, 6, 0]) {
+    const w = store.hours.find((x) => x.day === d), text = !w || w.closed || !w.open || !w.close ? 'closed' : `${fmtTime(w.open)} to ${fmtTime(w.close)}`, last = runs[runs.length - 1];
+    if (last && last.text === text) last.days.push(d); else runs.push({ text, days: [d] });
+  }
+  return runs.map((r) => `${DAYS[r.days[0]].slice(0, 3)}${r.days.length > 1 ? `–${DAYS[r.days[r.days.length - 1]].slice(0, 3)}` : ''} ${r.text}`);
+}
+/** Footer Visit and Hours columns (the index, round 4 F10). */
 export function footAddr({ store }) {
-  const a = addr(store), t = tel(store);
-  return h`<p class="foot-name">${store.name}</p><p>${a.street}, ${a.city}, ${a.region} ${a.zip}<br>${t ? h`<a href="${t}">${store.phone}</a>` : store.phone}</p>`;
+  const a = addr(store), t = tel(store), lines = hoursLines(store);
+  return h`<div class="foot-visit"><h2>Visit</h2><p>${a.street}<br>${a.city}, ${a.region} ${a.zip}</p>${t ? h`<p><a href="${t}">${store.phone}</a></p>` : h`<p>${store.phone}</p>`}<p><a href="${mapsUrl(store)}" target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p></div>
+<div class="foot-hours"><h2>Hours</h2>${lines.length ? h`<ul>${lines.map((l) => h`<li>${l}</li>`)}</ul>` : h`<p>Call the shop for hours.</p>`}</div>`;
 }
 /** Social links as list items (footer and "Between events"). */
 export function socials({ store }) {
@@ -28,10 +39,10 @@ export function cedhLive({ store }) {
   const circuit = link(store, 'topdeckCircuit') ?? link(store, 'topdeck');
   return h`${circuit ? h`<div><dt>Standings</dt><dd><a href="${circuit}" target="_blank" rel="noopener">Circuit points on TopDeck${out('TopDeck')}</a></dd></div>` : ''}${store.parking ? h`<div><dt>Parking</dt><dd>${store.parking}</dd></div>` : ''}`;
 }
-/** The whole Visit block (round 3): a heading line, then one card with hours, address and good to know; the room photo below it when one is chosen. */
+/** The whole Visit block: a heading, then three columns (hours, address, good to know) on the band, no card box; the room photo below it when one is chosen. */
 export function visit(ctx) {
   const { store } = ctx, a = addr(store), t = tel(store), photo = store.photo;
-  return h`<div class="wrap"><div class="sec-head"><h2 id="visit-h">Visit</h2><p class="sec-note">${a.street}, ${a.city}.${store.freePlay ? ` ${store.freePlay}.` : ''}</p></div>
+  return h`<div class="wrap"><div class="sec-head"><h2 id="visit-h">Visit</h2></div>
 <div class="visit-in"><div class="visit-hours"><h3>Hours</h3>${hours(ctx)}</div>
 <div class="visit-where"><h3>Find us</h3><address>${a.street}<br>${a.city}, ${a.region} ${a.zip}</address>
 <p class="visit-acts"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>${t ? h`<a class="btn btn-2" href="${t}">${icon('phone')}${store.phone}</a>` : ''}</p>
@@ -40,10 +51,11 @@ export function visit(ctx) {
 <dl class="faq"><dt>New here?</dt><dd><a href="/new-here/">Start here.</a> What to expect and which nights are good for a first visit.</dd>${store.kids ? h`<dt>Can kids come?</dt><dd>${store.kids}</dd>` : ''}${store.freePlay ? h`<dt>Can I just come and play?</dt><dd>${store.freePlay}.</dd>` : ''}<dt>How do preorders work?</dt><dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd></dl></div></div>
 ${photo ? h`<figure class="photo has-img"><img src="${`/media/photos/${encodeURIComponent(photo)}`}" alt="${store.photoAlt ?? ''}" loading="lazy"></figure>` : ''}</div>`;
 }
-/** "Between events": the Discord invite (or the follow line) and the social links. */
+/** "Between events": a normal section head carrying the Discord line, then the Discord button and the social links in one row. */
 export function discord({ store }) {
   const d = link(store, 'discord');
-  return h`<h2 id="comm-h">Between events</h2>${d ? h`<p>Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p><p><a class="btn btn-act" href="${d}" target="_blank" rel="noopener">${icon('chat')}Join the Discord${out('Discord')}</a></p>` : h`<p>Follow the shop to hear about new events first.</p>`}<ul class="socials">${socials({ store })}</ul>`;
+  return h`<div class="sec-head"><h2 id="comm-h">Between events</h2><p class="sec-note">${d ? 'Chat with the regulars, find a pod and hear about new events first on the shop Discord.' : 'Follow the shop to hear about new events first.'}</p></div>
+<div class="comm-acts">${d ? h`<a class="btn btn-act" href="${d}" target="_blank" rel="noopener">${icon('chat')}Join the Discord${out('Discord')}</a>` : ''}<ul class="socials">${socials({ store })}</ul></div>`;
 }
 
 // ---------- New here? ----------

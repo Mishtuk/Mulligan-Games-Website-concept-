@@ -76,9 +76,8 @@
     document.querySelectorAll('#week [data-fgame]').forEach(function (el) {
       el.hidden = !(id === 'all' || el.getAttribute('data-fgame') === id || el.getAttribute('data-ffam') === id);
     });
-    days.querySelectorAll('.slot').forEach(function (s) { s.hidden = !s.querySelector('.ev:not([hidden])'); });
-    days.querySelectorAll('.day').forEach(function (d) {
-      d.hidden = d.hasAttribute('data-quiet') ? id !== 'all' : !d.querySelector('.slot:not([hidden]), .day-line:not([hidden])');
+    days.querySelectorAll('.day, .day-off').forEach(function (d) {
+      d.hidden = d.hasAttribute('data-quiet') ? id !== 'all' : !d.querySelector('.ev:not([hidden]), .day-line:not([hidden])');
     });
     var shown = days.querySelectorAll('.ev:not([hidden]):not([data-state="cancelled"]), .day-line:not([hidden]):not([data-state="cancelled"])').length, any = days.querySelectorAll('.ev:not([hidden]), .day-line:not([hidden])').length;
     if (empty) empty.hidden = id === 'all' || any > 0;
