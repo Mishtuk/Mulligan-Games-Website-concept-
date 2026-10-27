@@ -34,7 +34,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** nothing claimed (#12 done).
-- **Desktop:** out of usage (2026-10-26, claims released). Resumes with #11 (needs Node), then P2.4. Laptop: #12.
+- **Desktop:** live concept review + official logo (`prototype/`, `docs/review/live-concept-review.md`); then #11, then P2.4.
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;
