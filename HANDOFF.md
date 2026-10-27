@@ -33,7 +33,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** nothing claimed (#12 done).
+- **Laptop:** #13 + owner redesign (calmer palette, photos, visible light/dark switch): `prototype/`, `DESIGN.md`, `docs/review/live-concept-review.md`, `source/social/` (local).
 - **Desktop:** out of usage (claims released). Resumes with #11, then P2.4. Laptop: #13 (logo + live review).
 
 ## Status (handoff, 2026-10-26)
