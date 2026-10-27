@@ -10,6 +10,8 @@ Rules:
 - Build only what the boss assigned. If the task is unclear or a better approach exists, tell the boss.
 - Reuse before writing: the Warminster VFW site (`Mishtuk/Warminster-VFW-website-`: Astro, `server.js` auth,
   sessions, events and recurrence, uploads, admin UI, tests) already solves much of this. Copy and adapt.
+  Madison Networks and Riverside church (HANDOFF "Owner's reference sites") are the owner's other sites: check them for
+  polished components before writing new UI.
 - On the Laptop there is no Node: work in plain HTML/CSS/JS prototypes only. Builds and `npm test` run on the Desktop.
 - Every rule with logic (recurrence, capacity / waitlist, stock counts, low-stock alerts) gets a small test.
 - Never allow HTML injection or SQL injection (owner rule). SQL: only `db.prepare(...)` with `?` placeholders, never

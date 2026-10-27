@@ -24,6 +24,10 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 - **Every push gets a board post** (owner rule, 2026-10-26, both machines): right after `git push`, post `Laptop:` or
   `Desktop:` on #2 with each pushed commit's short hash and a one-line summary of what it changed (claims included).
 - **Reuse, don't recreate:** read `docs/research/` and the agent files before starting; extend them.
+- **Owner's reference sites (both machines, 2026-10-27):** for the overall sleek look and proven patterns, study the owner's
+  other sites: Warminster VFW (`Mishtuk/Warminster-VFW-website-`, local `V:\WarminsterVFW`), Madison Networks
+  (`Mishtuk/Madison-Networks`, `V:\MadisonNetworks`) and Riverside church (`Mishtuk/Riverside-Website`, `V:\RiversideWebsite`).
+  Borrow layout, polish and components; keep Mulligan's own identity (D28).
 - **Usage limits:** near your limit, commit finished work, stash half-done work, file what's left as issues for the
   other machine, post a "Handoff" comment, email it, release your claims.
 

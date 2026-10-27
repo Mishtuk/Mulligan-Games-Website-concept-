@@ -19,3 +19,5 @@ What matters:
   recurrence), sign-ups, check-in, results, and inventory with low-stock alerts. Plain words, no jargon.
 - Real loading / empty / error states, phones first, accessible contrast, light and dark.
 - Reuse the Warminster VFW site's admin patterns where they fit; say where you diverge and why.
+- For the overall sleek look, study the owner's other sites too (see HANDOFF "Owner's reference sites"): Warminster VFW,
+  Madison Networks, Riverside church. Borrow polish and patterns, not their branding.
