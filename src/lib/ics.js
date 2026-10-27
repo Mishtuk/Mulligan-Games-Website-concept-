@@ -34,7 +34,7 @@ export const eventUrl = (baseUrl, o) => `${baseUrl.replace(/\/+$/, '')}/events/$
 /** Stable per-date id: the original slot, so a moved date updates the same calendar entry. */
 const uid = (o) => `${o.seriesId}-${o.slot.replace(/[^0-9T]/g, '')}@mulligangames`;
 
-function vevent(o, store, baseUrl, stamp) {
+function vevent(o, store, baseUrl, stamp, seq) {
   const a = store.address, where = `${store.name}, ${a.street}, ${a.city}, ${a.region} ${a.zip}`;
   const lines = ['BEGIN:VEVENT', `UID:${uid(o)}`, `DTSTAMP:${stamp}`];
   if (o.start) {
@@ -52,16 +52,16 @@ function vevent(o, store, baseUrl, stamp) {
   lines.push(`LOCATION:${icsEsc(where)}`);
   if (link) lines.push(`URL:${link}`);
   lines.push(`STATUS:${o.cancelled ? 'CANCELLED' : 'CONFIRMED'}`);
-  if (o.cancelled || o.changed || o.moved) lines.push('SEQUENCE:1'); // calendars keep the higher sequence, so a cancel replaces the earlier copy
+  lines.push(`SEQUENCE:${seq}`); // minutes since 1970 when the file is made: it only goes up, so a cancel, a change and a "brought back" each replace the copy before
   lines.push('END:VEVENT');
   return lines;
 }
 
 /** A calendar (BEGIN:VCALENDAR ...) for a list of occurrences, CRLF lines. */
 export function calendar(occs, store, baseUrl, { name = store.name, now = new Date() } = {}) {
-  const stamp = utcStamp(now);
+  const stamp = utcStamp(now), seq = Math.floor(+now / 60000);
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mulligan Games//Events//EN', 'CALSCALE:GREGORIAN', `X-WR-CALNAME:${icsEsc(name)}`, 'X-WR-TIMEZONE:America/New_York',
-    ...VTIMEZONE, ...occs.flatMap((o) => vevent(o, store, baseUrl, stamp)), 'END:VCALENDAR'];
+    ...VTIMEZONE, ...occs.flatMap((o) => vevent(o, store, baseUrl, stamp, seq)), 'END:VCALENDAR'];
   return lines.map(fold).join('\r\n') + '\r\n';
 }
 

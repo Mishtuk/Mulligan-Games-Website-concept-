@@ -121,9 +121,12 @@ test('M3 production refuses weak startup settings', () => {
   assert.match(startupProblem({ ALLOW_DEFAULT_ADMIN: '1', SESSION_SECRET: 'x'.repeat(32) }, true), /ALLOW_DEFAULT_ADMIN/);
   assert.equal(startupProblem({ ALLOW_DEFAULT_ADMIN: '1' }, false), null);
   assert.match(startupProblem({ ADMIN_PASSWORD: 'elevenchars', SESSION_SECRET: 'x'.repeat(32) }, true), /ADMIN_PASSWORD/);
-  assert.equal(startupProblem({ ADMIN_PASSWORD: 'twelve-chars', SESSION_SECRET: 'x'.repeat(32) }, true), null);
+  assert.equal(startupProblem({ ADMIN_PASSWORD: 'twelve-chars', SESSION_SECRET: 'x'.repeat(32), PUBLIC_URL: 'https://mg.example' }, true), null);
   assert.match(startupProblem({ ADMIN_PASSWORD: 'admin' }, false), /ADMIN_PASSWORD/);
-  assert.equal(startupProblem({ SESSION_SECRET: 'x'.repeat(32) }, true), null);
+  assert.match(startupProblem({ SESSION_SECRET: 'x'.repeat(32) }, true), /PUBLIC_URL/); // F6: production would publish localhost links
+  assert.match(startupProblem({ PUBLIC_URL: 'http://mg.example' }, true), /PUBLIC_URL/);
+  assert.equal(startupProblem({ SESSION_SECRET: 'x'.repeat(32), PUBLIC_URL: 'https://mg.example' }, true), null);
+  assert.equal(startupProblem({}, false), null, 'development needs no PUBLIC_URL');
 });
 
 test('L9 cookie: host-locked name over https, plain name otherwise; the other name is not read', () => {

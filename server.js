@@ -211,7 +211,7 @@ function liveParts(url, more = {}) {
   return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), cedh: () => view.cedh(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
     events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(ctx().store, PUBLIC_URL)),
     bar: () => facts_view.bar(ctx()), 'foot-addr': () => facts_view.footAddr(ctx()), socials: () => facts_view.socials(ctx()), 'cedh-live': () => facts_view.cedhLive(ctx()), visit: () => facts_view.visit(ctx()), discord: () => facts_view.discord(ctx()),
-    'nh-toc': () => facts_view.nhToc(ctx()), 'nh-free': () => facts_view.nhFree(ctx()), 'nh-kids': () => facts_view.nhKids(ctx()), 'nh-here': () => facts_view.nhHere(ctx()), 'nh-ask': () => facts_view.nhAsk(ctx()),
+    'nh-toc': () => facts_view.nhToc(ctx()), 'nh-free': () => facts_view.nhFree(ctx()), 'nh-kids': () => facts_view.nhKids(ctx()), 'nh-here': () => facts_view.nhHere(ctx()), 'nh-ask': () => facts_view.nhAsk(ctx()), 'nh-directions': () => facts_view.nhDirections(ctx()),
     ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
 }
 /** tpl = the built page before injectMarkers(): only its inline scripts get CSP hashes. */
@@ -264,7 +264,7 @@ async function publicRoute(nreq, nres, url) {
     sendText(nreq, nres, url, calendar(occs, ctx.store, PUBLIC_URL, { name: `${ctx.store.name} events` }), TYPES['.ics']);
     return true;
   }
-  if (p === '/sitemap.xml') { const ctx = publicCtx(url); sendText(nreq, nres, url, sitemap(ctx.series, ctx.exceptions, PUBLIC_URL, etDay()), TYPES['.xml']); return true; }
+  if (p === '/sitemap.xml') { const ctx = publicCtx(url); sendText(nreq, nres, url, sitemap(ctx.series, ctx.exceptions, PUBLIC_URL, ctx.now.ymd), TYPES['.xml']); return true; }
   if (p === '/event-page' || p.startsWith('/event-page/')) { notFound(nreq, nres, url); return true; } // the built template, not a page
   let m = /^\/events\/([a-z0-9][a-z0-9-]{0,59})\.ics$/.exec(p);
   if (m) {
@@ -334,21 +334,33 @@ function webpInfo(b) {
   if (t === 'VP8L') { const v = b.readUInt32LE(21); return b[20] === 0x2f ? { w: (v & 0x3fff) + 1, h: ((v >>> 14) & 0x3fff) + 1 } : null; }
   return t === 'VP8X' ? { w: b.readUIntLE(24, 3) + 1, h: b.readUIntLE(27, 3) + 1 } : null;
 }
-const DATA_WEBP = /^data:image\/webp;base64,[A-Za-z0-9+/]+=*$/;
-/** A base64 WebP data URL of exactly w x h, as bytes; otherwise the error key. The client's claimed type is ignored. */
-async function takeWebp(v, w, h) {
-  if (typeof v !== 'string' || !DATA_WEBP.test(v)) return 'file_type';
-  let buf = Buffer.from(v.slice(23), 'base64');
-  if (buf.length > 400 * 1024) return 'file_size';
-  const i = webpInfo(buf);
-  if (!i || i.w !== w || i.h !== h) return 'file_type';
-  if (sharp) { try { buf = await sharp(buf).webp({ quality: 82 }).toBuffer(); } catch { return 'file_type'; } } // drops metadata and anything hidden in the file
-  return buf;
+const DATA_IMG = /^data:image\/(?:webp|jpeg|png);base64,([A-Za-z0-9+/]+=*)$/;
+/** What the bytes are, by their first bytes (the type the client claims is ignored). Safari cannot make WebP, so JPEG and PNG are accepted too. */
+const imageKind = (b) => (b.length > 12 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? 'jpeg' : b.length > 12 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) ? 'png'
+  : b.length > 12 && b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP' ? 'webp' : null);
+/** A base64 JPEG, PNG or WebP data URL of exactly w x h, as WebP bytes; otherwise the error key. With sharp every picture is decoded and re-encoded to WebP (metadata and hidden data dropped);
+ *  without sharp only a plain WebP is kept as it is. */
+async function takeImage(v, w, h) {
+  const m = typeof v === 'string' ? DATA_IMG.exec(v) : null;
+  if (!m) return 'file_type';
+  let buf = Buffer.from(m[1], 'base64');
+  if (buf.length > 900 * 1024) return 'file_size';
+  const kind = imageKind(buf);
+  if (!kind) return 'file_type';
+  if (!sharp) { const i = kind === 'webp' && buf.length <= 400 * 1024 ? webpInfo(buf) : null; return i && i.w === w && i.h === h ? buf : 'file_type'; }
+  if (kind === 'webp' && !webpInfo(buf)) return 'file_type'; // animated, or with EXIF / XMP chunks
+  try {
+    const lim = { limitInputPixels: w * h }; // a decompression bomb (tiny file, huge picture) is refused from its header, never decoded
+    const i = await sharp(buf, lim).metadata();
+    if (i.width !== w || i.height !== h) return 'file_type';
+    buf = await sharp(buf, lim).webp({ quality: 82 }).toBuffer();
+  } catch { return 'file_type'; }
+  return buf.length > 400 * 1024 ? 'file_size' : buf;
 }
 async function uploadPhoto(body, ip, note, photoList) {
   const stop = (error, why, status = 400) => { note('photo_upload_blocked', why); return bad(error, status); };
   if (!allow(`up:${ip}`, 20)) return stop('rate', 'rate', 429);
-  const big = await takeWebp(body?.big, 1024, 768), small = await takeWebp(body?.small, 800, 600);
+  const big = await takeImage(body?.big, 1024, 768), small = await takeImage(body?.small, 800, 600);
   for (const x of [big, small]) if (typeof x === 'string') return stop(x, x === 'file_size' ? 'size' : 'type');
   const have = ls(PHOTOS).map((f) => statSafe(join(PHOTOS, f))?.size ?? 0);
   if (have.length >= 600 || have.reduce((a, b) => a + b, 0) + big.length + small.length > 100 * 1024 * 1024) { log('upload: quota reached'); return stop('upload', 'quota'); }
@@ -398,8 +410,12 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     const errors = validateSeries({ ...body, id });
     if (Object.keys(errors).length) return invalid(errors);
     const s = cleanSeries({ ...body, id });
-    putSeries(db, s);
-    note('series_update', id);
+    // Stored one-date changes whose slot this edit makes disappear (time or weekday moved): the editor must confirm, then they are removed.
+    const orphans = listExceptions(db, id).filter((x) => hasSlot(cur, x.date) && !hasSlot(s, x.date));
+    if (orphans.length && body.confirmOrphans !== true) return json({ error: 'orphans', orphans }, 409);
+    putSeries(db, s); // save first: a failed save must not have removed the cancellations already
+    for (const x of orphans) deleteException(db, id, x.date);
+    note('series_update', orphans.length ? `${id} (removed ${orphans.length} one-date changes)` : id);
     return json({ series: s });
   }
   if (sub === 'exceptions' && m === 'POST') {
@@ -407,7 +423,7 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     const errors = validateException(body);
     if (!errors.date && !errors.form && !hasSlot(cur, body.date)) errors.date = 'The event does not happen on that date.';
     if (Object.keys(errors).length) return invalid(errors);
-    const x = cleanException(id, body, etDay());
+    const x = cleanException(id, body, publicCtx(url).now.ymd); // the test clock (?now=) outside production
     putException(db, x);
     note('exception_set', `${id} ${x.date} ${x.type}`);
     return json({ exception: x });
@@ -427,16 +443,16 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
 
 // ---------- store facts (admin): GET store | PUT store. Session + origin check come from route(); the body is capped here as well ----------
 const MAX_STORE_BODY = 32 * 1024;
-function storeApi(req, body, ip, note, photoFiles) {
+function storeApi(req, url, body, ip, note, photoFiles) {
   const m = req.method;
   if (m === 'GET') return json({ store: facts(), links: LINKS });
   if (m !== 'PUT') return bad('not_found', 404);
   if (!allow(`store:${ip}`, 120)) { note('store_blocked', 'rate limit'); return bad('rate', 429); }
   if (!body || typeof body !== 'object' || Array.isArray(body) || JSON.stringify(body).length > MAX_STORE_BODY) return bad('body');
-  const errors = validateStore(body);
+  const today = publicCtx(url).now.ymd, prev = facts(), errors = validateStore(body, today, prev);
   if (body.photo && !errors.photo && !pickablePhotos(photoFiles()).includes(body.photo)) errors.photo = 'That picture is not available any more. Pick another one.';
   if (Object.keys(errors).length) return invalid(errors);
-  const prev = facts(), next = cleanStore(body, prev);
+  const next = cleanStore(body, prev, today);
   putStore(db, next);
   note('store_update', ['hours', 'hourOverrides', 'photo', 'links', 'address', 'phone', 'email', 'parking', 'kids', 'freePlay', 'tagline'].filter((k) => JSON.stringify(prev[k] ?? null) !== JSON.stringify(next[k] ?? null)).join(', ') || 'no change');
   return json({ store: next });
@@ -473,7 +489,9 @@ function templatesApi(req, body, [id], ip, note) {
 }
 
 async function adminApi(req, url, user) {
-  const [section, a1, a2, a3] = url.pathname.slice('/api/admin/'.length).split('/');
+  let segs;
+  try { segs = url.pathname.slice('/api/admin/'.length).split('/').map(decodeURIComponent); } catch { return bad('bad_path', 400); } // %3A in a slot key (2026-11-08T15%3A00) must reach the database as ':'
+  const [section, a1, a2, a3] = segs;
   const key = `${req.method} ${section}`;
   const body = ['POST', 'PUT'].includes(req.method) ? await req.json().catch(() => null) : null;
   const ip = clientIp(req);
@@ -492,7 +510,7 @@ async function adminApi(req, url, user) {
     return json({ ok: true, photos: photoList() });
   }
   if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
-  if (section === 'store') return storeApi(req, body, ip, note, photoFiles);
+  if (section === 'store') return storeApi(req, url, body, ip, note, photoFiles);
   if (section === 'templates') return templatesApi(req, body, [a1], ip, note);
   if (key === 'GET security') return json({ events: audit.recent(500) });
 

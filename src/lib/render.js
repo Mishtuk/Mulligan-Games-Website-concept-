@@ -170,7 +170,7 @@ function openText(ctx) {
   const st = openStatus(ctx.store, ctx.now);
   if (!st.known) return { open: false, body: h`<strong>Hours coming soon.</strong> Call the shop for today’s hours.` };
   if (st.open) return { open: true, body: h`<strong>Open now</strong> till ${fmtTime(st.closeHm)}` };
-  if (!st.next) return { open: false, body: h`<strong>Closed</strong>` };
+  if (!st.next) return { open: false, body: h`<strong>${st.laterUnknown ? (st.today.closed ? 'Closed today.' : 'Closed now.') : 'Closed'}</strong>` };
   const rel = relDay(st.next.date, ctx.now.ymd), t = fmtTime(st.next.hm);
   if (rel === 'today') return { open: false, body: h`<strong>Closed now.</strong> Opens at ${t}` };
   return { open: false, body: h`<strong>${st.today.closed ? 'Closed today.' : 'Closed now.'}</strong> Opens ${rel} at ${t}` };
@@ -184,7 +184,7 @@ function headline(ctx, st) {
   const { now } = ctx;
   if (!st.known) return 'Card and game nights every week in Warminster.';
   if (st.open) return st.closeHm === '24:00' ? 'Open till midnight tonight.' : `Open till ${fmtTime(st.closeHm)} tonight.`;
-  if (!st.next) return 'Closed this week.';
+  if (!st.next) return st.laterUnknown ? (st.today.closed ? 'Closed today.' : 'Closed for the night.') : 'Closed this week.';
   const rel = relDay(st.next.date, now.ymd), t = fmtTime(st.next.hm);
   if (rel === 'today') return `Open today from ${t}.`;
   return st.today.closed ? `Closed today. Back ${rel} at ${t}.` : `Closed for the night. Back ${rel} at ${t}.`;
@@ -197,8 +197,8 @@ const groupByStart = (list) => {
 const names = (items) => list(items.map((o) => o.title));
 
 export function hero(ctx) {
-  const { now, store } = ctx, st = openStatus(store, now), week = upcoming(ctx, now.ymd, addDays(now.ymd, 6));
-  const todays = week.filter((o) => o.date === now.ymd && live(o)), on = todays.filter((o) => startM(o) !== null && startM(o) <= now.m), later = todays.filter((o) => startM(o) === null || startM(o) > now.m);
+  const { now, store } = ctx, st = openStatus(store, now), week = upcoming(ctx, addDays(now.ymd, -1), addDays(now.ymd, 6)); // from yesterday: an event that runs past midnight is still On now
+  const todays = week.filter((o) => o.date <= now.ymd && live(o)), on = todays.filter((o) => startM(o) !== null && startM(o) <= now.m), later = todays.filter((o) => startM(o) === null || startM(o) > now.m);
   const parts = [];
   if (on.length) parts.push(`On now: ${names(on)}.`);
   if (later.length) parts.push(`${now.m - dayMin(now.ymd) >= 17 * 60 ? 'Tonight' : 'Today'}: ${groupByStart(later).slice(0, 3).map((g) => `${names(g.items)}${g.start ? ` at ${fmtTime(g.start)}` : ''}`).join('; ')}.`);
@@ -395,7 +395,7 @@ export function events(ctx) {
         weeklyCount++;
         return card(ctx, shown, { every: true, nextNote });
       }).filter((x) => x !== '');
-    const hrs = hoursFor(ctx.store, addDays(now.ymd, (d - todayDow + 7) % 7)), closedDay = hrs.known && !!ctx.store.hours.find((x) => x.day === d)?.closed;
+    const hrs = hoursFor(ctx.store, addDays(now.ymd, (d - todayDow + 7) % 7)), closedDay = hrs.known && Array.isArray(ctx.store.hours) && !!ctx.store.hours.find((x) => x.day === d)?.closed;
     if (!cards.length && (!closedDay || chip !== 'all' || format)) return '';
     return h`<section class="wk${closedDay && !cards.length ? ' wk-closed' : ''}" aria-labelledby="wk-${d}"><h3 class="wk-name" id="wk-${d}">${DAYS[d]}${d === todayDow ? h` <span class="tag tag-today">Today</span>` : ''}</h3>${cards.length ? h`<div class="wk-cards">${cards}</div>` : h`<p class="day-skip">The shop is closed.</p>`}</section>`;
   });

@@ -116,7 +116,7 @@ test('M3 production refuses to start with ALLOW_DEFAULT_ADMIN=1', async () => {
 test('production with no SESSION_SECRET makes one, keeps it in the data folder and reuses it', async () => {
   const dir = join(tmp, 'prod-secret');
   const start = () => new Promise((ok, fail) => {
-    const c = spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, NODE_ENV: 'production', SESSION_SECRET: '', ALLOW_DEFAULT_ADMIN: '', ADMIN_PASSWORD: '', DATA_DIR: dir, PORT: '0' } });
+    const c = spawn(process.execPath, ['server.js'], { cwd: REPO, env: { ...process.env, NODE_ENV: 'production', SESSION_SECRET: '', ALLOW_DEFAULT_ADMIN: '', ADMIN_PASSWORD: '', DATA_DIR: dir, PORT: '0', PUBLIC_URL: 'https://mg.example' } });
     let out = '';
     c.stdout.on('data', (d) => { out += d; if (/site on/.test(out)) { c.kill(); ok(); } });
     c.on('exit', (code) => fail(new Error(`exited ${code}: ${out}`)));
@@ -126,6 +126,13 @@ test('production with no SESSION_SECRET makes one, keeps it in the data folder a
   assert.match(key, /^[0-9a-f]{64}$/);
   await start();
   assert.equal(readFileSync(join(dir, 'session-secret'), 'utf8'), key, 'same key after a restart');
+});
+
+test('F6: production without PUBLIC_URL refuses to start and says why', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const r = spawnSync(process.execPath, ['server.js'], { cwd: REPO, encoding: 'utf8', timeout: 15000, env: { ...process.env, NODE_ENV: 'production', SESSION_SECRET: '', ALLOW_DEFAULT_ADMIN: '', ADMIN_PASSWORD: '', PUBLIC_URL: '', DATA_DIR: join(tmp, 'prod-nourl'), PORT: '0' } });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /Refusing to start: PUBLIC_URL must be set/);
 });
 
 test('L1 sign out ends the session even for a copied cookie', async () => {
@@ -171,12 +178,13 @@ test('picture upload: bad files, oversize bodies and strangers are refused and n
   const url = (buf) => 'data:image/webp;base64,' + buf.toString('base64');
   const img = (w, h) => sharp({ create: { width: w, height: h, channels: 3, background: '#887766' } }).webp().toBuffer();
   const [big, small] = [await img(1024, 768), await img(800, 600)];
-  const png = await sharp({ create: { width: 1024, height: 768, channels: 3, background: '#fff' } }).png().toBuffer();
+  const bomb = await sharp({ create: { width: 6000, height: 6000, channels: 3, background: '#fff' } }).png({ compressionLevel: 9 }).toBuffer(); // tiny file, 36 megapixels
   const skewed = Buffer.from(big); skewed.writeUInt32LE(skewed.length, 4); // RIFF size field is wrong
   const dir = join(tmp, 'data', 'photos');
   const empty = () => assert.deepEqual(existsSync(dir) ? readdirSync(dir) : [], []);
-  for (const [what, b, code] of [['png as webp', { big: url(png), small: url(small) }, 400], ['bad size field', { big: url(skewed), small: url(small) }, 400], ['wrong dimensions', { big: url(small), small: url(small) }, 400],
-    ['500 KB', { big: url(Buffer.alloc(500 * 1024)), small: url(small) }, 400], ['not a data url', { big: 'x', small: 'y' }, 400]]) {
+  for (const [what, b, code] of [['bad size field', { big: url(skewed), small: url(small) }, 400], ['wrong dimensions', { big: url(small), small: url(small) }, 400],
+    ['1 MB of nothing', { big: url(Buffer.alloc(1000 * 1024)), small: url(small) }, 400], ['text claiming to be a jpeg', { big: 'data:image/jpeg;base64,' + Buffer.from('<script>alert(1)</script>').toString('base64'), small: url(small) }, 400], ['not a data url', { big: 'x', small: 'y' }, 400],
+    ['decompression bomb (PNG)', { big: 'data:image/png;base64,' + bomb.toString('base64'), small: url(small) }, 400]]) {
     const r = await post(b);
     assert.equal(r.status, code, what);
     assert.ok(['file_type', 'file_size'].includes((await r.json()).error), what);
@@ -218,6 +226,22 @@ test('picture upload: round trip, served from DATA with nosniff, traversal 404, 
   assert.equal((await as('DELETE', `/api/admin/photos/${name}`)).status, 200);
   assert.equal(readdirSync(join(tmp, 'data', 'photos')).length, 0);
   for (const bad of ['/media/photos/..%2f..%2fapp.db', '/media/photos/.x.webp', '/media/photos/photo-20260101-zzzzzz.webp', '/media/photos/photo-20260101-abcdef.webp']) assert.equal((await call('GET', bad)).status, 404, bad);
+});
+
+test('B2: a JPEG or PNG picture (what Safari makes) is accepted and stored as WebP; its claimed type is ignored', async () => {
+  const sharp = (await import('sharp')).default;
+  const c = (await call('POST', '/api/login', { username: 'admin', password: 'a-better-password' }, { Origin: origin })).headers.get('set-cookie').split(';')[0];
+  const mk = (fmt, w, h) => sharp({ create: { width: w, height: h, channels: 3, background: '#887766' } })[fmt]().toBuffer();
+  for (const [fmt, claim] of [['jpeg', 'jpeg'], ['png', 'png'], ['jpeg', 'webp']]) {
+    const url = (b) => `data:image/${claim};base64,${b.toString('base64')}`;
+    const r = await call('POST', '/api/admin/photos', { big: url(await mk(fmt, 1024, 768)), small: url(await mk(fmt, 800, 600)) }, { Origin: origin, Cookie: c });
+    assert.equal(r.status, 200, fmt + ' as ' + claim);
+    const { name } = await r.json();
+    const g = await call('GET', `/media/photos/${name}`);
+    assert.equal(g.headers.get('content-type'), 'image/webp');
+    assert.equal(Buffer.from(await g.arrayBuffer()).toString('latin1', 8, 12), 'WEBP', 're-encoded');
+    assert.equal((await call('DELETE', `/api/admin/photos/${name}`, null, { Origin: origin, Cookie: c })).status, 200);
+  }
 });
 
 test('malformed and aborted requests do not take the server down', async () => {

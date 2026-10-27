@@ -288,3 +288,24 @@ Boss overrule: none.
   Mulligan rather than as any game store; warm cream / charcoal keeps it calm. B (felt) was the runner-up.
 - **Next:** roll A across events, event detail and admin in `prototype/`, retire the B/C files and the look picker,
   update DESIGN.md tokens; the build (P2.3 `src/styles`) adopts the same tokens.
+
+### D29. Issue #11 review calls (P2.3a F1-F4 + lows, P2.3b B1-B7) (2026-10-27)
+(1) Accepted as built: decoded admin path segments (bad `%` gives 400), `?now=` for sitemap and exception `updated`
+(store save too, test clock outside production only, D24 (4)), the F3 409 with its list (nothing removed without
+`confirmOrphans: true`), null-hours guards, `.ics` SEQUENCE in minutes, duplicate slots 422, B2-B7. The `src/auth.js`
+change is only the production start check: PUBLIC_URL must be `https://`; development and tests need none. Tests use
+the real clock only for session expiry: the suite passes with the clock moved to 31 Oct, 9 Nov 2026 and 1 Mar 2027.
+(2) Uploads: magic bytes before sharp, dimensions read from the header and must match exactly, 900 KB per picture and
+2 MB per request, file name made by the server. Boss fix: sharp gets `limitInputPixels` of the expected size, so a
+tiny file with a huge picture is refused unread (tested, 6000x6000 PNG). Without sharp only a plain WebP passes, so
+iPhone uploads fail: the P3.2 deploy check must see "sharp found" in the start log.
+(3) Boss fix: F3 saves the series before removing the old cancellations, so a failed save can't lose them; the dialog's
+cancel says "Go back".
+(4) B4 drop-on-read left undone, accepted: past special days never match a day shown, don't count toward the 60 and
+go on the next save.
+(5) "On now" past midnight only on the hero, accepted: This week starts at today, and shop hours past midnight are rare.
+Revisit if the owners run late nights.
+(6) D20 chart: accepted with a guard test (boss) that fails on any `innerHTML` in `src/` other than icon paths, any
+`outerHTML` / `insertAdjacentHTML` / `document.write` / `srcdoc`, and any `set:html` that is not a constant.
+**Why:** the smallest fixes that close a decode-bomb gap and a data-loss order; the rest don't change what owners or
+players see. Boss overrule: none.

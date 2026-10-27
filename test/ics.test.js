@@ -24,7 +24,7 @@ test('exceptions: cancelled date is STATUS:CANCELLED, a changed start moves, a m
   const ex = [{ series: 'fnm', date: '2026-10-30', type: 'cancel', note: 'Halloween' }, { series: 'fnm', date: '2026-11-06', type: 'change', start: '19:30', movedTo: '2026-11-07' }];
   const ics = calendar(feedOccurrences([S()], ex, '2026-10-30', 10), store, 'https://s.example', { now });
   const ev = (d) => ics.split('BEGIN:VEVENT').find((e) => e.includes(`UID:fnm-${d}@`));
-  assert.ok(ev('20261030').includes('STATUS:CANCELLED') && ev('20261030').includes('SUMMARY:Cancelled: Draft FNM') && ev('20261030').includes('SEQUENCE:1'));
+  assert.ok(ev('20261030').includes('STATUS:CANCELLED') && ev('20261030').includes('SUMMARY:Cancelled: Draft FNM') && ev('20261030').includes('SEQUENCE:'));
   assert.ok(ev('20261106').includes('DTSTART;TZID=America/New_York:20261107T193000') && ev('20261106').includes('STATUS:CONFIRMED'));
   assert.equal(occurrences(S(), '2026-10-30', '2026-10-30', ex)[0].cancelled, true);
 });
@@ -34,4 +34,9 @@ test('two prerelease slots on one day are two events', () => {
   assert.equal(ics.split('BEGIN:VEVENT').length - 1, 2);
   assert.equal((ics.match(/STATUS:CANCELLED/g) || []).length, 1);
   assert.ok(!ics.includes('DTEND'));
+});
+test('SEQUENCE only goes up: a later file (cancel, then brought back) never has a lower number', () => {
+  const seq = (ex, at) => +/SEQUENCE:(\d+)/.exec(calendar(feedOccurrences([S()], ex, '2026-10-30', 1), store, 'https://s.example', { now: new Date(at) }))[1];
+  const cancelled = seq([{ series: 'fnm', date: '2026-10-30', type: 'cancel' }], '2026-10-26T12:00:00Z'), back = seq([], '2026-10-26T12:05:00Z');
+  assert.ok(back > cancelled);
 });

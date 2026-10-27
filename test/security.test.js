@@ -47,8 +47,9 @@ test('web root: DATA_DIR and .env may not be inside dist/', () => {
 
 test('production needs a 32+ character SESSION_SECRET', () => {
   assert.match(startupProblem({ SESSION_SECRET: 'short' }, true), /SESSION_SECRET/);
-  assert.equal(startupProblem({ SESSION_SECRET: 'x'.repeat(32) }, true), null);
-  assert.equal(startupProblem({}, true), null, 'unset: the server makes and keeps its own');
+  const P = { PUBLIC_URL: 'https://mg.example' };
+  assert.equal(startupProblem({ SESSION_SECRET: 'x'.repeat(32), ...P }, true), null);
+  assert.equal(startupProblem({ ...P }, true), null, 'unset: the server makes and keeps its own');
 });
 
 test('public forms: foreign origin refused, honeypot stores nothing, JSON gets JSON, a plain form gets a 303 to an allow-listed page only', async () => {
@@ -66,4 +67,17 @@ test('public forms: foreign origin refused, honeypot stores nothing, JSON gets J
   assert.equal((await form({ name: 'Pat', _page: '/events' })).headers.get('location'), '/events/?sent=1#signup');
   for (const page of ['//evil.example', 'https://evil.example/', '/admin', 'constructor', '__proto__']) assert.equal((await form({ name: '', _page: page })).headers.get('location'), '/events/?error=name#signup', page);
   assert.equal((await publicForm(req('not json', { 'content-type': 'application/json' }), opts)).status, 400); // unreadable body: handled as an empty form
+});
+
+test('owner rule (D20): raw-HTML doors in src/ carry only constants (icons, marker comments), never data', async () => {
+  const { readdirSync, readFileSync } = await import('node:fs');
+  const files = readdirSync(new URL('../src/', import.meta.url), { recursive: true }).filter((f) => /\.(astro|js)$/.test(f));
+  for (const f of files) {
+    readFileSync(new URL('../src/' + f.split(/[\\/]/).join('/'), import.meta.url), 'utf8').split('\n').forEach((l, i) => {
+      const at = `${f}:${i + 1}`;
+      if (/outerHTML|insertAdjacentHTML|document\.write|srcdoc/.test(l) && !/^\s*(\/\/|\*)/.test(l)) assert.fail(`${at}: raw HTML sink`);
+      if (/\.innerHTML\s*=/.test(l)) assert.match(l, /IC\[n\]|EV\.icons\[n\]/, `${at}: innerHTML only for icon paths`);
+      for (const [, v] of l.matchAll(/set:html=(\{[^}]*\}|"[^"]*")/g)) assert.ok(/^"[^"]*"$|^\{`[^`$]*`\}$|^\{ICONS\[name\] \?\? ''\}$/.test(v), `${at}: set:html with a value`);
+    });
+  }
 });

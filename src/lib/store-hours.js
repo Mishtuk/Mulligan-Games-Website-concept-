@@ -7,11 +7,11 @@ import { addDays, dayMin, dow, toMin } from './clock.js';
 /** The hours of one date: { known, closed, open, close, note, override }. */
 export function hoursFor(store, ymd) {
   const o = (store?.hourOverrides ?? []).find((x) => x.date === ymd);
-  if (o) return { known: true, closed: !!o.closed || !o.open, open: o.open ?? null, close: o.close ?? null, note: o.note ?? null, override: true };
+  if (o) return { known: true, closed: !!o.closed || !o.open || !o.close, open: o.open ?? null, close: o.close ?? null, note: o.note ?? null, override: true };
   if (!Array.isArray(store?.hours)) return { known: false };
   const w = store.hours.find((x) => x.day === dow(ymd));
   if (!w) return { known: false };
-  return { known: true, closed: !!w.closed || !w.open, open: w.open ?? null, close: w.close ?? null, note: null, override: false };
+  return { known: true, closed: !!w.closed || !w.open || !w.close, open: w.open ?? null, close: w.close ?? null, note: null, override: false };
 }
 
 // [open, close] in store-clock minutes, or null when closed; a close at or before the open is the next day.
@@ -35,6 +35,7 @@ export function openStatus(store, now) {
   }
   for (let i = 0; i < 8; i++) {
     const ymd = addDays(now.ymd, i), s = span(store, ymd);
+    if (!hoursFor(store, ymd).known) return { known: true, open: false, today: todayH, next: null, laterUnknown: true }; // hours not set for that day: say nothing about later
     if (s && s.a > now.m) return { known: true, open: false, today: todayH, next: { date: ymd, hm: s.h.open, note: s.h.note } };
   }
   return { known: true, open: false, today: todayH, next: null };

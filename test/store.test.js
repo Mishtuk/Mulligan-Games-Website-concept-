@@ -78,7 +78,8 @@ const dist = join(tmp, 'dist'), data = join(tmp, 'data');
 const put = (path, body) => { mkdirSync(join(dist, path), { recursive: true }); writeFileSync(join(dist, path, 'index.html'), body); };
 const frame = (inner) => `<!doctype html><html><head><!--mg:head--><title>t</title><!--mg:shop-ld--></head><body><!--mg:strip--><p>baked</p><!--/mg:strip--><div class="openbar"><!--mg:bar--><p>baked bar</p><!--/mg:bar--></div>${inner}<footer><!--mg:foot-addr--><p>baked foot</p><!--/mg:foot-addr--><ul><!--mg:socials--><!--/mg:socials--></ul></footer></body></html>`;
 put('', frame('<main><!--mg:hero--><!--/mg:hero--><dl><!--mg:cedh-live--><!--/mg:cedh-live--></dl><section><!--mg:visit--><div>baked visit</div><!--/mg:visit--></section><div><!--mg:discord--><!--/mg:discord--></div></main>'));
-put('new-here', frame('<main><ul><!--mg:nh-toc--><!--/mg:nh-toc--></ul><!--mg:nh-free--><!--/mg:nh-free--><!--mg:nh-kids--><!--/mg:nh-kids--><!--mg:nh-here--><!--/mg:nh-here--><!--mg:nh-ask--><!--/mg:nh-ask--></main>'));
+put('events', frame('<main><!--mg:events-->PLACEHOLDER<!--/mg:events--></main>'));
+put('new-here', frame('<main><ul><!--mg:nh-toc--><!--/mg:nh-toc--></ul><!--mg:nh-free--><!--/mg:nh-free--><!--mg:nh-kids--><!--/mg:nh-kids--><!--mg:nh-here--><!--/mg:nh-here--><!--mg:nh-directions--><a href="old">baked old directions</a><!--/mg:nh-directions--><!--mg:nh-ask--><!--/mg:nh-ask--></main>'));
 put('event-page', frame('<main><!--mg:event--><!--/mg:event--></main>'));
 mkdirSync(join(dist, 'media', 'photos'), { recursive: true });
 writeFileSync(join(dist, 'media', 'photos', 'room-a.webp'), 'x');
@@ -100,7 +101,7 @@ before(async () => {
 after(() => { proc?.kill(); try { rmSync(tmp, { recursive: true, force: true }); } catch {} });
 const api = (method, path, body, headers = { Origin: origin, Cookie: cookie }) => fetch(`${origin}/api/admin/${path}`, { method, headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers }, body: body ? JSON.stringify(body) : undefined });
 const text = async (path) => (await fetch(origin + path)).text();
-const save = async (patch) => { const cur = (await (await api('GET', 'store')).json()).store; return api('PUT', 'store', { ...cur, ...patch }); };
+const save = async (patch) => { const cur = (await (await api('GET', 'store')).json()).store; return api('PUT', `store?now=${NOW}`, { ...cur, ...patch }); }; // the test clock (B4: special days before today are dropped on save)
 const HOURS = week((d) => (d === 1 ? { closed: true } : d === 5 ? { open: '14:00', close: '02:00' } : { open: '10:00', close: '17:00' }));
 
 test('API: signed-out is refused, writes without the site origin are refused (CSRF), GET needs a session', async () => {
@@ -156,6 +157,30 @@ test('holiday and special-hours overrides win over the weekly row and show their
   await save({ hourOverrides: [] });
   assert.ok((await text(`/?now=2026-10-27T11:00`)).includes('<strong>Open now</strong> till 5 PM'));
 });
+test('F4 + B1: hours not set and a special day: /events/ still renders, the front page never says "Closed this week"', async () => {
+  const ov = [{ date: '2026-11-26', closed: true, note: 'Closed for Thanksgiving' }, { date: '2026-11-30', open: '12:00', close: '16:00', note: 'Short day' }];
+  assert.equal((await save({ hours: null, hourOverrides: ov })).status, 200);
+  const ev = await text('/events/?now=2026-11-25T12:00'); // the seven days ahead include the special days
+  assert.ok(ev.includes('class="ep-head"') && !ev.includes('PLACEHOLDER'), '/events/ is rendered, not the loading placeholder');
+  const closed = await text('/?now=2026-11-26T12:00');
+  assert.ok(closed.includes('<strong>Closed today.</strong>') && closed.includes('id="hero-h">Closed today.</h1>'), 'closed special day');
+  assert.ok(!closed.includes('Closed this week') && !closed.includes('<strong>Closed</strong>'));
+  const after = await text('/?now=2026-11-30T17:00'); // special hours are over; the next day is unknown, so it says nothing about the week
+  assert.ok(after.includes('Closed for the night.') && after.includes('<strong>Closed now.</strong>') && !after.includes('Closed this week'));
+  assert.ok((await text('/?now=2026-11-25T12:00')).includes('Hours coming soon.'), 'a day with no special day stays unknown');
+  assert.equal((await save({ hours: HOURS, hourOverrides: [] })).status, 200);
+});
+test('B4: a special day that has passed is dropped on save and not counted toward the 60; only a new past date is an error', async () => {
+  const ov = (d, closed = true) => ({ date: d, closed });
+  const r = await save({ hours: HOURS, hourOverrides: [ov('2026-10-20'), ov('2026-11-02')] }); // new past date: refused
+  assert.equal(r.status, 422);
+  assert.ok((await r.json()).errors['hourOverrides.0.date']);
+  const old = Array.from({ length: 70 }, (_, i) => ov(new Date(Date.UTC(2020, 0, 1 + i)).toISOString().slice(0, 10)));
+  const db = openDb(data); putStore(db, { ...getStore(db), hourOverrides: old }); db.close(); // a long-lived list, stored before the owners cleaned it
+  assert.equal((await save({ hourOverrides: [...old, ov('2026-11-02')] })).status, 200, 'old rows neither block the save nor count');
+  assert.deepEqual((await (await api('GET', 'store')).json()).store.hourOverrides, [ov('2026-11-02')]);
+  assert.equal((await save({ hourOverrides: [] })).status, 200);
+});
 test('address, phone, links, notes and the room photo show on the page frame, front page, New here?, JSON-LD and .ics without a restart', async () => {
   const r = await save({ address: { street: '9 Test Ln', city: 'Hatboro', region: 'pa', zip: '19040' }, phone: '(267) 555-0100', email: 'shop@example.com', freePlay: 'Free play after 3', parking: 'Park behind the shop', kids: 'Kids are welcome with an adult.',
     links: { facebook: 'https://www.facebook.com/shop', discord: 'https://discord.gg/abc' }, photo: 'room-a.webp', photoAlt: 'Tables set for draft' });
@@ -168,7 +193,8 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
   assert.equal(ld.address.streetAddress, '9 Test Ln'); assert.equal(ld.telephone, '(267) 555-0100'); assert.equal(ld.email, 'shop@example.com'); assert.ok(ld.sameAs.includes('https://discord.gg/abc'));
   const nh = await text(`/new-here/?now=${NOW}`);
   assert.ok(nh.includes('Free play after 3. Bring a deck') && nh.includes('Park behind the shop') && nh.includes('9 Test Ln') && nh.includes('href="#free"') && nh.includes('Kids are welcome with an adult.') && nh.includes('(267) 555-0100'));
-  const ics = await text('/events.ics');
+  assert.ok(nh.includes('9%20Test%20Ln') && !nh.includes('445') && !nh.includes('baked old directions'), 'B3: the New here? Directions button follows the saved address');
+  const ics = await text(`/events.ics?now=${NOW}`);
   assert.ok(ics.includes('LOCATION:Mulligan Games\\, 9 Test Ln\\, Hatboro\\, PA 19040'));
   assert.ok((await text('/events/fnm?date=2026-10-30&now=' + NOW)).includes('9 Test Ln, Hatboro, PA 19040'));
   await save({ freePlay: '', photo: null, photoAlt: '', links: { facebook: '' } }); // fields can be cleared: the sections go away
@@ -202,7 +228,7 @@ test('hostile input: <script>, \' OR 1=1 -- and javascript: links come back iner
   }
   home = await text(`/?now=${NOW}`);
   assert.ok(!/href="javascript:/.test(home) && home.includes('href="https://ok.example/x"') && !home.includes('d.example'));
-  const ics = await text('/events.ics');
+  const ics = await text(`/events.ics?now=${NOW}`);
   for (const l of ics.split('\r\n')) assert.ok(!/^(BEGIN|END):/.test(l) || /^(BEGIN|END):(VCALENDAR|VEVENT|VTIMEZONE|DAYLIGHT|STANDARD)$/.test(l), l);
 });
 
@@ -221,4 +247,30 @@ test('admin preview card uses every class and data attribute of the public card,
     for (const [, c] of html.matchAll(/class="([^"]+)"/g)) for (const k of c.split(' ')) assert.ok(pv.includes(`'${k}`) || pv.includes(` ${k}'`) || pv.includes(` ${k} `) || pv.includes(`'ic' + `) && k === 'ic', `${o.signup}: class ${k}`);
     for (const [, a] of html.matchAll(/ (data-[a-z]+)=/g)) assert.ok(pv.includes(a) || pv.includes(`'data-' + k`) && ['data-game', 'data-fgame', 'data-ffam'].includes(a) || a === 'data-state' && pv.includes("'data-state'"), `${o.signup}: ${a}`);
   }
+});
+test('B6: the admin preview says what the public card says (fixed phrases, and "1 seat left" in the singular)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { card } = await import('../src/lib/render.js');
+  const { GAMES } = await import('../src/lib/games.js');
+  const src = readFileSync(new URL('../src/pages/admin.astro', import.meta.url), 'utf8'), pv = src.slice(src.indexOf('function pvCard('), src.indexOf('function saveTemplate('));
+  const ctx = { games: GAMES, store: seed, now: { ymd: '2026-10-26', m: 0 }, keepNow: null };
+  const base = { seriesId: 'x', slot: '2026-11-06', date: '2026-11-06', originalDate: '2026-11-06', title: 'T', game: 'magic', format: 'Draft', fee: 20, start: '19:00', end: '23:00', capacity: 16,
+    beginnerFriendly: true, kidsWelcome: true, playStyle: 'casual', arriveBy: '18:45' };
+  const shown = [{ signup: 'here' }, { signup: 'here', capacity: 1 }, { signup: 'counter' }, { signup: 'walkin' }, { signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/e' } }, { signup: 'external' }, { signup: 'external', inviteOnly: true }, { signup: 'walkin', playStyle: 'competitive' }]
+    .map((o) => String(card(ctx, { ...base, ...o })).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).join(' ');
+  for (const p of ['Just show up. No sign-up needed.', 'Pre-register at the counter.', 'Call the shop', 'Invite only. Seats come from the Championship Series.', 'to keep your seat.', 'Beginner friendly', 'Kids welcome', 'Casual', 'Competitive',
+    'Sign up online', 'Sign up on ', ' seats left', ' seat left']) {
+    assert.ok(shown.includes(p), `render.js still says "${p}"`);
+    assert.ok(pv.includes(p.trim()), `the preview says "${p.trim()}" too`);
+  }
+  assert.ok(!/ 1 seats left/.test(shown));
+});
+test('F9: an event that runs past midnight is still "On now" at 00:30', async () => {
+  const { hero } = await import('../src/lib/render.js');
+  const { GAMES } = await import('../src/lib/games.js');
+  const { etNow } = await import('../src/lib/clock.js');
+  const s = { id: 'late', title: 'Late Draft', game: 'magic', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', end: '01:00', signup: 'walkin' };
+  const at = (t) => String(hero({ games: GAMES, store: seed, series: [s], exceptions: [], now: etNow(t), keepNow: null, query: new URLSearchParams() }));
+  assert.ok(at('2026-10-31T00:30').includes('On now: Late Draft.'), 'Friday 7 PM to 1 AM, seen at 00:30 Saturday');
+  assert.ok(!at('2026-10-31T01:30').includes('On now'), 'over at 1 AM');
 });

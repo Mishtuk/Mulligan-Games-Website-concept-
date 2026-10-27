@@ -72,7 +72,9 @@ const toc = [['first', 'Good first nights'], store.freePlay && ['free', 'Free pl
           {store.parking && <p>{store.parking}</p>}
           <Fragment set:html="<!--/mg:nh-here-->" />
           <Fragment set:html={`<!--mg:today-hours--><!--/mg:today-hours-->`} />
+          <Fragment set:html="<!--mg:nh-directions-->" />
           <p class="visit-acts"><a class="btn btn-2" href={maps} target="_blank" rel="noopener"><Icon name="pin" />Directions<span class="vh"> (opens Google Maps)</span></a></p>
+          <Fragment set:html="<!--/mg:nh-directions-->" />
         </section>
         <section id="ask" aria-labelledby="h-ask">
           <h2 id="h-ask"><span class="nh-dia" aria-hidden="true"></span>Still have a question?</h2>

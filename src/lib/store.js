@@ -14,8 +14,9 @@ const obj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const digits = (s) => { const d = String(s ?? '').replace(/\D/g, ''); return d.length === 11 && d[0] === '1' ? d.slice(1) : d; };
 const one = (v, max) => text(v, max) || null;
 
-/** Plain words per field. A body that is not an object gets { form }. */
-export function validate(b) {
+/** Plain words per field. A body that is not an object gets { form }. today (store day) and prev (the saved facts) are optional: days before today are dropped on save,
+ *  so they do not count toward the cap, and only a NEW past date is an error (a mistyped year). */
+export function validate(b, today = '', prev = {}) {
   const e = {};
   if (!obj(b)) return { form: 'Something was wrong with what was sent. Reload and try again.' };
   const a = obj(b.address) ? b.address : {};
@@ -50,12 +51,13 @@ export function validate(b) {
     }
   }
   if (b.hourOverrides != null) {
-    if (!Array.isArray(b.hourOverrides) || b.hourOverrides.length > MAX_OVERRIDES) e.hourOverrides = `At most ${MAX_OVERRIDES} special days.`;
+    if (!Array.isArray(b.hourOverrides) || b.hourOverrides.filter((o) => !(o?.date < today)).length > MAX_OVERRIDES) e.hourOverrides = `At most ${MAX_OVERRIDES} special days.`;
     else {
       const seen = new Set();
       b.hourOverrides.forEach((o, i) => {
         if (!obj(o) || !isDate(o.date)) return (e[`hourOverrides.${i}.date`] = 'Pick the date.');
         if (seen.has(o.date)) e[`hourOverrides.${i}.date`] = 'That date is already in the list.';
+        else if (o.date < today && !(prev.hourOverrides ?? []).some((x) => x.date === o.date)) e[`hourOverrides.${i}.date`] = 'That date has passed.';
         seen.add(o.date);
         if (!o.closed && (!isTime(o.open) || !isClose(o.close))) e[`hourOverrides.${i}`] = 'Mark it closed, or enter when it opens and closes.';
         else if (!o.closed && o.open === o.close) e[`hourOverrides.${i}`] = 'Opening and closing time are the same. Mark it closed instead.';
@@ -71,8 +73,8 @@ export function validate(b) {
   return e;
 }
 
-/** The stored facts for a valid body; `prev` keeps what the admin cannot edit (the shop name). */
-export function clean(b, prev = {}) {
+/** The stored facts for a valid body; `prev` keeps what the admin cannot edit (the shop name). Special days before `today` are dropped. */
+export function clean(b, prev = {}, today = '') {
   const d = digits(b.phone), a = b.address;
   return {
     name: prev.name || 'Mulligan Games', tagline: one(b.tagline, 160),
@@ -80,7 +82,7 @@ export function clean(b, prev = {}) {
     phone: `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`, phoneHref: `tel:+1${d}`, email: b.email ? b.email.trim() : null,
     freePlay: one(b.freePlay, 120), parking: one(b.parking, 300), kids: one(b.kids, 300),
     hours: Array.isArray(b.hours) ? [...b.hours].sort((x, y) => x.day - y.day).map((r) => (r.closed ? { day: r.day, closed: true } : { day: r.day, open: r.open, close: r.close })) : null,
-    hourOverrides: (b.hourOverrides ?? []).slice().sort((x, y) => x.date.localeCompare(y.date)).map((o) => ({ date: o.date, ...(o.closed ? { closed: true } : { open: o.open, close: o.close }), ...(text(o.note, 120) && { note: text(o.note, 120) }) })),
+    hourOverrides: (b.hourOverrides ?? []).filter((o) => o.date >= today).sort((x, y) => x.date.localeCompare(y.date)).map((o) => ({ date: o.date, ...(o.closed ? { closed: true } : { open: o.open, close: o.close }), ...(text(o.note, 120) && { note: text(o.note, 120) }) })),
     links: Object.fromEntries(LINKS.map(([k]) => [k, safeUrl(b.links?.[k]) ?? null])),
     photo: b.photo || null, photoAlt: b.photo ? text(b.photoAlt, 160) : null,
   };

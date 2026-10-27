@@ -20,6 +20,7 @@ const FNM = { id: 'fnm', title: 'Draft FNM', game: 'magic', format: 'Draft', kin
 // Written straight to the database, past clean(), to prove the page escapes by itself (D20).
 const EVIL = { id: 'evil', title: '<script>alert(1)</script> "x" \'y\' </script', game: 'other', format: '<img src=x onerror=alert(2)>', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '20:00', end: null, fee: 5,
   signup: 'external', tool: { name: '<b>T</b>', url: 'javascript:alert(3)', code: '<i>' }, description: '</script><script>alert(4)</script>', prize: '<u>p</u>', ageNote: '<svg onload=alert(5)>', bring: '"><a href=javascript:alert(6)>' };
+const PRE = { id: 'pre', title: 'Prerelease', game: 'magic', format: 'Sealed', kind: 'prerelease', recurrence: { type: 'dates', dates: [{ date: '2026-11-08', start: '15:00' }, { date: '2026-11-08', start: '17:00' }] }, end: null, fee: 40, signup: 'walkin' };
 const SITE = 'https://mg.example';
 let proc, base, origin, cookie = '';
 const NOW = '2026-10-26T12:00', DATE = '2026-10-30';
@@ -27,7 +28,7 @@ const NOW = '2026-10-26T12:00', DATE = '2026-10-30';
 before(async () => {
   const db = openDb(data);
   db.prepare("INSERT INTO kv (key, value) VALUES ('series_seeded', '1')").run();
-  putSeries(db, FNM); putSeries(db, EVIL);
+  putSeries(db, FNM); putSeries(db, EVIL); putSeries(db, PRE);
   db.close();
   proc = spawn(process.execPath, ['server.js'], { cwd: join(import.meta.dirname, '..'), env: { ...process.env, PORT: '0', DATA_DIR: data, DIST_DIR: dist, ALLOW_DEFAULT_ADMIN: '1', NODE_ENV: 'test', PUBLIC_URL: SITE } });
   proc.stderr.on('data', (d) => process.stderr.write(d));
@@ -77,7 +78,7 @@ test('bad ids, dates and test clocks give a titled 404, never a 500, a reflectio
 test('cancelling a date from admin shows on its page, the list, the feed and the sitemap without a rebuild', async () => {
   const before = await text(page('fnm', DATE));
   assert.ok(!before.includes('Cancelled.'));
-  const r = await admin('POST', 'series/fnm/exceptions', { date: DATE, type: 'cancel', note: 'No draft on Halloween weekend.' });
+  const r = await admin('POST', `series/fnm/exceptions?now=${NOW}`, { date: DATE, type: 'cancel', note: 'No draft on Halloween weekend.' });
   assert.equal(r.status, 200);
   const html = await text(page('fnm', DATE));
   assert.ok(html.includes('<strong>Cancelled.</strong>') && html.includes('No draft on Halloween weekend.') && html.includes('Updated today.'));
@@ -89,7 +90,7 @@ test('cancelling a date from admin shows on its page, the list, the feed and the
   assert.ok(list.includes('data-state="cancelled"') || list.includes('is cancelled.') || list.includes('Cancelled'));
   const front = await text(`/?now=2026-10-30T12:00`);
   assert.ok(front.includes('data-state="cancelled"') && front.includes('No draft on Halloween weekend.'));
-  const feed = await get('/events.ics');
+  const feed = await get(`/events.ics?now=${NOW}`);
   assert.match(feed.headers.get('content-type'), /text\/calendar/);
   const ics = await feed.text();
   const ev = ics.split('BEGIN:VEVENT').find((e) => e.includes('UID:fnm-20261030@'));
@@ -98,10 +99,37 @@ test('cancelling a date from admin shows on its page, the list, the feed and the
   const one = await get(`/events/fnm.ics?date=${DATE}`);
   assert.match(one.headers.get('content-disposition'), /mulligan-fnm-2026-10-30\.ics/);
   assert.ok((await one.text()).includes('STATUS:CANCELLED'));
-  const map = await text('/sitemap.xml');
+  const map = await text(`/sitemap.xml?now=${NOW}`);
   assert.ok(map.includes('<loc>' + SITE + '/</loc>') && map.includes(`/events/fnm?date=${DATE}</loc>`) && map.includes('/events/fnm?date=2026-11-06</loc>') && map.includes('/new-here/'));
   assert.equal((await admin('DELETE', `series/fnm/exceptions/${DATE}`)).status, 200); // bring it back
   assert.ok(!(await text(page('fnm', DATE))).includes('<strong>Cancelled.</strong>'));
+});
+
+test('F1: a timed slot can be cancelled and brought back (the key arrives URL-encoded: 15%3A00)', async () => {
+  const slot = '2026-11-08T15:00', key = encodeURIComponent(slot);
+  assert.equal((await admin('POST', 'series/pre/exceptions', { date: slot, type: 'cancel' })).status, 200);
+  assert.ok((await text(page('pre', slot))).includes('<strong>Cancelled.</strong>'));
+  assert.equal((await admin('DELETE', `series/pre/exceptions/${key}`)).status, 200, 'bring it back');
+  assert.ok(!(await text(page('pre', slot))).includes('<strong>Cancelled.</strong>'));
+  assert.equal((await admin('DELETE', `series/pre/exceptions/${key}`)).status, 404, 'nothing left to clear');
+  assert.equal((await admin('DELETE', 'series/pre/exceptions/%E0%A4%A')).status, 400, 'malformed %-escape is a 400, not a crash');
+});
+
+test('F3: editing a series so a saved cancellation no longer matches asks first; a yes removes it', async () => {
+  const slot = '2026-11-08T17:00', cur = (await (await admin('GET', 'series/pre')).json()).series;
+  assert.equal((await admin('POST', 'series/pre/exceptions', { date: slot, type: 'cancel' })).status, 200);
+  const moved = { ...cur, recurrence: { type: 'dates', dates: [{ date: '2026-11-08', start: '15:00' }, { date: '2026-11-08', start: '17:30' }] } };
+  const r = await admin('PUT', 'series/pre', moved);
+  assert.equal(r.status, 409);
+  const j = await r.json();
+  assert.equal(j.error, 'orphans');
+  assert.deepEqual(j.orphans.map((x) => x.date), [slot]);
+  assert.equal((await (await admin('GET', 'series/pre')).json()).series.recurrence.dates[1].start, '17:00', 'nothing was saved');
+  assert.equal((await admin('PUT', 'series/pre', { ...moved, confirmOrphans: true })).status, 200);
+  assert.deepEqual((await (await admin('GET', 'series/pre')).json()).exceptions, [], 'orphans removed');
+  assert.equal((await admin('PUT', 'series/pre', { ...moved, title: 'Prerelease!' })).status, 200, 'no orphans: no question');
+  assert.equal((await admin('PUT', 'series/pre', { ...moved, recurrence: { type: 'dates', dates: [{ date: '2026-11-08', start: '15:00' }, { date: '2026-11-08', start: '15:00' }] } })).status, 422, 'duplicate slot');
+  assert.equal((await admin('PUT', 'series/pre', cur)).status, 200);
 });
 
 test('hostile titles, links and notes stay inert on every public page and file', async () => {
@@ -120,7 +148,7 @@ test('hostile titles, links and notes stay inert on every public page and file',
   const ld = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)[1];
   assert.ok(!ld.includes('<') && JSON.parse(ld).name === EVIL.title);
   assert.ok(!html.includes('javascript:alert(3)')); // external link with an unsafe URL: no link at all
-  const ics = await text('/events.ics');
+  const ics = await text(`/events.ics?now=${NOW}`);
   for (const l of ics.split('\r\n')) assert.ok(!/^(BEGIN|END):/.test(l) || /^(BEGIN|END):(VCALENDAR|VEVENT|VTIMEZONE|DAYLIGHT|STANDARD)$/.test(l), l);
 });
 

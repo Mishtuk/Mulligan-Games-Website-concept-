@@ -128,6 +128,7 @@ export function validate(s) {
   else if (r.type === 'dates') {
     if (!Array.isArray(r.dates) || !r.dates.length || r.dates.length > 100) e.recurrence = 'Add between 1 and 100 dates.';
     else if (!r.dates.every((d) => d && isDate(d.date) && isTime(d.start))) e.recurrence = 'Each date needs a day and a start time.';
+    else if (new Set(r.dates.map((d) => d.date + d.start)).size < r.dates.length) e.recurrence = 'That date and time is already in the list.';
   } else e.recurrence = 'Choose when it happens.';
   if (!e.recurrence && (r.type === 'weekly' || r.type === 'nth')) {
     for (const k of ['startDate', 'until']) if (!blank(r[k]) && !isDate(r[k])) e.recurrence = 'Pick a real first or last date.';

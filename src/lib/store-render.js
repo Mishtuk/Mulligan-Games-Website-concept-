@@ -57,6 +57,8 @@ export function nhHere({ store }) {
   const a = addr(store);
   return h`<address>${a.street}<br>${a.city}, ${a.region} ${a.zip}</address>${store.parking ? h`<p>${store.parking}</p>` : ''}`;
 }
+/** The Directions button, from the saved address (so an address edit moves it too). */
+export const nhDirections = ({ store }) => h`<p class="visit-acts"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a></p>`;
 export function nhAsk({ store }) {
   const t = tel(store), d = link(store, 'discord');
   return h`<p>Call ${t ? h`<a href="${t}">${store.phone}</a>` : store.phone}.${d ? h` Or ask in our <a href="${d}" target="_blank" rel="noopener">Discord${out('Discord')}</a>.` : ''}</p>`;

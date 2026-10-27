@@ -23,3 +23,11 @@ test('injectMarkers: fills the data marker, replaces a baked region, leaves unkn
   assert.deepEqual(JSON.parse(blocks[0][1]), { today: '2026-10-19' }); // nothing private or unfinished is published
   assert.ok(!blocks[0][1].includes('<'));
 });
+
+test('injectMarkers logs a failing marker (name and error) and leaves the static default', async () => {
+  const { injectMarkers } = await import('../src/lib/state.js');
+  const logged = [], was = console.error;
+  console.error = (...a) => logged.push(a.join(' '));
+  try { assert.equal(injectMarkers('<!--mg:boom-->x<!--/mg:boom-->', {}, '2026-10-26', { boom: () => { throw new Error('bad data'); } }), '<!--mg:boom-->x<!--/mg:boom-->'); } finally { console.error = was; }
+  assert.ok(logged.length === 1 && logged[0].includes('mg:boom') && logged[0].includes('bad data'));
+});

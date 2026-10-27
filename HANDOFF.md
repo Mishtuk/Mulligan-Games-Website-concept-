@@ -38,7 +38,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** #13 + owner redesign (calmer palette, photos, visible light/dark switch): `prototype/`, `DESIGN.md`, `docs/review/live-concept-review.md`, `source/social/` (local).
-- **Desktop:** #11 P2.3a send-back fixes (`server.js`, `src/lib/*`, `src/pages/admin.astro`, `test/*`); then P2.4.
+- **Desktop:** #11 done; next P2.4 sign-ups from `docs/review/p2.4-prep.md` (claim before starting).
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;

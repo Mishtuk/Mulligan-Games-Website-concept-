@@ -34,6 +34,6 @@ const MARKER = /<!--mg:([a-z-]+)-->(?:[\s\S]*?<!--\/mg:\1-->)?/g;
 export function injectMarkers(html, state, today, extra = {}) {
   const parts = { ...extra, data: () => dataScript(state, today) };
   return html.replace(MARKER, (m, name) => {
-    try { const v = parts[name]?.(); return v === undefined ? m : String(v); } catch { return m; }
+    try { const v = parts[name]?.(); return v === undefined ? m : String(v); } catch (e) { console.error(`marker mg:${name} failed, left as the static default:`, e); return m; }
   });
 }

@@ -326,12 +326,22 @@
       function chart(bs, label, W) {
         const H = 220, L = 38, B = 26, T = 12, R = 6, max = Math.max(...bs.map((b) => b.n)), top = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000].find((x) => x >= max) || Math.ceil(max / 1000) * 1000;
         const y = (n) => T + (H - T - B) * (1 - n / top), slot = (W - L - R) / bs.length, bw = slot / 1.25, hi = bs.findIndex((b) => b.n === max);
-        const grid = [0, top / 2, top].map((v) => `<line class="gl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('');
-        const rects = bs.map((b, i) => { const hh = (H - B - T) * (b.n / top), r = Math.min(2, hh), x = L + i * slot + (slot - bw) / 2; return `<g><title>${b.title}</title>` + (hh ? `<path class="bar${i === hi ? ' hi' : ''}" d="M${x} ${H - B}v${-(hh - r)}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}v${hh - r}z"/>` : '') + `<rect x="${L + i * slot}" y="${T}" width="${slot}" height="${H - T - B}" fill="transparent"/></g>`; }).join('');
-        const lab = (i, a) => `<text x="${a === 'start' ? L + i * slot : a === 'end' ? L + (i + 1) * slot - (slot - bw) / 2 : L + i * slot + slot / 2}" y="${H - 6}" text-anchor="${a}">${bs[i].label}</text>`;
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('class', 'chart'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', label);
-        svg.innerHTML = grid + rects + lab(0, 'start') + (bs.length > 2 ? lab(Math.floor((bs.length - 1) / 2), 'middle') : '') + (bs.length > 1 ? lab(bs.length - 1, 'end') : '');
+        // D20: every node is made with createElementNS and every string set as an attribute or textContent, never innerHTML
+        const NS = 'http://www.w3.org/2000/svg';
+        const s = (tag, attrs = {}, text) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (text !== undefined) n.textContent = text; return n; };
+        const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': label });
+        for (const v of [0, top / 2, top]) svg.append(s('line', { class: 'gl', x1: L, x2: W - R, y1: y(v), y2: y(v) }), s('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, String(v)));
+        bs.forEach((b, i) => {
+          const hh = (H - B - T) * (b.n / top), r = Math.min(2, hh), x = L + i * slot + (slot - bw) / 2, g = s('g');
+          g.append(s('title', {}, b.title));
+          if (hh) g.append(s('path', { class: 'bar' + (i === hi ? ' hi' : ''), d: `M${x} ${H - B}v${-(hh - r)}q0 ${-r} ${r} ${-r}h${bw - 2 * r}q${r} 0 ${r} ${r}v${hh - r}z` }));
+          g.append(s('rect', { x: L + i * slot, y: T, width: slot, height: H - T - B, fill: 'transparent' }));
+          svg.append(g);
+        });
+        const lab = (i, a) => svg.append(s('text', { x: a === 'start' ? L + i * slot : a === 'end' ? L + (i + 1) * slot - (slot - bw) / 2 : L + i * slot + slot / 2, y: H - 6, 'text-anchor': a }, bs[i].label));
+        lab(0, 'start');
+        if (bs.length > 2) lab(Math.floor((bs.length - 1) / 2), 'middle');
+        if (bs.length > 1) lab(bs.length - 1, 'end');
         return svg;
       }
       async function renderDashboard() {
@@ -435,7 +445,7 @@
       let EV = null;
       const openSeries = new Set();
       ERR.not_found = 'That is not there any more. Reload the page and try again.'; ERR.body = 'Something was wrong with what was sent. Reload and try again.'; ERR.in_use = 'That is still in use.';
-      ERR.file_type = 'That file is not a picture we can use. Please choose a JPEG, PNG or WebP photo.'; ERR.file_size = 'That picture is too big. Please choose one under 15 MB.'; ERR.upload = 'The picture could not be saved. Try again in a minute.';
+      ERR.file_type = 'That file is not a picture we can use. Please choose a JPEG, PNG or WebP photo.'; ERR.file_big = 'That file is too big. Please choose one under 15 MB.'; ERR.file_size = 'That photo has too much detail to save. Try another one.'; ERR.upload = 'The picture could not be saved. Try again in a minute.';
       const firstErr = (r) => (r.data.errors ? Object.values(r.data.errors)[0] : say(r));
 
       function repeatWords(s) {
@@ -629,7 +639,13 @@
         E.form.addEventListener('submit', async (e) => {
           e.preventDefault(); E.clearAll();
           if (!E.localCheck()) return;
-          const body = E.read(), r = isNew ? await api('POST', 'admin/series', body) : await api('PUT', 'admin/series/' + enc(v.id), body);
+          const body = E.read();
+          let r = isNew ? await api('POST', 'admin/series', body) : await api('PUT', 'admin/series/' + enc(v.id), body);
+          if (r.status === 409 && r.data.error === 'orphans') { // F3: this edit would drop saved cancellations / changes; say which, and save only on a yes
+            const list = r.data.orphans.map((x) => wd(x.date.slice(0, 10)) + (x.date.length > 10 ? ' ' + T12(x.date.slice(11)) : '') + (x.type === 'cancel' ? ' (cancelled)' : ' (changed)')).join(', ');
+            if (!(await ask('Remove saved changes to these dates?', 'Your edit moves the dates these were saved on, so they would no longer match: ' + list + '. Saving removes them.', 'Save and remove them', 'Go back'))) return;
+            r = await api('PUT', 'admin/series/' + enc(v.id), { ...body, confirmOrphans: true });
+          }
           if (!r.ok) { if (r.status === 422) E.showErrors(r.data.errors); else toast(say(r)); return; }
           guard = null; openSeries.add(r.data.series.id); await refresh(); toast('Saved.');
         });
@@ -677,7 +693,7 @@
         const cap = /^\d+$/.test(String(b.capacity ?? '')) && +b.capacity > 0 ? +b.capacity : 0;
         const link = (cls, ...kids) => { const a = e('a', cls, ...kids); a.href = '#'; a.addEventListener('click', (ev) => ev.preventDefault()); return a; };
         let act = null, stat = null, state = 'walkin';
-        if (b.signup === 'here') { state = 'open'; act = link('btn btn-act', 'Sign up'); if (cap) stat = e('p', 'ev-stat', ic('seat'), e('span', 'ev-stat-big', cap), e('span', 'ev-stat-unit', 'seats left'), e('span', 'ev-stat-small', 'of ' + cap)); }
+        if (b.signup === 'here') { state = 'open'; act = link('btn btn-act', 'Sign up'); if (cap) stat = e('p', 'ev-stat', ic('seat'), e('span', 'ev-stat-big', cap), e('span', 'ev-stat-unit', cap === 1 ? 'seat left' : 'seats left'), e('span', 'ev-stat-small', 'of ' + cap)); }
         else if (b.signup === 'counter') { state = 'counter'; act = [e('p', 'ev-how', ic('door'), 'Pre-register at the counter.'), link('btn btn-2', ic('phone'), 'Call the shop')]; }
         else if (b.signup === 'external') { state = 'external'; act = b.inviteOnly ? e('p', 'ev-how', ic('lock'), 'Invite only. Seats come from the Championship Series.') : tool.url ? link('btn btn-act', tool.name ? 'Sign up on ' + tool.name : 'Sign up online', e('span', 'vh', ` (opens ${tool.name || 'another site'})`), ic('external', 'ic-ext')) : e('p', 'ev-how', `Sign up ${tool.name ? 'on ' + tool.name : 'online'}.`); }
         else if (b.signup === 'walkin') act = e('p', 'ev-how', ic('door'), 'Just show up. No sign-up needed.');
@@ -866,16 +882,17 @@
         async function choose(file) {
           if (!file) return;
           if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return fail(ERR.file_type);
-          if (file.size > 15 * 1024 * 1024) return fail(ERR.file_size);
+          if (file.size > 15 * 1024 * 1024) return fail(ERR.file_big);
           let bmp;
           try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { return fail(ERR.file_type); }
           const crop = (w) => { // centre-crop to 4:3, then scale; re-encoding drops EXIF, including the location
             const cw = Math.min(bmp.width, (bmp.height * 4) / 3), ch = (cw * 3) / 4, c = h('canvas', { width: w, height: (w * 3) / 4 });
             c.getContext('2d').drawImage(bmp, (bmp.width - cw) / 2, (bmp.height - ch) / 2, cw, ch, 0, 0, c.width, c.height);
-            return c.toDataURL('image/webp', 0.82);
+            const w = c.toDataURL('image/webp', 0.82);
+            return w.startsWith('data:image/webp') ? w : c.toDataURL('image/jpeg', 0.85); // Safari (every iPhone and iPad browser) cannot make WebP: JPEG goes up and the server turns it into WebP
           };
           const big = crop(1024), small = crop(800);
-          if (!small.startsWith('data:image/webp')) return fail(ERR.file_type);
+          if (!small.startsWith('data:image/')) return fail(ERR.file_type);
           const go = h('button', { class: 'btn', type: 'button' }, 'Use this picture');
           go.addEventListener('click', async () => {
             go.disabled = true; go.textContent = 'Saving the picture…';
@@ -954,7 +971,7 @@
           group('Links', ST.links.map(([k, label]) => L(`s-link-${k}`, label, `links.${k}`, v.links?.[k], { half: true, optional: true, ph: 'https://', max: 500 }))),
           group('Notes for visitors', L('s-free', 'Free-play line', 'freePlay', v.freePlay, { optional: true, max: 120, hint: 'For example: Free Play All Day, Everyday.' }),
             L('s-parking', 'Parking note', 'parking', v.parking, { optional: true, max: 300 }), L('s-kids', 'Kids and ages', 'kids', v.kids, { optional: true, max: 300, hint: 'Your age policy, in your words.' }),
-            L('s-tag', 'One line about the shop', 'tagline', v.tagline, { optional: true, max: 160, hint: 'Used in the description Google shows.' })),
+            L('s-tag', 'One line about the shop', 'tagline', v.tagline, { optional: true, max: 160, hint: 'Part of the shop details search engines read.' })),
           group('Room photo', picker, altFld));
         showAlt();
 

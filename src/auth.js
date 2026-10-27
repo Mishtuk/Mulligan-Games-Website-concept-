@@ -142,6 +142,7 @@ export function startupProblem(env, prod) {
   if (prod && env.SESSION_SECRET && env.SESSION_SECRET.length < 32) return 'SESSION_SECRET must be at least 32 characters (use 32 random bytes as hex), or leave it unset.';
   if (prod && env.ALLOW_DEFAULT_ADMIN === '1') return 'ALLOW_DEFAULT_ADMIN is for testing only; remove it in production.';
   if (env.ADMIN_PASSWORD && (prod ? env.ADMIN_PASSWORD.length < 12 : passwordProblem(env.ADMIN_PASSWORD))) return 'ADMIN_PASSWORD is too weak (production needs at least 12 characters).';
+  if (prod && !/^https:\/\/[^\s/]+/i.test(env.PUBLIC_URL ?? '')) return 'PUBLIC_URL must be set to the site address, like https://www.example.com (links, the sitemap and calendar files are built from it).';
   return null;
 }
 
