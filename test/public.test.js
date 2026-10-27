@@ -138,6 +138,23 @@ test('F3: editing a series so a saved cancellation no longer matches asks first;
   assert.equal((await admin('PUT', 'series/pre', cur)).status, 200);
 });
 
+test('the date page: default picture per game, Other dates with seat words and the series calendar, Also on the same day', async () => {
+  const html = await text(page('fnm', '2026-11-13'));
+  assert.ok(html.includes('src="/img/social/event-magic-night.webp"') && html.includes('event-magic-night-800.webp 800w') && /width="1600" height="1200"/.test(html));
+  assert.ok((await text(page('evil', DATE))).includes('/img/social/dnd-table.webp')); // other -> D&D table
+  assert.ok(html.includes('<h2 id="od-') && html.includes('Nov 20') && html.includes('Walk in') && html.includes('Add every Friday to my calendar'));
+  assert.ok(html.includes('Getting here') && html.includes('class="dp-kick"'));
+  const ics = await get('/events/fnm.ics');
+  assert.equal(ics.status, 200);
+  assert.equal(ics.headers.get('content-disposition'), 'attachment; filename="mulligan-fnm.ics"');
+  assert.ok((await ics.text()).split('BEGIN:VEVENT').length > 3, 'the whole series');
+  const sun = await text(page('pre', '2026-11-08T15:00'));
+  assert.ok(/<h2 id="od-[^"]+">Other dates<\/h2><ul class="dp-dates"><li><a href="[^"]+T17%3A00/.test(sun), 'the 5 PM slot is the other date');
+  assert.ok(!sun.includes('Also on Sunday'), 'the same series is not repeated under Also on');
+  assert.ok(!html.includes('Add to my calendar')); // one calendar button: the series one when there are other dates
+  assert.ok(html.includes('Also on Friday') && html.includes('&lt;script&gt;alert(1)') && !html.includes('<script>alert')); // the hostile Friday series is listed, inert
+});
+
 test('hostile titles, links and notes stay inert on every public page and file', async () => {
   const pages = [page('evil', DATE), `/?now=${NOW}`, `/events/?now=${NOW}`, `/events/?now=${NOW}&format=${encodeURIComponent(EVIL.format)}`, `/new-here/?now=${NOW}`];
   for (const p of pages) {

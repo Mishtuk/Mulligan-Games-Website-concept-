@@ -344,7 +344,12 @@ async function publicRoute(nreq, nres, url) {
   if (p === '/event-page' || p.startsWith('/event-page/')) { notFound(nreq, nres, url); return true; } // the built template, not a page
   let m = /^\/events\/([a-z0-9][a-z0-9-]{0,59})\.ics$/.exec(p);
   if (m) {
-    const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === m[1] && x.enabled !== false), o = s && view.findOccurrence(ctx, s, url.searchParams.get('date'), url.searchParams.get('time'));
+    const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === m[1] && x.enabled !== false);
+    if (s && !url.searchParams.has('date')) { // no date: the whole series, the next 120 days
+      sendText(nreq, nres, url, calendar(feedOccurrences([s], ctx.exceptions, ctx.now.ymd, 120, null), ctx.store, PUBLIC_URL, { name: s.title }), TYPES['.ics'], { 'Content-Disposition': `attachment; filename="mulligan-${s.id}.ics"` });
+      return true;
+    }
+    const o = s && view.findOccurrence(ctx, s, url.searchParams.get('date'), url.searchParams.get('time'));
     if (!o) { notFound(nreq, nres, url); return true; }
     sendText(nreq, nres, url, calendar([o], ctx.store, PUBLIC_URL, { name: o.title }), TYPES['.ics'], { 'Content-Disposition': `attachment; filename="mulligan-${s.id}-${o.date}.ics"` });
     return true;

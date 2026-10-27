@@ -484,6 +484,14 @@ ${feeLine(o) ? h`<p class="hint">${feeLine(o)}</p>` : ''}<button class="btn btn-
 </form>`;
 }
 
+/** Default picture per game (constants, never user data): [file in /img/social, alt]. Each has a -800 copy. No series photo field exists yet. */
+const EVENT_PICS = {
+  magic: ['event-magic-night', 'Players at Magic tables in the Mulligan Games play room'],
+  cedh: ['event-cedh-tables', 'Commander games under way at the tables in the play room'],
+  warhammer: ['warhammer-table', 'A Warhammer battle set up on a table with terrain'],
+  other: ['dnd-table', 'A group around a table playing a tabletop role-playing game'],
+  default: ['event-full-room', 'The play room full of players on an event night'],
+};
 export function eventPage(ctx, o, form = {}) {
   const st = seatState(o, ctx.now.m, regsOf(ctx, o)), store = ctx.store, key = idKey(o), g = gameOf(ctx, o.game), href = eventHref(ctx, o);
   const s = ctx.series.find((x) => x.id === o.seriesId);
@@ -500,20 +508,32 @@ export function eventPage(ctx, o, form = {}) {
   if (st.past) banner = h`${banner}<div class="pg-banner pg-past" role="note">${icon('clock')}<div><p><strong>This date has passed.</strong></p>${next ? h`<p><a href="${eventHref(ctx, next)}">Next one: ${fmtLong(next.date)}</a></p>` : ''}</div></div>`;
   const row = (k, v) => (v && v.toString() ? h`<div><dt>${k}</dt><dd>${v}</dd></div>` : '');
   const wh = [o.points && `${o.points} points`, o.roundMinutes && `${o.roundMinutes} minute rounds`, o.listDeadline && `lists due ${o.listDeadline}`].filter(Boolean);
-  const facts = h`${row('Prizes', o.prize)}${row('Bring', o.bring)}${row('Ages', o.kidsWelcome ? 'All ages. Kids welcome.' : o.ageNote)}${row('Play style', o.playStyle === 'casual' ? 'Casual' : o.playStyle === 'competitive' ? 'Competitive' : '')}${row('Warhammer', wh.join(', '))}${row('About', o.description)}${tool.name || toolUrl ? row('Official tool', h`${toolUrl ? h`<a href="${toolUrl}" target="_blank" rel="noopener">${tool.name || 'Link'}${ext(tool.name)}</a>` : tool.name}${tool.code ? h` Event code: <strong class="code">${tool.code}</strong>` : ''}`) : ''}${others.length ? row('Other dates', h`<ul class="det-dates">${others.map((x) => h`<li><a href="${eventHref(ctx, x)}"${x.cancelled ? h` class="struck"` : ''}>${dayShort(x.date)} ${fmtDate(x.date)}${s.recurrence?.type === 'dates' && x.start ? `, ${fmtTime(x.start)}` : ''}</a>${x.cancelled ? h` <span class="tag tag-bad">cancelled</span>` : x.changed || x.moved ? h` <span class="tag tag-upd">changed</span>` : ''}</li>`)}</ul>`) : ''}`;
+  const toolLink = toolUrl ? h`<a href="${toolUrl}" target="_blank" rel="noopener">${tool.name || 'Link'}${ext(tool.name)}</a>` : tool.name;
+  const facts = h`${row('Prizes', o.prize)}${row('Bring', o.bring)}${row('Ages', o.kidsWelcome ? 'All ages. Kids welcome.' : o.ageNote)}${row('Play style', o.playStyle === 'casual' ? 'Casual' : o.playStyle === 'competitive' ? 'Competitive' : '')}${row('Warhammer', wh.join(', '))}${tool.name || toolUrl || tool.code ? row(tool.code ? 'Event code' : 'Official tool', h`${tool.code ? h`<strong class="code">${tool.code}</strong>` : ''}${tool.code && toolLink ? ' on ' : ''}${toolLink}`) : ''}`;
+  const about = facts.s || o.description ? h`<section aria-labelledby="ab-${key}"><h2 id="ab-${key}">About this night</h2>${facts.s ? h`<dl class="det-list">${facts}</dl>` : ''}${o.description ? h`<p class="dp-desc">${o.description}</p>` : ''}</section>` : '';
+  const weekly = s.recurrence?.type === 'weekly';
+  const otherDates = others.length ? h`<section aria-labelledby="od-${key}"><h2 id="od-${key}">Other dates</h2><ul class="dp-dates">${others.map((x) => { const xs = seatState(x, ctx.now.m, regsOf(ctx, x)); return h`<li><a href="${eventHref(ctx, x)}"${x.cancelled ? h` class="struck"` : ''}>${dayShort(x.date)} ${fmtDate(x.date)}</a><span>${x.start ? fmtTime(x.start) : ''}</span><span class="dp-seat">${x.cancelled ? h`<span class="tag tag-bad">cancelled</span>` : h`${seatWords(x, xs)}${x.changed || x.moved ? h` <span class="tag tag-upd">changed</span>` : ''}`}</span></li>`; })}</ul><p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics`}">${icon('calendar')}${weekly ? `Add every ${dayName(o.date)} to my calendar` : 'Add all dates to my calendar'}</a></p></section>` : '';
+  const tel = safeUrl(store.phoneHref);
+  const where = h`<section aria-labelledby="gh-${key}"><h2 id="gh-${key}">Getting here</h2><p class="det-where">${store.address.street}, ${store.address.city}, ${store.address.region} ${store.address.zip}.${store.parking ? ` ${store.parking}` : ''}</p>${o.beginnerFriendly ? h`<p class="det-where">First time at Mulligan? <a href="/new-here/">Read New here?</a></p>` : ''}<p class="det-acts dp-two"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>${tel ? h`<a class="btn btn-2" href="${tel}">${icon('phone')}Call</a>` : ''}</p>${others.length ? '' : h`<p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics?date=${encodeURIComponent(o.slot)}`}">${icon('calendar')}Add to my calendar</a></p>`}</section>`;
+  const same = upcoming(ctx, o.date, o.date).filter((x) => live(x) && x.seriesId !== o.seriesId).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+  const alsoOn = same.length ? h`<section class="dp-also" aria-labelledby="ao-${key}"><h2 id="ao-${key}">Also on ${dayName(o.date)}</h2><ul class="day-lines">${same.map((x) => dayLine(ctx, x))}</ul></section>` : '';
+  const pic = EVENT_PICS[o.game] ?? EVENT_PICS.default, rel = relDay(o.date, ctx.now.ymd);
+  const kicker = `${fmtLong(o.date)}${rel === 'today' ? (o.start && toMin(o.start) >= 17 * 60 ? ' · Tonight' : ' · Today') : rel === 'tomorrow' ? ' · Tomorrow' : ''}`;
   const foot = o.cancelled || st.past ? '' : actionArea(ctx, o, st, `${href}#signup`);
   const formOpen = o.signup === 'here' && !o.inviteOnly && !o.cancelled && !st.past && ['open', 'few', 'needs', 'waitlist'].includes(st.state);
   const signupNote = h`${form.message ? h`<p class="su-msg" role="alert">${form.message}</p>` : ''}${formOpen ? signupForm(ctx, o, st, form) : ''}`;
   const arrive = !o.cancelled && !st.past && o.arriveBy && ['here', 'counter'].includes(o.signup) ? h`<p class="ev-arrive">${icon('clock')}${arriveText(o)}</p>` : '';
   return h`<div class="wrap dp-wrap"><p class="dp-back"><a href="${keep(ctx, '/events/', {})}">${icon('chevron', 'ic-back')}All events</a></p>
 <article class="dp" aria-labelledby="t-${key}">
-<div class="dp-head ev" data-game="${o.game}" data-state="${st.state}"><div class="ev-bar"><h1 class="ev-title" id="t-${key}">${o.title}</h1>${costPip(o)}</div>
+<div class="dp-top">
+<figure class="dp-pic" data-game="${o.game}"><img src="/img/social/${pic[0]}.webp" srcset="/img/social/${pic[0]}-800.webp 800w, /img/social/${pic[0]}.webp 1600w" sizes="(min-width: 1024px) 58vw, 100vw" width="1600" height="1200" alt="${pic[1]}" fetchpriority="high"></figure>
+<div class="dp-head ev" data-game="${o.game}" data-state="${st.state}"><p class="dp-kick"><time datetime="${o.date}">${kicker}</time></p><div class="dp-name"><h1 class="ev-title" id="t-${key}">${o.title}</h1>${costPip(o)}</div>
 <p class="ev-type">${gameBadge(ctx, o.game)}${o.format ? h`<span class="ev-fmt">${o.format}</span>` : ''}</p>
-<div class="ev-text"><p class="det-day">${fmtLong(o.date)}</p><p class="ev-when">${icon('clock')}<span>${timeLine(o)}</span></p>${banner}<p class="dp-tags">${tagRow(o, st)}</p></div>${o.cancelled ? h`<p class="ev-stamp">${icon('cancel')}Cancelled</p>` : ''}</div>
-${foot.s || arrive.s || signupNote.s ? h`<div class="dp-ticket"><div class="ev-foot">${foot}</div>${arrive}${signupNote}</div>` : ''}
-<div class="dp-facts">${facts.s ? h`<dl class="det-list">${facts}</dl>` : ''}<p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics?date=${encodeURIComponent(o.slot)}`}">${icon('calendar')}Add to calendar</a><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a></p>
-<p class="det-where">${store.address.street}, ${store.address.city}, ${store.address.region} ${store.address.zip}.${store.parking ? ` ${store.parking}` : ''}</p>
-${o.beginnerFriendly ? h`<p class="det-where">First time at Mulligan? <a href="/new-here/">Read New here?</a></p>` : ''}</div>
+<p class="ev-when">${icon('clock')}<span>${timeLine(o)}</span></p>${banner}<p class="dp-tags">${tagRow(o, st)}</p>
+${foot.s || arrive.s || signupNote.s ? h`<div class="dp-ticket"><div class="ev-foot">${foot}</div>${arrive}${signupNote}</div>` : ''}</div>
+</div>
+<div class="dp-low${about.s ? '' : ' dp-solo'}">${about}<div class="dp-side">${otherDates}${where}</div></div>
+${alsoOn}
 </article></div>`;
 }
 
