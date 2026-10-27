@@ -1011,6 +1011,8 @@ in the page source like the other fixed copy (section 6) and moves to Store info
 | 12 | Getting here | address, `store.parking` ("Park in any lot next to the shop except the RISE lot."), Directions button, today's hours line | store facts (confirmed before launch, D12) |
 | 13 | Still have a question? | "Call (215) 789-3299." + "Or ask in our Discord." once Q3 picks the invite | store facts; Q3 |
 
+Free-play wording: the line keeps the store's own words, "Free Play All Day, Everyday" (decided on #2, 2026-10-27), as the section 3 heading or tag; the sample sentence stays as supporting text.
+
 States: loading none (server); empty only in section 2 (above); error as any server page. Both themes: page tokens
 only.
 
