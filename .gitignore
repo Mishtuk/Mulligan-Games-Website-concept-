@@ -2,7 +2,7 @@ node_modules/
 dist/
 .env
 tmp/
-source/
+/source/
 .astro/
 .data/
-media/
+/media/

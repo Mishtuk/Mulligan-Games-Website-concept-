@@ -272,3 +272,11 @@ Boss overrule: none.
   next person on the waitlist. Staff can still cancel anyone in admin. No player accounts (D5 stands).
 - **Build notes:** random token of at least 128 bits, stored hashed, compared in constant time; rate-limited; the page
   shows only that one sign-up; `noindex` and `Referrer-Policy: no-referrer`; the link stops working after the event.
+
+### D27. Use the store's social photos and videos on the concept now (2026-10-27, owner)
+- **Ruling (Mish):** don't wait for the store's permission (Q12/Q21). Pull photos, the logo and videos from Mulligan's
+  Instagram, Facebook and other socials, commit web-ready copies to the repo (`prototype/img/`, `prototype/media/`)
+  and use them on the live concept. Raw downloads stay local in `/source/social/`. Supersedes the "branding stays
+  local" part of the earlier rulings and the DESIGN 6.1 note that video stays out of the public repo.
+- **Also (owner):** the first look was too flashy (saturated red + navy) and lacked photos; the redesign uses a calmer
+  palette, photo-led sections and a clearly labelled light/dark switch.
