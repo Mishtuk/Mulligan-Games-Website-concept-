@@ -500,6 +500,7 @@ ${reg.status === 'in' && o.arriveBy ? h`<p class="ev-arrive">${icon('clock')}${a
 ${isNew ? h`<div class="su-keep"><p><strong>Keep this link.</strong> It is the only way to cancel or check your place online. We can\u2019t email it. Anyone who has it can cancel your sign-up.</p><p class="su-link"><a href="${link}">${link}</a></p></div>` : ''}
 ${active ? h`<p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics?date=${encodeURIComponent(o.slot)}`}">${icon('calendar')}Add to calendar</a></p>` : ''}
 ${active ? h`<form method="post" action="/api/signup/cancel"><input type="hidden" name="token" value="${reg.token}"><p class="hint">${reg.status === 'in' ? 'Cancelling frees your seat for the next person.' : 'Leaving frees your place for the next person.'} You can sign up again if there is room.</p><button class="btn btn-bad" type="submit">${reg.status === 'in' ? 'Cancel my seat' : 'Leave the waitlist'}</button></form>` : ''}
+${reg.status === 'cancelled' && reg.undoable ? h`<form method="post" action="/api/signup/undo-cancel"><input type="hidden" name="token" value="${reg.token}"><p class="hint">Tapped Cancel by mistake? You can take it back for a few minutes, if your place is still free.</p><button class="btn btn-act" type="submit">Undo, keep my place</button></form>` : ''}
 <p class="hint">We delete your contact details ${RETENTION_DAYS} days after the event. <a href="/privacy/">Privacy</a></p></article></div>`;
 }
 /** A plain message page (a sign-up link that is wrong or finished). */

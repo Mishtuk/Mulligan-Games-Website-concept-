@@ -230,17 +230,17 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   (Today + roster views), event detail form, `test/registrations.test.js`.
 - **Needs:** P2.3, P1.3b counter bullet (No-show).
 - **Status:** P2.4a (public form, private link D26, rules, roster API, retention, privacy page) reviewed and accepted by
-  the boss 2026-10-27 (D30). P2.4b: the admin Today and roster screens on that API, plus the items listed at the end.
+  the boss 2026-10-27 (D30). P2.4b screens (Today, roster, 9.1 shell, look A, #14) accepted by the boss 2026-10-27.
 - **Done when:**
   - [x] Public form (no account): name, email or phone, optional player ID; honeypot, rate limit, origin check as VFW.
   - [x] Capacity, cutoff, waitlist with auto-promote on cancel or staff removal; "You're on the waitlist (#n)" reply.
-  - [ ] Admin Today: check-in, walk-in add, payment status (at door / online elsewhere / comped / store credit). (API
+  - [x] Admin Today: check-in, walk-in add, payment status (at door / online elsewhere / comped / store credit). (API
         done in P2.4a; screens P2.4b.)
-  - [ ] Today: one-tap "No-show" (with Undo) frees the seat and promotes the waitlist; no-shows counted per date.
+  - [x] Today: one-tap "No-show" (with Undo) frees the seat and promotes the waitlist; no-shows counted per date.
   - [x] The sign-up reply states the seat-release time when set (D17): "Arrive by 6:50 PM or your seat goes to the
         waitlist."
   - [x] Contact details deleted N days after the event (N decided in `DECISIONS.md`); counts kept; privacy page says so.
-  - [ ] Roster header "Copy post text" (15.3) and the 9.1 admin shell replacing the provisional sidebar (moved from
+  - [x] Roster header "Copy post text" (15.3) and the 9.1 admin shell replacing the provisional sidebar (moved from
         P2.2b, D23).
   - [x] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, no-show, retention purge.
   - [x] (P2.4b, D30 (6)) Cancel Undo as an inverse with a precondition (G6, designer spec first); "Add a

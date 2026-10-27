@@ -189,6 +189,7 @@ test('G6 cancel Undo: waitlist place, seat with the promoted person bumped back,
   assert.deepEqual([u2.ok, u2.bumped, u2.over, R.counts(db, 'fnm', FRI).in], [true, null, true, 3]);
   // auto-promotion stays paused over the cap; Undo is refused after the window or when the same name signed up again
   R.cancel(db, o, a.id, { now: T });
+  assert.equal(R.undoCancel(db, o, a.id, { now: T + 1, self: true }).error, 'state', "a player's link can't take back a staff removal (D31 (2))");
   assert.equal(R.undoCancel(db, o, a.id, { now: T + R.UNDO_MS + 1 }).error, 'expired');
   assert.equal(join(o, 'A').status, 'waitlist');
   assert.equal(R.undoCancel(db, o, a.id, { now: T + 1 }).error, 'dup');
@@ -589,9 +590,11 @@ test('HTTP: pre-registration, headcount, seat anyway and the player own Undo: se
   const tokPost = (path, origin2 = origin) => fetch(`${origin}/api/signup/${path}?now=${NOW}`, { method: 'POST', redirect: 'manual', headers: { Origin: origin2 }, body: new URLSearchParams({ token: t }) });
   assert.equal((await tokPost('cancel')).status, 303);
   assert.equal((await mine(t)).t.includes('Cancel my seat'), false);
+  assert.ok((await mine(t)).t.includes('action="/api/signup/undo-cancel"') && (await mine(t)).t.includes('Undo, keep my place'), 'P2.4b: the player page offers Undo, as a plain form');
   assert.equal((await tokPost('undo-cancel', 'http://evil.example')).status, 403);
   await tokPost('undo-cancel');
   assert.ok((await mine(t)).t.includes('Cancel my seat'), 'back in');
+  assert.equal((await mine(t)).t.includes('Undo, keep my place'), false, 'no Undo button once it is used');
 });
 test('HTTP: hostile names are inert on the reply page, the date page and the roster API', async () => {
   const evil = '<img src=x onerror=alert(1)>', sql = "'; DROP TABLE registrations; --";
@@ -630,4 +633,23 @@ test('HTTP: too many sign-up tries from one address are refused (last, so the ot
   const html429 = await form('duo', { name: 'x', email: 'a@b.co' });
   assert.equal(html429.status, 429);
   assert.ok((await html429.text()).includes('Too many tries. Wait a minute and try again.'));
+});
+
+test('P2.4b screens: the roster reply carries what the screens need, hostile text stays inert, and the admin page scripts are hashed', async () => {
+  const v = await (await adm('GET', `adm/${FRI}`)).json();
+  assert.deepEqual([v.event.idLabel, 'minPlayers' in v.event, 'toolCode' in v.event, v.event.arriveBy], ['Wizards ID (Companion)', true, true, '18:50']);
+  const evil = '<script>alert(1)</script>', sql = "' OR 1=1 --";
+  const bad = await adm('POST', `ctr/${FRI}/prereg`, { name: evil, phone: sql });
+  assert.equal(bad.status, 422);
+  assert.ok(!JSON.stringify((await bad.json()).errors).includes('<script>'), 'errors never echo the input');
+  const ok = await (await adm('POST', `ctr/${FRI}/prereg`, { name: evil + sql, email: 'inert@x.com' })).json();
+  assert.equal(ok.regs.find((r) => r.name.includes(evil)).status, 'in', 'stored as data, shown with textContent');
+  const w = await (await adm('POST', `wlk/${FRI}/walkin`, { name: sql + evil })).json();
+  assert.equal(w.result.ok, true);
+  const real = join(import.meta.dirname, '..', 'dist', 'admin', 'index.html');
+  if (existsSync(real)) { // needs `npm run build` first, as the rest of the suite does
+    const t = readFileSync(real, 'utf8'), scripts = [...t.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    assert.ok(t.includes('data-section="today"') && t.includes('data-signout') && t.includes('data-scheme="dark"') && !/\son[a-z]+="/.test(t), 'shell, theme switch, sign-out menu; no inline handlers');
+    for (const sc of scripts) assert.doesNotThrow(() => new Function(sc), 'every inline admin script parses (a duplicate declaration once stopped the whole page)');
+  }
 });

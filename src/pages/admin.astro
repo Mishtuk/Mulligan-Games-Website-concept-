@@ -1,7 +1,9 @@
 ---
-// Store admin. A static page with no secrets: signed-out visitors see the sign-in form, and every read or save goes to /api/admin/*,
-// where server.js checks the session cookie. Plain on purpose: big text, big buttons, one thing per screen (staff use it at the counter).
-// The look is provisional until DESIGN.md is signed off.
+// Store admin (look A, D28). A static page with no secrets: signed-out visitors see the sign-in form, and every read or save goes to /api/admin/*,
+// where server.js checks the session cookie. Shell (9.1): charcoal sidebar from 1024px, top bar + bottom tab bar under it. Today and the roster are P2.4b (9.2, 9.4, 15.7).
+import '../styles/global.css';
+import '../styles/admin.css';
+import Icon from '../components/Icon.astro';
 ---
 
 <!doctype html>
@@ -9,215 +11,84 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>try { var s = localStorage.getItem('mg-scheme'); if (s) document.querySelector('meta[name="color-scheme"]').content = s; } catch (e) {}</script>
     <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#26211D" />
+    <link rel="icon" href="/img/logo/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/img/logo/logo-180.png" />
     <title>Admin | Mulligan Games</title>
-    <style is:global>
-      :root { --night: #26211D; --on-dark: #F5EFE4; --accent: #9DB8F2; --paper: #F5EFE4; --card: #FFFCF6; --stone: #EEE5D6; --ink: #2B211C; --ink-2: #5F5047; --field: #8D7C6D; --line: rgb(43 33 28 / .18);
-        --gold-ink: #8A5300; --warn-bg: #FFF3D6; --red-ink: #A3291B; --bad-bg: #F8E4DE; --olive: #1C6B3F; --ok-bg: #E3F4EA; --edit: #244C8F; --edit-bg: #E3EBF7; }
-      * { box-sizing: border-box; }
-      body { margin: 0; background: var(--paper); color: var(--ink); font: 19px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-      h1, h2, .num { font-weight: 700; }
-      h1 { font-size: 2rem; margin: 0 0 .5rem; line-height: 1.2; }
-      h2 { font-size: 1.4rem; margin: 0 0 .75rem; line-height: 1.25; }
-      a { color: var(--ink); }
-      [hidden] { display: none !important; }
-      :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-      .side :focus-visible, .top :focus-visible, .toast :focus-visible { outline-color: var(--accent); }
-      .ic { display: inline-flex; flex: none; vertical-align: middle; }
-
-      .wrap { display: grid; grid-template-columns: 16rem minmax(0, 1fr); min-height: 100vh; }
-      .top { display: none; }
-      .side { background: var(--night); color: var(--on-dark); position: sticky; top: 0; height: 100vh; overflow: auto; display: flex; flex-direction: column; padding: 1.25rem .75rem; }
-      .brand { padding: 0 .5rem 1.25rem; }
-      .wordmark { font-weight: 800; font-size: 1.3rem; letter-spacing: .02em; color: var(--on-dark); text-decoration: none; }
-      .brand p { margin: .35rem 0 0; font-weight: 600; color: var(--accent); }
-      .side nav, .tail { display: grid; gap: 2px; }
-      .tail { margin-top: auto; padding-top: 1rem; }
-      .side a:not(.wordmark), .side .linkbtn, .mnav a, .mnav .linkbtn { display: flex; align-items: center; gap: .7rem; min-height: 52px; padding: 0 .8rem; border-radius: 6px; font: 600 1.05rem/1.2 system-ui, sans-serif; color: var(--on-dark); text-decoration: none; position: relative; width: 100%; background: none; border: 0; cursor: pointer; text-align: left; }
-      .side a:hover, .side .linkbtn:hover, .mnav a:hover, .mnav .linkbtn:hover { background: rgb(245 239 228 / .08); }
-      a[aria-current='page'] { background: rgb(157 184 242 / .16); color: var(--accent) !important; }
-      a[aria-current='page']::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; background: var(--accent); border-radius: 2px; }
-      .linkbtn { text-decoration: underline; }
-
-      .main { padding: 1.5rem; max-width: 60rem; width: 100%; min-width: 0; }
-      .banner { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; background: var(--bad-bg); color: var(--red-ink); font-weight: 700; border-radius: 6px; padding: .8rem 1rem; margin-bottom: 1.25rem; }
-      .card { background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(43 33 28 / .12); }
-      .head { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-      .head h1 { margin: 0; }
-      .meta, .hint { color: var(--ink-2); font-size: .95rem; }
-      .big { font-size: 1.15rem; font-weight: 700; margin: 0 0 .25rem; }
-
-      .fld { margin: 0 0 1.1rem; }
-      .fld > label { display: block; font-weight: 600; }
-      .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
-      .hint { display: block; }
-      input[type=text], input[type=password], input[type=time], input[type=date], input[type=tel], input[type=email], select, textarea { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
-      .fld.bad input { border-color: var(--red-ink); }
-      .ferr, .err { color: var(--red-ink); font-weight: 700; margin: .3rem 0 0; }
-
-      .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font: inherit; font-weight: 700; min-height: 48px; padding: .5rem 1.1rem; border-radius: 6px; border: 2px solid var(--night); background: var(--night); color: var(--on-dark); cursor: pointer; text-decoration: none; }
-      .btn.alt { background: var(--card); color: var(--ink); border-color: var(--ink); }
-      .btn.danger { background: var(--card); color: var(--red-ink); border-color: var(--red-ink); }
-      .row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
-      .chip { display: inline-block; font-size: .85rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; background: var(--stone); color: var(--ink-2); line-height: 1.4; vertical-align: middle; }
-      .chip.ok { background: var(--ok-bg); color: var(--olive); } .chip.warn { background: var(--warn-bg); color: var(--gold-ink); }
-
-      .seg { display: flex; flex-wrap: wrap; gap: .5rem; }
-      .seg .btn[aria-pressed=true] { background: var(--night); color: var(--on-dark); border-color: var(--night); }
-      .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
-      .tile { margin: 0; padding: 1rem; }
-      .tl { font-size: .95rem; font-weight: 600; color: var(--ink-2); }
-      .num { font-size: 2.75rem; line-height: 1.15; }
-      .chg { font-size: .95rem; display: flex; gap: .3rem; align-items: center; color: var(--ink-2); }
-      .chg.up { color: var(--olive); }
-      .chart { width: 100%; height: auto; display: block; }
-      .chart text { font-size: 13px; fill: var(--ink-2); }
-      .chart .gl { stroke: var(--line); }
-      .chart .bar { fill: var(--ink-2); } .chart .bar.hi { fill: var(--ink); }
-      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
-      ul.rank { list-style: none; margin: 0; padding: 0; }
-      ul.rank li { position: relative; display: flex; justify-content: space-between; gap: 1rem; align-items: center; min-height: 44px; padding: 0 .5rem; }
-      ul.rank .bg { position: absolute; left: 0; top: 4px; bottom: 4px; background: rgb(95 80 71 / .14); border-radius: 4px; }
-      ul.rank .nm, ul.rank .ct { position: relative; } ul.rank .ct { font-variant-numeric: tabular-nums; font-weight: 700; }
-
-      .ev { display: flex; gap: .85rem; align-items: flex-start; min-height: 56px; padding: .6rem 0; border-top: 1px solid var(--line); }
-      .ev:first-of-type { border-top: 0; }
-      .evi { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--stone); color: var(--ink-2); }
-      .evi.ok { background: var(--ok-bg); color: var(--olive); } .evi.warn { background: var(--warn-bg); color: var(--gold-ink); }
-      .evi.bad { background: var(--bad-bg); color: var(--red-ink); } .evi.edit { background: var(--edit-bg); color: var(--edit); }
-      .ev details summary { cursor: pointer; font-size: .95rem; color: var(--ink-2); min-height: 44px; display: inline-flex; align-items: center; padding: 0 .5rem; }
-
-      .gate { max-width: 28rem; margin: 3rem auto; padding: 0 1rem; }
-      .gate .wordmark { color: var(--ink); display: block; margin-bottom: 1rem; }
-      .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--night); color: var(--on-dark); padding: .5rem .5rem .5rem 1.25rem; border-radius: 6px; z-index: 20; display: flex; gap: .75rem; align-items: center; min-height: 48px; max-width: calc(100vw - 2rem); }
-      .toast button { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; min-height: 48px; padding: 0 .75rem; cursor: pointer; text-decoration: underline; }
-      dialog.ask { border: 0; border-radius: 6px; padding: 1.5rem; max-width: 28rem; width: calc(100vw - 2rem); background: var(--card); color: var(--ink); }
-      dialog.ask::backdrop { background: rgb(38 33 29 / .6); }
-      textarea { resize: vertical; }
-      .lbl { font-weight: 600; margin: 0; }
-      .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-      .chip.bad { background: var(--bad-bg); color: var(--red-ink); } .chip.edit { background: var(--edit-bg); color: var(--edit); }
-      .btn.sm { min-height: 44px; padding: .25rem .8rem; font-size: .95rem; }
-      .btn.off { opacity: .55; cursor: default; border-style: dashed; }
-      .btn.copy { min-width: 11.5rem; } .btn.copy.done { background: var(--ok-bg); color: var(--olive); border-color: var(--olive); }
-      h3 { font-size: 1.05rem; margin: .25rem 0 .5rem; }
-      details.srow { border-top: 1px solid var(--line); } details.srow:first-child { border-top: 0; }
-      details.srow > summary { cursor: pointer; padding: .75rem 0; min-height: 56px; display: flex; gap: .6rem; align-items: flex-start; list-style: none; }
-      details.srow > summary::before { content: '▾'; flex: none; width: 1.2rem; line-height: 1.55; text-align: center; transform: rotate(-90deg); } details.srow[open] > summary::before { transform: none; }
-      .sbody { padding: 0 0 1rem; }
-      ul.dates { list-style: none; margin: 0 0 1rem; padding: 0; }
-      .drow { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; padding: .6rem 0; border-top: 1px solid var(--line); }
-      .drow:first-child { border-top: 0; }
-      .gtiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; margin-bottom: 1.25rem; }
-      .gtile, .tpl { display: flex; flex-direction: column; gap: .2rem; text-align: left; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; padding: .8rem 1rem; min-height: 72px; cursor: pointer; width: 100%; }
-      .gtile:hover, .tpl:hover { border-color: var(--night); background: var(--stone); }
-      .tpls { display: grid; gap: .6rem; margin-bottom: 1.25rem; } .tplrow { display: flex; gap: .6rem; align-items: stretch; flex-wrap: wrap; } .tplrow .tpl { flex: 1 1 18rem; width: auto; }
-      .eform { padding-bottom: 5rem; }
-      .fgroup { border: 0; background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(43 33 28 / .12); min-width: 0; }
-      .fgroup legend { font-weight: 700; font-size: 1.15rem; float: left; width: 100%; padding: 0; margin: 0 0 .75rem; }
-      .fgrid { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
-      .fgrid > .wide, .fgrid .fld.wide { grid-column: 1 / -1; } .fgrid > .say { grid-column: 1 / -1; }
-      .check { display: flex; gap: .75rem; align-items: flex-start; min-height: 48px; padding: .4rem 0; margin: 0 0 .5rem; cursor: pointer; }
-      .check input, .rcard input, .seg1 input { width: 24px; height: 24px; flex: none; margin: 0; accent-color: var(--night); }
-      .rcards { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .3rem; }
-      .rcard { display: grid; grid-template-columns: 24px 1fr; column-gap: .6rem; align-items: start; border: 2px solid var(--field); border-radius: 6px; padding: .7rem .8rem; min-height: 56px; cursor: pointer; background: var(--card); }
-      .rcard small { grid-column: 2; color: var(--ink-2); } .rcard:has(input:checked) { border-color: var(--night); background: var(--stone); }
-      .segr { display: flex; margin-top: .3rem; border: 2px solid var(--night); border-radius: 6px; overflow: hidden; }
-      .seg1 { flex: 1; display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 48px; padding: 0 .5rem; cursor: pointer; font-size: .95rem; background: var(--card); }
-      .seg1 input { position: absolute; opacity: 0; width: 1px; height: 1px; } .seg1:has(input:checked) { background: var(--night); color: var(--on-dark); } .seg1:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: -4px; }
-      .say { background: var(--edit-bg); color: var(--edit); border-radius: 6px; padding: .5rem .8rem; margin: 0 0 1rem; font-weight: 600; }
-      .errsum { background: var(--bad-bg); color: var(--red-ink); border-radius: 6px; padding: .8rem 1rem; margin: 0 0 1.25rem; font-weight: 700; } .errsum ul { margin: .4rem 0 0; padding-left: 1.2rem; } .errsum a { color: inherit; }
-      .savebar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: flex-end; background: var(--card); border-top: 2px solid var(--night); padding: .75rem 1rem; margin: 0 -1.5rem -5rem; }
-      .sb-msg { margin-right: auto; font-weight: 700; color: var(--gold-ink); }
-      dialog.ask.wide { max-width: 34rem; } dialog.ask textarea { margin-top: .5rem; }
-      .drw { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0 .75rem; align-items: end; } .drw .btn { margin-bottom: 1.1rem; }
-      .date-rows { margin-bottom: .5rem; }
-      body:has(.savebar) .toast { bottom: 6rem; }
-      input[type=search] { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
-      .main:has(.ewrap) { max-width: 82rem; }
-      .ewrap { display: grid; gap: 0 1.25rem; align-items: start; } .ewrap .savebar { margin: 0 0 -5rem; }
-      @media (min-width: 1100px) { .ewrap { grid-template-columns: minmax(0, 1fr) 24rem; } .ewrap > .pv { position: sticky; top: 1rem; } }
-      .pv { background: var(--card); border-radius: 6px; padding: .25rem 1rem 1rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(43 33 28 / .12); }
-      .pv summary { cursor: pointer; font-weight: 700; min-height: 56px; display: flex; align-items: center; }
-      .pv iframe { width: 100%; height: 22rem; border: 0; display: block; color-scheme: light; }
-      details.srow { border-left: 6px solid var(--gc, var(--stone)); padding-left: .75rem; }
-      .gchips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
-      .gchip { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 1rem; border: 2px solid var(--field); border-radius: 999px; background: var(--card); font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
-      .gchip i { width: 14px; height: 14px; border-radius: 3px; background: var(--gc, var(--stone)); flex: none; outline: 1px solid rgb(255 255 255 / .7); }
-      .gchip .n { font-size: .85rem; color: var(--ink-2); } .gchip[aria-pressed=true] { background: var(--night); color: var(--on-dark); border-color: var(--night); } .gchip[aria-pressed=true] .n { color: var(--on-dark); }
-      .hrow { display: grid; grid-template-columns: 8rem 7.5rem 1fr 1fr; gap: .25rem 1rem; align-items: center; border-top: 1px solid var(--line); padding: .5rem 0; margin: 0; }
-      .hrow > .ferr, .hrow > .hnote { grid-column: 1 / -1; margin: 0; } .hrow .hnote:empty { display: none; } .hday { margin: 0; font-size: 1.05rem; }
-      .tl { font-size: .9rem; font-weight: 600; } .tl input { margin-top: .1rem; }
-      .orow { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: flex-end; border-top: 1px solid var(--line); padding: .75rem 0; margin: 0; }
-      .orow > .tl { flex: 1 1 9rem; } .orow > .onote { flex: 1 1 100%; } .orow > .ferr { flex: 1 1 100%; margin: 0; } .orow > .check { margin: 0; }
-      .pimg { width: 240px; max-width: 100%; height: 180px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: .6rem; }
-      .pimg.none { display: grid; place-items: center; border: 2px dashed var(--field); color: var(--ink-2); font-weight: 600; }
-      .picker { margin-top: 1rem; padding: 1rem; background: var(--stone); border-radius: 6px; }
-      .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .6rem; max-height: 24rem; overflow: auto; padding: 4px; margin-bottom: 1rem; }
-      label.pick { position: relative; display: block; margin: 0; aspect-ratio: 4 / 3; border-radius: 6px; background: var(--card); cursor: pointer; overflow: hidden; }
-      label.pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
-      label.pick.up { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 2px dashed var(--field); font-weight: 700; text-align: center; }
-      label.pick:has(input:checked) { outline: 3px solid var(--ink); outline-offset: -3px; } label.pick:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
-      label.pick .chosen { display: none; position: absolute; right: 6px; top: 6px; gap: .25rem; align-items: center; background: var(--ink); color: var(--on-dark); border-radius: 999px; padding: 0 .55rem; font-size: .85rem; font-weight: 700; } label.pick:has(input:checked) .chosen { display: flex; }
-      .picker .preview img { width: 100%; height: auto; border-radius: 6px; display: block; margin-bottom: .75rem; }
-      @media (max-width: 800px) {
-        .gtiles { grid-template-columns: 1fr 1fr; } .savebar { margin: 0 -1rem -5rem; } .btn.sm { min-height: 48px; }
-        .hrow { grid-template-columns: 1fr 1fr; } .hrow .hclosed { justify-self: end; }
-        .fgrid { grid-template-columns: 1fr; } .rcards { grid-template-columns: 1fr; } .drow .dact { width: 100%; } body:has(.savebar) .toast { bottom: 10rem; }
-      }
-      @media (max-width: 800px) {
-        .wrap { grid-template-columns: minmax(0, 1fr); }
-        .side { display: none; }
-        .top { display: flex; position: sticky; top: 0; z-index: 10; height: 64px; background: var(--night); align-items: center; justify-content: space-between; padding: 0 1rem; }
-        .mnav summary { list-style: none; display: flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 1rem; color: var(--on-dark); font-weight: 700; border: 2px solid var(--accent); border-radius: 6px; cursor: pointer; }
-        .mnav summary::-webkit-details-marker { display: none; }
-        .mnav > div { position: absolute; left: 0; right: 0; top: 64px; background: var(--night); padding: .5rem 1rem 1rem; max-height: calc(100vh - 64px); overflow: auto; }
-        .mnav a, .mnav .linkbtn { min-height: 56px; }
-        .main { padding: 1rem; }
-        .btn { min-height: 52px; }
-        .two { grid-template-columns: 1fr; }
-        .num { font-size: 2.2rem; }
-        .seg { display: grid; grid-template-columns: 1fr 1fr; }
-      }
-    </style>
+    <script src="/js/site.js" defer is:inline></script>
   </head>
-  <body>
+  <body class="adm">
     <div class="gate" id="gate" hidden>
+      <span class="plate"><img src="/img/logo/logo-plate-330.webp" alt="Mulligan Games" width="330" height="102" /></span>
       <form class="card" id="login" novalidate>
-        <span class="wordmark">Mulligan Games</span>
         <h1>Store admin</h1>
         <p class="meta">Sign in to run the store's website.</p>
         <div class="fld"><label for="lu">Username</label><input id="lu" type="text" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required /></div>
         <div class="fld"><label for="lp">Password</label><input id="lp" type="password" name="password" autocomplete="current-password" required /></div>
         <p class="err" id="login-err" role="alert" hidden></p>
-        <button class="btn" type="submit">Sign in</button>
+        <button class="btn btn-act" type="submit">Sign in</button>
       </form>
       <p><a href="/">Back to the website</a></p>
     </div>
 
-    <div class="wrap" id="app" hidden>
-      <header class="top">
-        <a class="wordmark" href="#dashboard">Mulligan Games</a>
-        <details class="mnav" id="mnav">
-          <summary><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>Menu</summary>
-          <div id="mlinks"></div>
-        </details>
-      </header>
-      <aside class="side">
-        <div class="brand"><a class="wordmark" href="#dashboard">Mulligan Games</a><p>Store admin</p></div>
-        <nav id="links" aria-label="Admin sections"></nav>
-        <div class="tail" id="tail"></div>
+    <div class="adm-app" id="app" hidden>
+      <aside class="adm-side">
+        <a class="side-brand" href="#today" aria-label="Mulligan Games shop admin, Today"><span class="plate plate-lg"><img src="/img/logo/logo-plate-330.webp" alt="" width="330" height="102" /></span><span class="side-name">Shop admin</span></a>
+        <nav aria-label="Admin sections"><ul class="side-nav" id="links"></ul></nav>
+        <div class="side-foot">
+          <details class="acct"><summary><Icon name="users" /><span>Signed in as <span class="who"></span></span></summary>
+            <div class="acct-pop"><a href="#account"><Icon name="lock" />Change password</a><button type="button" data-signout><Icon name="door" />Sign out</button></div></details>
+          <div class="scheme" role="group" aria-label="Colour theme">
+            <span class="scheme-k" aria-hidden="true">Theme</span>
+            <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
+            <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button>
+          </div>
+        </div>
       </aside>
-      <main class="main" id="main" tabindex="-1">
-        <div class="banner" id="default-warning" hidden><span>The password is still the starter password. Please change it now.</span><a class="btn" href="#account">Change the password</a></div>
-        <section data-section="dashboard"></section>
-        <section data-section="events" hidden></section>
-        <section data-section="store" hidden></section>
-        <section data-section="security" hidden></section>
-        <section data-section="account" hidden></section>
-      </main>
+      <div class="adm-col">
+        <header class="adm-top">
+          <a href="#today" aria-label="Mulligan Games shop admin, Today"><span class="plate plate-sm"><img src="/img/logo/logo-plate-330.webp" alt="" width="330" height="102" /></span></a>
+          <p class="top-title" id="top-title">Today</p>
+          <div class="scheme top-scheme" role="group" aria-label="Colour theme">
+            <span class="scheme-k" aria-hidden="true">Theme</span>
+            <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
+            <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button>
+          </div>
+          <details class="acct"><summary aria-label="Signed in menu"><Icon name="users" /><span class="who"></span></summary>
+            <div class="acct-pop"><a href="#account"><Icon name="lock" />Change password</a><button type="button" data-signout><Icon name="door" />Sign out</button></div></details>
+        </header>
+        <main class="adm-main" id="main" tabindex="-1">
+          <div class="wrap-adm">
+            <div class="adm-warn" id="default-warning" hidden><span>The password is still the starter password. Please change it now.</span><a class="btn btn-2" href="#account">Change the password</a></div>
+            <section data-section="today"></section>
+            <section data-section="roster" hidden></section>
+            <section data-section="dashboard" hidden></section>
+            <section data-section="events" hidden></section>
+            <section data-section="store" hidden></section>
+            <section data-section="security" hidden></section>
+            <section data-section="account" hidden></section>
+          </div>
+        </main>
+      </div>
+      <nav class="adm-tabs" aria-label="Sections"><ul id="tabs"></ul></nav>
     </div>
-    <div class="toast" id="toast" role="status" hidden></div>
+
+    <dialog class="dlg" id="more" aria-labelledby="more-t">
+      <div class="dlg-in"><div class="dlg-top"><h2 id="more-t" class="dlg-h">More</h2><button type="button" class="dlg-x" data-more-close aria-label="Close"><Icon name="cancel" /></button></div>
+        <div class="dlg-body"><ul class="more-list" id="mlinks"></ul>
+          <ul class="more-list">
+            <li><a class="btn btn-2" href="#account"><Icon name="lock" />Change password</a></li>
+            <li><div class="scheme" role="group" aria-label="Colour theme"><span class="scheme-k" aria-hidden="true">Theme</span>
+              <button type="button" data-scheme="light" aria-pressed="false"><Icon name="sun" /><span>Light</span></button>
+              <button type="button" data-scheme="dark" aria-pressed="false"><Icon name="moon" /><span>Dark</span></button></div></li>
+            <li><button type="button" class="btn btn-2" data-signout><Icon name="door" />Sign out<span class="vh"> of <span class="who"></span></span></button></li>
+          </ul></div></div>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript><p class="noscript">The admin needs JavaScript.</p></noscript>
 
     <script is:inline>
       const $ = (s, r = document) => r.querySelector(s);
@@ -228,7 +99,7 @@
           else if (k === 'value' || k === 'checked') el[k] = v;
           else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
         }
-        for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+        for (const kid of kids.flat(9)) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
         return el;
       };
       // replaceChildren() does not flatten arrays (they print as "[object HTMLDivElement]"), so every redraw goes through put().
@@ -238,8 +109,11 @@
         warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>', bshield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
         pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>', plus: '<path d="M12 5v14M5 12h14"/>', back: '<path d="M15 5l-7 7 7 7"/>',
-        pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>' };
-      const ico = (n, s = 20) => { const e = h('span', { class: 'ic', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
+        pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>',
+        dots: '<circle cx="5" cy="12" r="1.75" fill="currentColor"/><circle cx="12" cy="12" r="1.75" fill="currentColor"/><circle cx="19" cy="12" r="1.75" fill="currentColor"/>', minus: '<path d="M5 12h14"/>', usera: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/>',
+        noshow: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 9l5 5M21 9l-5 5"/>', eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>', x: '<path d="m6 6 12 12M18 6 6 18"/>',
+        users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.8a3.5 3.5 0 010 6.4M18 14a6.5 6.5 0 013.5 6"/>', stats: '<path d="M5 20V10M12 20V4M19 20v-7"/>', hourglass: '<path d="M6.5 3h11M6.5 21h11M7.5 3c0 5 9 5 9 9s-9 4-9 9M16.5 3c0 5-9 5-9 9s9 4 9 9"/>', seat: '<path d="M7 11V5.5A1.5 1.5 0 018.5 4h7A1.5 1.5 0 0117 5.5V11M5 11h14v4H5zM7 15v5M17 15v5"/>' };
+      const ico = (n, s = 20) => { const e = h('span', { class: 'ico', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
       const ERR = { signed_out: 'Please sign in again.', origin: 'Reload the page and try again.', current: 'The current password is not right.', too_short: 'The new password needs at least 10 characters.',
         too_easy: 'Pick a harder password.', same: 'That is the same as the old password.', too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.' };
       const money = (n) => Number(n).toLocaleString('en-US');
@@ -250,16 +124,23 @@
       const etDay = (ms) => new Date(ms).toLocaleDateString('en-CA', ET);
       let S = null, guard = null; // server state; guard() returns a warning text while the open screen has unsaved changes
 
+      // Toast with Undo (9.1, R11): sits above the walk-in bar, stays while hovered or focused, 48px Undo, 6s.
       function toast(msg, act) {
         const t = $('#toast');
-        put(t, h('span', {}, msg), act && h('button', { type: 'button', onclick: () => { t.hidden = true; act.fn(); } }, act.label));
-        t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 6000);
+        put(t, h('span', { class: 'toast-msg' }, msg), act && h('button', { class: 'toast-btn', type: 'button', onclick: () => { t.classList.remove('on'); act.fn(); } }, act.label || 'Undo'));
+        t.classList.add('on'); toast.run();
       }
-      function ask(title, text, yes, keep = 'Keep it') {
+      toast.run = () => { clearTimeout(toast.t); toast.t = setTimeout(() => $('#toast').classList.remove('on'), 6000); };
+      { // there is no onfocusin property, so these are listeners, added once
+        const t = $('#toast'), hold = () => clearTimeout(toast.t);
+        t.addEventListener('mouseenter', hold); t.addEventListener('focusin', hold);
+        t.addEventListener('mouseleave', () => { if (!t.contains(document.activeElement)) toast.run(); }); t.addEventListener('focusout', toast.run);
+      }
+      function ask(title, text, yes, keep = 'Keep it', cls = 'btn-bad') {
         return new Promise((ok) => {
-          const no = h('button', { class: 'btn alt', type: 'button', onclick: () => d.close('no') }, keep);
+          const no = h('button', { class: 'btn btn-2', type: 'button', onclick: () => d.close('no') }, keep);
           const d = h('dialog', { class: 'ask', 'aria-labelledby': 'ask-t' }, h('h2', { id: 'ask-t' }, title), h('p', {}, text),
-            h('div', { class: 'row' }, h('button', { class: 'btn danger', type: 'button', onclick: () => d.close('yes') }, yes), no));
+            h('div', { class: 'row' }, h('button', { class: 'btn ' + cls, type: 'button', onclick: () => d.close('yes') }, yes), no));
           d.addEventListener('close', () => { d.remove(); ok(d.returnValue === 'yes'); });
           document.body.append(d); d.showModal(); no.focus();
         });
@@ -297,10 +178,27 @@
         f.password.value = '';
         start();
       });
-      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'cal'], ['store', 'Store info', 'pin'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
-      const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t)));
-      const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
+      // Sidebar (1024+), tab bar and More sheet share these. A badge (pale yellow) shows a count: setBadge('security', n).
+      const NAV = [['today', 'Today', 'clock', 'Today'], ['events', 'Events', 'cal', 'Events'], ['dashboard', 'Dashboard', 'stats', 'Dashboard'], ['store', 'Store info', 'pin', 'Store']];
+      const NAV2 = [['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
+      const BADGE_WORD = { today: 'to decide', security: 'warnings this week' };
+      const badges = {};
+      const nb = (id) => h('span', { class: 'nb', 'data-nb': id, hidden: !badges[id], 'aria-label': badges[id] ? badges[id] + ' ' + BADGE_WORD[id] : null }, badges[id] || '');
+      function setBadge(id, n) { badges[id] = n; document.querySelectorAll('[data-nb=' + id + ']').forEach((e) => { e.hidden = !n; e.textContent = n || ''; if (n) e.setAttribute('aria-label', n + ' ' + BADGE_WORD[id]); }); }
+      const sideLinks = () => [NAV.map(([id, t, i]) => h('li', {}, h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), nb(id)))), h('li', {}, h('hr')),
+        NAV2.map(([id, t, i]) => h('li', {}, h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t), nb(id)))),
+        h('li', {}, h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website', h('span', { class: 'vh' }, ' (opens in a new tab)')))];
+      const tabLinks = () => [NAV.slice(0, 4).map(([id, , i, short]) => h('li', {}, h('a', { href: '#' + id, 'data-view': id }, ico(i, 24), h('span', {}, short), nb(id)))),
+        h('li', {}, h('button', { type: 'button', onclick: () => $('#more').showModal() }, ico('dots', 24), h('span', {}, 'More')))];
+      const moreLinks = () => [h('li', {}, h('a', { class: 'btn btn-2', href: '#security' }, ico('shield'), 'Security log', nb('security'))), h('li', {}, h('a', { class: 'btn btn-2', href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'))];
       async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('[data-signout]')) signOut();
+        if (e.target.closest('[data-more-close]')) $('#more').close();
+        if (e.target.closest('#more a')) $('#more').close();
+        const a = e.target.closest('.acct-pop a'); if (a) a.closest('details').open = false;
+      });
+      $('#more').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
 
       // ---------- dashboard ----------
       let range = '30d';
@@ -357,7 +255,7 @@
         const rank = (rows, empty) => { const max = Math.max(1, ...rows.map((x) => x[1])); return rows.length ? h('ul', { class: 'rank' }, rows.map(([name, n]) => h('li', {}, h('span', { class: 'bg', style: `width:${(n / max) * 100}%` }, ''), h('span', { class: 'nm' }, name), h('span', { class: 'ct' }, money(n))))) : h('p', { class: 'meta' }, empty); };
         const secCard = h('div', { class: 'card' });
         put(sec, h('div', { class: 'head' }, h('h1', {}, 'Dashboard'),
-            h('div', { class: 'seg', role: 'group', 'aria-label': 'Time range' }, RANGES.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === d.range), onclick: () => { range = k; renderDashboard(); } }, t)))),
+            h('div', { class: 'seg', role: 'group', 'aria-label': 'Time range' }, RANGES.map(([k, t]) => h('button', { class: 'btn btn-2', type: 'button', 'aria-pressed': String(k === d.range), onclick: () => { range = k; renderDashboard(); } }, t)))),
           h('div', { class: 'tiles' }, tile('Visitors', d.visitors, d.prev.visitors), tile('Page views', d.views, d.prev.views)),
           h('div', { class: 'card' }, h('h2', {}, head), holder, h('p', { class: 'meta' }, sentence), h('p', { class: 'meta' }, 'Counted without cookies. Your own visits while signed in are not counted.')),
           h('div', { class: 'two' }, h('div', { class: 'card' }, h('h2', {}, 'Most viewed pages'), rank(merge(d.pages, (p) => pageName(p.path)), 'No page visits counted yet.')),
@@ -366,8 +264,8 @@
         const sr = await api('GET', 'admin/security');
         if (sr.ok) {
           const n = sr.data.events.filter((e) => e.at > Date.now() - 7 * 864e5 && ['warn', 'bad'].includes(evInfo(e).kind)).length;
-          put(secCard, h('h2', {}, 'Security'), h('p', {}, n ? h('span', { class: 'chip warn' }, `${plural(n, 'warning', 'warnings')} in the last 7 days`) : h('span', { class: 'chip ok' }, 'All quiet in the last 7 days')),
-            h('a', { class: 'btn alt', href: '#security' }, 'Open the security log'));
+          put(secCard, h('h2', {}, 'Security'), h('p', {}, n ? h('span', { class: 'tag tag-warn' }, `${plural(n, 'warning', 'warnings')} in the last 7 days`) : h('span', { class: 'tag tag-ok' }, 'All quiet in the last 7 days')),
+            h('a', { class: 'btn btn-2', href: '#security' }, 'Open the security log'));
         }
       }
 
@@ -401,11 +299,11 @@
         for (const x of rows) { const day = etDay(x.e.at); if (days.at(-1)?.day !== day) days.push({ day, rows: [] }); days.at(-1).rows.push(x); }
         const dayName = (day) => (day === etDay(now) ? 'Today' : day === etDay(now - 864e5) ? 'Yesterday' : UTC(day, { weekday: 'long', month: 'long', day: 'numeric' }));
         put(sec, h('h1', {}, 'Security log'), h('p', {}, 'Sign-ins, lockouts, password changes and every change made in this admin. Kept automatically; nothing here can be edited.'),
-          h('div', { class: 'seg', role: 'group', 'aria-label': 'Show', style: 'margin-bottom:1.25rem' }, FILTERS.map(([k, t]) => h('button', { class: 'btn alt', type: 'button', 'aria-pressed': String(k === secFilter), onclick: () => { secFilter = k; secShown = 50; drawSecurity(); } }, t))),
-          days.length ? [days.map(({ day, rows: rs }) => [h('h2', {}, dayName(day)), h('div', { class: 'card' }, rs.map((x) => h('div', { class: 'ev' }, h('span', { class: 'evi ' + x.kind }, ico(x.icon)),
+          h('div', { class: 'seg', role: 'group', 'aria-label': 'Show', style: 'margin-bottom:1.25rem' }, FILTERS.map(([k, t]) => h('button', { class: 'btn btn-2', type: 'button', 'aria-pressed': String(k === secFilter), onclick: () => { secFilter = k; secShown = 50; drawSecurity(); } }, t))),
+          days.length ? [days.map(({ day, rows: rs }) => [h('h2', {}, dayName(day)), h('div', { class: 'card' }, rs.map((x) => h('div', { class: 'lg' }, h('span', { class: 'evi ' + x.kind }, ico(x.icon)),
             h('div', {}, h('div', {}, h('strong', {}, x.name), x.detail && ' · ' + x.detail), h('div', { class: 'meta' }, new Date(x.e.at).toLocaleTimeString('en-US', { ...ET, hour: 'numeric', minute: '2-digit' }) + (x.who ? ' · ' + x.who : '')),
               x.ip && h('details', {}, h('summary', {}, 'More'), h('div', { class: 'meta' }, x.ip === 'This computer' ? 'This computer' : 'Internet address: ' + x.ip))))))]),
-            all.length > secShown && h('button', { class: 'btn alt', type: 'button', onclick: () => { secShown += 50; drawSecurity(); } }, 'Show older entries')]
+            all.length > secShown && h('button', { class: 'btn btn-2', type: 'button', onclick: () => { secShown += 50; drawSecurity(); } }, 'Show older entries')]
             : h('div', { class: 'card' }, h('p', { class: 'big' }, secEvents.length ? (secFilter === 'warn' ? 'No warnings in the log. All quiet.' : 'Nothing of that kind in the log.') : 'Nothing logged yet.')));
       }
 
@@ -417,7 +315,7 @@
         const pw = (id, label, name, auto, x) => fld(id, label, h('input', { type: 'password', name, autocomplete: auto }), x);
         const form = h('form', { class: 'card', novalidate: true }, h('h2', {}, 'Change the password'),
           pw('pw-c', 'Current password', 'current', 'current-password'), pw('pw-n', 'New password', 'password', 'new-password', { hint: 'At least 10 characters. A short sentence is easy to remember.' }), pw('pw-a', 'New password again', 'again', 'new-password'),
-          err, h('button', { class: 'btn', type: 'submit' }, 'Change password'));
+          err, h('button', { class: 'btn btn-act', type: 'submit' }, 'Change password'));
         form.addEventListener('submit', async (e) => {
           e.preventDefault(); err.hidden = true;
           if (form.password.value !== form.again.value) { markErr(form.again, 'The two new passwords are not the same.'); return; }
@@ -486,10 +384,10 @@
         const rows = () => {
           const up = (s) => EV.upcoming[s.id] || [], all = EV.series.filter(evMatch), coming = all.filter((s) => up(s).length), past = all.filter((s) => !up(s).length);
           put(holder, all.length ? [coming.length > 0 && [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, coming.map(seriesRow))], !coming.length && h('div', { class: 'card' }, h('p', { class: 'meta' }, 'Nothing is coming up.')),
-            past.length > 0 && h('details', { class: 'card' }, h('summary', {}, 'Already happened ', h('span', { class: 'chip' }, past.length)), past.map(seriesRow))]
-            : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No events match.'), h('p', {}, 'Try another game or clear the search.'), h('button', { class: 'btn alt', type: 'button', onclick: () => { evGame = 'all'; evQ = ''; drawEvList(); } }, 'Show every event')));
+            past.length > 0 && h('details', { class: 'card' }, h('summary', {}, 'Already happened ', h('span', { class: 'tag' }, past.length)), past.map(seriesRow))]
+            : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No events match.'), h('p', {}, 'Try another game or clear the search.'), h('button', { class: 'btn btn-2', type: 'button', onclick: () => { evGame = 'all'; evQ = ''; drawEvList(); } }, 'Show every event')));
         };
-        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Events'), h('button', { class: 'btn', type: 'button', onclick: drawNew }, ico('plus'), 'New event')),
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Events'), h('button', { class: 'btn btn-act', type: 'button', onclick: drawNew }, ico('plus'), 'New event')),
           EV.series.length ? [h('div', { class: 'gchips', role: 'group', 'aria-label': 'Show one game' }, chip('all', 'All games', EV.series.length), EV.games.filter((g) => g.shown !== false).map((g) => chip(g.id, g.short, EV.series.filter((s) => s.game === g.id).length))),
             h('div', { class: 'fld wide' }, h('label', { for: 'ev-q' }, 'Search events'), q), holder]
             : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No events yet.'), h('p', {}, 'Choose New event to make the first one.')));
@@ -497,27 +395,27 @@
       }
       function seriesRow(s) {
         const dates = EV.upcoming[s.id] || [], next = dates.find((o) => !o.cancelled);
-        const d = h('details', { class: 'srow', 'data-sid': s.id, style: `--gc:${gcolor(s.game)}` }, h('summary', {}, h('div', { class: 'sum' }, h('div', {}, h('strong', {}, s.title), ' ', h('span', { class: 'chip' }, gameShort(s.game)), s.enabled === false && h('span', { class: 'chip warn' }, 'Hidden from the website')),
+        const d = h('details', { class: 'srow', 'data-sid': s.id, style: `--gc:${gcolor(s.game)}` }, h('summary', {}, h('div', { class: 'sum' }, h('div', {}, h('strong', {}, s.title), ' ', h('span', { class: 'tag' }, gameShort(s.game)), s.enabled === false && h('span', { class: 'tag tag-warn' }, 'Hidden from the website')),
           h('div', { class: 'meta' }, [repeatWords(s), feeWords(s.fee), s.capacity ? s.capacity + ' seats' : 'No seat limit', cap1(SIGNUP_WORDS[s.signup] || '')].filter(Boolean).join(' · ')),
           next && h('div', { class: 'meta' }, `Next: ${wd(next.date)}${next.start ? ', ' + T12(next.start) : ''}`))),
           h('div', { class: 'sbody' }, h('h3', {}, 'Next dates'), dates.length ? h('ul', { class: 'dates' }, dates.map((o) => dateRow(s, o))) : h('p', { class: 'meta' }, 'No dates coming up.'),
-            h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => openEditor(s, false) }, ico('pencil', 18), 'Edit event'),
-              h('button', { class: 'btn alt', type: 'button', onclick: () => setShown(s) }, s.enabled === false ? 'Show on the website' : 'Hide from the website'),
-              h('button', { class: 'btn danger', type: 'button', onclick: () => deleteSeries(s) }, ico('bin', 18), 'Delete'))));
+            h('div', { class: 'row' }, h('button', { class: 'btn btn-act', type: 'button', onclick: () => openEditor(s, false) }, ico('pencil', 18), 'Edit event'),
+              h('button', { class: 'btn btn-2', type: 'button', onclick: () => setShown(s) }, s.enabled === false ? 'Show on the website' : 'Hide from the website'),
+              h('button', { class: 'btn btn-bad', type: 'button', onclick: () => deleteSeries(s) }, ico('bin', 18), 'Delete'))));
         d.open = openSeries.has(s.id);
         d.addEventListener('toggle', () => (d.open ? openSeries.add(s.id) : openSeries.delete(s.id)));
         return d;
       }
       function dateRow(s, o) {
-        const label = `${s.title}, ${md(o.date)}`, sm = (cls, ...k) => h('button', { class: 'btn alt sm ' + cls, type: 'button' }, ...k);
+        const label = `${s.title}, ${md(o.date)}`, sm = (cls, ...k) => h('button', { class: 'btn btn-2 btn-sm ' + cls, type: 'button' }, ...k);
         const copy = sm('copy', ico('copy', 18), h('span', { class: 'lbl' }, 'Copy post text'), h('span', { class: 'vh' }, ' for ' + label));
         copy.addEventListener('click', () => copyPost(s, o, copy));
         const change = sm('', 'Change this date', h('span', { class: 'vh' }, ' for ' + label)), cancel = sm('', 'Cancel this date', h('span', { class: 'vh' }, ' for ' + label)), back = sm('', 'Bring it back', h('span', { class: 'vh' }, ' for ' + label));
         change.addEventListener('click', () => changeDialog(s, o, change)); cancel.addEventListener('click', () => cancelDate(s, o)); back.addEventListener('click', () => bringBack(s, o, false));
         return h('li', { class: 'drow' }, h('div', { class: 'dwhen' }, h('strong', {}, wd(o.date)), o.start && ' · ' + T12(o.start), o.end && o.start && ' to ' + T12(o.end), ' ',
-          o.cancelled && h('span', { class: 'chip bad' }, 'Cancelled'), o.moved && h('span', { class: 'chip edit' }, 'Moved from ' + wd(o.originalDate)), o.changed && !o.moved && h('span', { class: 'chip edit' }, 'Changed'),
+          o.cancelled && h('span', { class: 'tag tag-bad' }, 'Cancelled'), o.moved && h('span', { class: 'tag tag-upd' }, 'Moved from ' + wd(o.originalDate)), o.changed && !o.moved && h('span', { class: 'tag tag-upd' }, 'Changed'),
           o.note && h('div', { class: 'meta' }, o.note)),
-          h('div', { class: 'row dact' }, h('span', { class: 'btn alt sm off', 'aria-disabled': 'true', title: 'The roster comes with sign-ups' }, 'Roster (soon)'), copy, o.cancelled ? back : [change, cancel]));
+          h('div', { class: 'row dact' }, h('a', { class: 'btn btn-2 btn-sm', href: `#roster/${enc(s.id)}/${enc(o.slot)}` }, 'Roster', h('span', { class: 'vh' }, ' for ' + label)), copy, o.cancelled ? back : [change, cancel]));
       }
       async function setShown(s) {
         const on = s.enabled === false, r = await api('PUT', 'admin/series/' + enc(s.id), { ...s, enabled: on });
@@ -535,7 +433,7 @@
       function showCopy(text, opener) {
         const ta = h('textarea', { readonly: true, rows: 8, 'aria-labelledby': 'cp-t', 'aria-describedby': 'cp-h', value: text });
         const d = h('dialog', { class: 'ask', 'aria-labelledby': 'cp-t' }, h('h2', { id: 'cp-t' }, 'Copy this text'), ta, h('p', { class: 'hint', id: 'cp-h' }, 'Press and hold the text, then Copy. On a keyboard: Ctrl+C.'),
-          h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => d.close() }, 'Done')));
+          h('div', { class: 'row' }, h('button', { class: 'btn btn-act', type: 'button', onclick: () => d.close() }, 'Done')));
         d.addEventListener('close', () => { d.remove(); opener?.focus(); });
         document.body.append(d); d.showModal(); ta.focus(); ta.select();
       }
@@ -571,8 +469,8 @@
         const form = h('form', { novalidate: true }, h('h2', { id: 'ch-t' }, `Change ${wd(o.date)}`), h('p', { class: 'meta' }, 'Only this date changes. The rest of the series stays as it is.'),
           f('c-start', 'Starts', start), f('c-cap', 'Seats', cap, { hint: 'Leave empty for no limit.' }), f('c-to', 'Move it to', to, { hint: 'At most 60 days away.' }),
           fld('c-note', 'Note for players', note, { optional: true, hint: 'Shows on the website as a Changed tag.' }), err,
-          h('div', { class: 'row' }, h('button', { class: 'btn', type: 'submit' }, 'Save change'), h('button', { class: 'btn alt', type: 'button', onclick: () => d.close() }, 'Cancel'),
-            (o.changed || o.moved) && h('button', { class: 'btn danger', type: 'button', onclick: async () => { d.close(); await bringBack(s, o, true); } }, 'Put back to normal')));
+          h('div', { class: 'row' }, h('button', { class: 'btn btn-act', type: 'submit' }, 'Save change'), h('button', { class: 'btn btn-2', type: 'button', onclick: () => d.close() }, 'Cancel'),
+            (o.changed || o.moved) && h('button', { class: 'btn btn-bad', type: 'button', onclick: async () => { d.close(); await bringBack(s, o, true); } }, 'Put back to normal')));
         const d = h('dialog', { class: 'ask wide', 'aria-labelledby': 'ch-t' }, form);
         d.addEventListener('close', () => { d.remove(); opener?.isConnected && opener.focus(); });
         form.addEventListener('submit', async (e) => {
@@ -598,15 +496,15 @@
       // ----- new event: game, then template -----
       function drawNew() {
         guard = null;
-        const sec = $('[data-section=events]'), back = (fn) => h('button', { class: 'btn alt', type: 'button', onclick: fn }, ico('back', 18), fn === drawEvList ? 'Back to the list' : 'Pick another game');
+        const sec = $('[data-section=events]'), back = (fn) => h('button', { class: 'btn btn-2', type: 'button', onclick: fn }, ico('back', 18), fn === drawEvList ? 'Back to the list' : 'Pick another game');
         const step1 = () => put(sec, back(drawEvList), h('h1', {}, 'New event'), h('h2', {}, 'What game?'),
           h('div', { class: 'gtiles' }, EV.games.map((g) => h('button', { class: 'gtile', type: 'button', onclick: () => step2(g) }, h('strong', {}, g.short), h('span', { class: 'meta' }, g.name)))));
         const step2 = (g) => {
           const list = [...EV.templates.yours.filter((t) => t.game === g.id).map((t) => ({ ...t, yours: true })), ...EV.templates.builtin.filter((t) => t.game === g.id)];
           put(sec, back(step1), h('h1', {}, 'New event'), h('h2', {}, `What kind of event? (${g.short})`),
             h('div', { class: 'tpls' }, list.map((t) => h('div', { class: 'tplrow' }, h('button', { class: 'tpl', type: 'button', onclick: () => openEditor(fromTemplate(t), true, t.name) },
-              h('strong', {}, t.name), t.yours && h('span', { class: 'chip ok' }, 'Yours'), h('span', { class: 'meta' }, tplWords(t.fields))),
-              t.yours && h('button', { class: 'btn danger sm', type: 'button', onclick: () => dropTemplate(t, g, step2) }, ico('bin', 18), 'Delete', h('span', { class: 'vh' }, ' the template ' + t.name)))),
+              h('strong', {}, t.name), t.yours && h('span', { class: 'tag tag-ok' }, 'Yours'), h('span', { class: 'meta' }, tplWords(t.fields))),
+              t.yours && h('button', { class: 'btn btn-bad btn-sm', type: 'button', onclick: () => dropTemplate(t, g, step2) }, ico('bin', 18), 'Delete', h('span', { class: 'vh' }, ' the template ' + t.name)))),
               h('button', { class: 'tpl', type: 'button', onclick: () => openEditor({ game: g.id, kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', signup: 'walkin', enabled: true }, true) }, h('strong', {}, 'Start blank'), h('span', { class: 'meta' }, 'Empty form, every field yours.'))));
         };
         step1();
@@ -627,14 +525,14 @@
       // ----- the editor (DESIGN.md 9.3, 15.2) -----
       function openEditor(v, isNew, tplName) {
         const sec = $('[data-section=events]'), E = editorForm(v, isNew);
-        const base = JSON.stringify(E.read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn alt', type: 'button' }, 'Cancel');
+        const base = JSON.stringify(E.read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn btn-2', type: 'button' }, 'Cancel');
         let dirty = false;
         const upd = () => { E.sync(); PV.draw(); dirty = JSON.stringify(E.read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
         const close = () => { guard = null; drawEvList(); };
         discard.addEventListener('click', close);
         E.form.addEventListener('input', upd); E.form.addEventListener('change', upd); E.form.addEventListener('dates', upd);
         const PV = previewPane(E);
-        const tplBtn = h('button', { class: 'btn alt', type: 'button' }, 'Save as a template');
+        const tplBtn = h('button', { class: 'btn btn-2', type: 'button' }, 'Save as a template');
         tplBtn.addEventListener('click', () => saveTemplate(E, tplBtn));
         E.form.addEventListener('submit', async (e) => {
           e.preventDefault(); E.clearAll();
@@ -649,8 +547,8 @@
           if (!r.ok) { if (r.status === 422) E.showErrors(r.data.errors); else toast(say(r)); return; }
           guard = null; openSeries.add(r.data.series.id); await refresh(); toast('Saved.');
         });
-        E.form.append(h('div', { class: 'savebar' }, msg, discard, tplBtn, h('button', { class: 'btn', type: 'submit' }, 'Save event')));
-        put(sec, h('button', { class: 'btn alt', type: 'button', onclick: async () => { if (await leave()) close(); } }, ico('back', 18), 'Back to the list'),
+        E.form.append(h('div', { class: 'savebar' }, msg, discard, tplBtn, h('button', { class: 'btn btn-act', type: 'submit' }, 'Save event')));
+        put(sec, h('button', { class: 'btn btn-2', type: 'button', onclick: async () => { if (await leave()) close(); } }, ico('back', 18), 'Back to the list'),
           h('h1', {}, isNew ? 'New event' : 'Edit event'), tplName && h('p', { class: 'say' }, `Filled in from the template "${tplName}". Change anything you like.`), h('div', { class: 'ewrap' }, E.form, PV.box));
         E.sync();
         guard = () => dirty && 'What you typed has not been saved.';
@@ -713,7 +611,7 @@
         const name = h('input', { type: 'text', name: 'tname', maxlength: 60, value: E.form.elements.title.value.trim() }), err = h('p', { class: 'err', role: 'alert', hidden: true });
         const form = h('form', { novalidate: true }, h('h2', { id: 'tp-t' }, 'Save as a template'),
           h('p', { class: 'meta' }, 'Keeps everything except the dates. Next time, pick it under New event.'), fld('t-name', 'Template name', name), err,
-          h('div', { class: 'row' }, h('button', { class: 'btn', type: 'submit' }, 'Save template'), h('button', { class: 'btn alt', type: 'button', onclick: () => d.close() }, 'Cancel')));
+          h('div', { class: 'row' }, h('button', { class: 'btn btn-act', type: 'submit' }, 'Save template'), h('button', { class: 'btn btn-2', type: 'button', onclick: () => d.close() }, 'Cancel')));
         const d = h('dialog', { class: 'ask', 'aria-labelledby': 'tp-t' }, form);
         d.addEventListener('close', () => { d.remove(); opener.focus(); });
         form.addEventListener('submit', async (e) => {
@@ -751,7 +649,7 @@
         const drows = h('div', { class: 'date-rows' }), say1 = h('p', { class: 'say', 'aria-live': 'polite' }), hold = h('p', { class: 'say', 'aria-live': 'polite' });
         const addRow = (d = {}) => {
           const row = h('div', { class: 'drw' }, fld('', 'Day', h('input', { type: 'date', name: 'd-date', value: d.date || '' }), { half: true }), fld('', 'Starts', h('input', { type: 'time', name: 'd-start', value: d.start || '' }), { half: true }),
-            h('button', { class: 'btn alt sm', type: 'button', 'aria-label': 'Remove this date', onclick: () => { row.remove(); form.dispatchEvent(new Event('dates')); } }, ico('bin', 18)));
+            h('button', { class: 'btn btn-2 btn-sm', type: 'button', 'aria-label': 'Remove this date', onclick: () => { row.remove(); form.dispatchEvent(new Event('dates')); } }, ico('bin', 18)));
           $$('input', row).forEach((i) => i.removeAttribute('id')); drows.append(row);
         };
         const $$ = (s, r) => [...r.querySelectorAll(s)];
@@ -762,7 +660,7 @@
         W.day = fld('f-day', 'On', sel('day', DAYN.map((d, i) => [i, d]), rec.day ?? 5), { half: true });
         W.nth = fld('f-nth', 'Which one', sel('nth', [1, 2, 3, 4, 5, -1].map((n) => [n, NTHW[n]]), rec.nth ?? 1), { half: true });
         W.until = fld('f-until', 'Last date', inp('until', rec.until, { type: 'date' }), { half: true, optional: true, hint: 'Leave empty for never.' });
-        W.dates = h('div', { class: 'wide' }, drows, h('button', { class: 'btn alt sm', type: 'button', onclick: () => { addRow(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a date'));
+        W.dates = h('div', { class: 'wide' }, drows, h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: () => { addRow(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a date'));
         W.start = fld('f-start', 'Starts', inp('start', v.start, { type: 'time' }), { half: true });
         W.waitlist = chk('waitlist', 'Waitlist when full. The next person moves in automatically when a seat opens.', v.waitlist);
         W.cutoff = fld('f-cutoff', 'Sign-ups close', sel('cutoff', [['start', 'At the start time'], ['before', 'Hours before the start']], v.cutoff || 'start'), { half: true });
@@ -869,15 +767,15 @@
         const set = (n) => { hid.value = n; drawPv(); hid.dispatchEvent(new Event('change', { bubbles: true })); };
         const fail = (m) => { perr.textContent = m; perr.hidden = false; };
         const drawPv = () => put(pv, hid.value ? h('img', { class: 'pimg', src: thumb(hid.value), alt: 'The picture now chosen' }) : h('div', { class: 'pimg none' }, 'No picture'),
-          h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', onclick: () => { grid(); panel.hidden = false; } }, hid.value ? 'Change picture' : 'Add a picture'),
-            hid.value && h('button', { class: 'btn danger', type: 'button', onclick: () => set('') }, 'Remove picture')));
+          h('div', { class: 'row' }, h('button', { class: 'btn btn-2', type: 'button', onclick: () => { grid(); panel.hidden = false; } }, hid.value ? 'Change picture' : 'Add a picture'),
+            hid.value && h('button', { class: 'btn btn-bad', type: 'button', onclick: () => set('') }, 'Remove picture')));
         function grid() {
           perr.hidden = true;
           put(panel, h('div', { class: 'photo-grid' },
             h('label', { class: 'pick up' }, h('input', { type: 'file', class: 'vh', accept: 'image/jpeg,image/png,image/webp', onchange: (e) => choose(e.target.files[0]) }), ico('upload', 28), h('span', {}, 'Upload a new picture')),
             ST.photos.map((p, i) => h('label', { class: 'pick' }, h('input', { type: 'radio', class: 'vh', name: 'pick', value: p.name, checked: p.name === hid.value, 'aria-label': `Picture ${i + 1} of ${ST.photos.length}`, onchange: () => set(p.name) }),
               h('img', { src: '/media/photos/' + p.thumb, alt: '', loading: 'lazy' }), h('span', { class: 'chosen' }, ico('check', 14), 'Chosen')))),
-            perr, h('button', { class: 'btn alt', type: 'button', onclick: () => (panel.hidden = true) }, 'Done'));
+            perr, h('button', { class: 'btn btn-2', type: 'button', onclick: () => (panel.hidden = true) }, 'Done'));
         }
         async function choose(file) {
           if (!file) return;
@@ -888,12 +786,12 @@
           const crop = (w) => { // centre-crop to 4:3, then scale; re-encoding drops EXIF, including the location
             const cw = Math.min(bmp.width, (bmp.height * 4) / 3), ch = (cw * 3) / 4, c = h('canvas', { width: w, height: (w * 3) / 4 });
             c.getContext('2d').drawImage(bmp, (bmp.width - cw) / 2, (bmp.height - ch) / 2, cw, ch, 0, 0, c.width, c.height);
-            const w = c.toDataURL('image/webp', 0.82);
-            return w.startsWith('data:image/webp') ? w : c.toDataURL('image/jpeg', 0.85); // Safari (every iPhone and iPad browser) cannot make WebP: JPEG goes up and the server turns it into WebP
+            const url = c.toDataURL('image/webp', 0.82);
+            return url.startsWith('data:image/webp') ? url : c.toDataURL('image/jpeg', 0.85); // Safari (every iPhone and iPad browser) cannot make WebP: JPEG goes up and the server turns it into WebP
           };
           const big = crop(1024), small = crop(800);
           if (!small.startsWith('data:image/')) return fail(ERR.file_type);
-          const go = h('button', { class: 'btn', type: 'button' }, 'Use this picture');
+          const go = h('button', { class: 'btn btn-act', type: 'button' }, 'Use this picture');
           go.addEventListener('click', async () => {
             go.disabled = true; go.textContent = 'Saving the picture…';
             const r = await api('POST', 'admin/photos', { big, small });
@@ -902,7 +800,7 @@
           });
           put(panel, h('div', { class: 'preview' }, h('img', { src: small, alt: 'Preview of the new picture' }), bmp.width < 800 && h('p', { class: 'meta' }, 'This picture is small and may look soft.'),
             h('p', { class: 'meta' }, "The picture is trimmed to the website's shape. If something important is cut off, try a different photo."), perr,
-            h('div', { class: 'row' }, go, h('button', { class: 'btn alt', type: 'button', onclick: grid }, 'Choose a different one'))));
+            h('div', { class: 'row' }, go, h('button', { class: 'btn btn-2', type: 'button', onclick: grid }, 'Choose a different one'))));
         }
         drawPv();
         return h('div', { class: 'fld wide' }, h('p', { class: 'lbl' }, 'Room photo', h('span', { class: 'opt' }, 'Optional')), h('span', { class: 'hint' }, 'Shows next to the opening hours on the front page.'), hid, pv, panel, h('p', { class: 'ferr', role: 'alert', hidden: true }));
@@ -943,7 +841,7 @@
           const date = h('input', { type: 'date', name: 'o-date', value: o.date || '' }), closed = h('input', { type: 'checkbox', name: 'o-closed', checked: o.date ? !!o.closed || !o.open : true }),
             open = h('input', { type: 'time', name: 'o-open', value: o.open || '' }), close = h('input', { type: 'time', name: 'o-close', value: o.close === '24:00' ? '00:00' : o.close || '' }),
             note = h('input', { type: 'text', name: 'o-note', maxlength: 120, value: o.note || '', placeholder: 'Closed for Thanksgiving' });
-          const rm = h('button', { class: 'btn alt sm', type: 'button', onclick: () => { row.remove(); form.dispatchEvent(new Event('dates')); } }, ico('bin', 18), 'Remove', h('span', { class: 'vh' }, ' this special day'));
+          const rm = h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: () => { row.remove(); form.dispatchEvent(new Event('dates')); } }, ico('bin', 18), 'Remove', h('span', { class: 'vh' }, ' this special day'));
           const row = h('div', { class: 'fld orow' }, h('label', { class: 'tl' }, 'Date', date), h('label', { class: 'check hclosed' }, closed, h('span', {}, 'Closed')), rm,
             h('label', { class: 'tl' }, 'Opens', open), h('label', { class: 'tl' }, 'Closes', close), h('label', { class: 'tl onote' }, 'Note shown on the website', note), h('p', { class: 'ferr', role: 'alert', hidden: true }));
           const sync = () => { open.parentElement.hidden = close.parentElement.hidden = closed.checked; };
@@ -964,7 +862,7 @@
         put(form, h('div', { class: 'errsum', role: 'alert', tabindex: '-1', hidden: true }),
           group('Opening hours', hoursFld, unsetSay, hoursBox),
           group('Holidays and special days', h('p', { class: 'meta wide' }, 'These replace the usual hours for that one date. Closed days show on the website with your note.'), orows, ovEmpty,
-            h('div', { class: 'wide' }, h('button', { class: 'btn alt sm', type: 'button', onclick: () => { addOv(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a special day'))),
+            h('div', { class: 'wide' }, h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: () => { addOv(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a special day'))),
           group('Where and how to reach you', L('s-street', 'Street address', 'address.street', v.address?.street, { auto: 'street-address' }), L('s-city', 'Town', 'address.city', v.address?.city, { half: true }),
             L('s-region', 'State', 'address.region', v.address?.region, { half: true, max: 2, ph: 'PA' }), L('s-zip', 'ZIP code', 'address.zip', v.address?.zip, { half: true, mode: 'numeric', max: 10 }),
             L('s-phone', 'Phone', 'phone', v.phone, { half: true, type: 'tel', ph: '(215) 555-0100', auto: 'tel' }), L('s-email', 'Email', 'email', v.email, { half: true, optional: true, type: 'email', max: 120 })),
@@ -1005,7 +903,7 @@
           sum().hidden = false; sum().scrollIntoView({ block: 'center' }); sum().focus();
         }
 
-        const base = JSON.stringify(read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn alt', type: 'button' }, 'Cancel');
+        const base = JSON.stringify(read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn btn-2', type: 'button' }, 'Cancel');
         let dirty = false;
         const upd = () => { showAlt(); noteOv(); dirty = JSON.stringify(read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
         discard.addEventListener('click', () => { guard = null; drawStore(); });
@@ -1016,30 +914,254 @@
           if (!r.ok) { if (r.status === 422) showErrors(r.data.errors); else toast(say(r)); return; }
           guard = null; ST.store = r.data.store; drawStore(); toast('Saved. The website shows it now.');
         });
-        form.append(h('div', { class: 'savebar' }, msg, discard, h('button', { class: 'btn', type: 'submit' }, 'Save store info')));
+        form.append(h('div', { class: 'savebar' }, msg, discard, h('button', { class: 'btn btn-act', type: 'submit' }, 'Save store info')));
         put(sec, h('div', { class: 'head' }, h('h1', {}, 'Store info')), h('p', {}, 'Hours, address, links and notes. Saving updates the opening-hours strip, the hours table, the footer, Google data and the calendar location at once.'), form);
         noteOv();
         guard = () => dirty && 'What you typed has not been saved.';
       }
 
+      // ---------- Today and the roster (P2.4b; DESIGN 9.2, 9.4, 15.7). D20: every name goes in with textContent, never innerHTML ----------
+      const PAY = [['unpaid', 'Unpaid', 'Not paid'], ['door', 'Door', 'At the door'], ['online', 'Online', 'Paid online elsewhere'], ['comped', 'Comped', 'Comped'], ['credit', 'Credit', 'Store credit']];
+      const PAYFULL = Object.fromEntries(PAY.map(([k, , f]) => [k, f]));
+      const RERR = { state: 'That had already changed. The list is up to date now.', expired: 'Too late to undo that (5 minutes).', dup: 'They signed up again, so the Undo was refused.', full: 'The event is full.', nosignup: 'This event does not take names here.', rate: 'Too many changes at once. Wait a little.', bad_input: 'That was not understood.' };
+      const stamp = (ms) => new Date(ms).toLocaleString('en-US', { ...ET, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const etNow = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { ...ET, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value])); return { day: `${p.year}-${p.month}-${p.day}`, m: +p.hour * 60 + +p.minute }; };
+      const reached = (ev, t) => { const n = etNow(); return !!t && (n.day > ev.date || (n.day === ev.date && n.m >= mins(t))); };
+      // ponytail: "Run it" is remembered on this device only (a second counter device still sees the warning); move to the server if owners use two devices.
+      const runKey = (ev) => `mg-run:${ev.id}:${ev.slot}`;
+      const ranIt = (ev) => { try { return !!localStorage.getItem(runKey(ev)); } catch { return false; } };
+      /** R19: the date has started with fewer players than its minimum, and nobody said "Run it" yet. */
+      const underMin = (ev, c) => ev.signup !== 'walkin' && ev.signup !== 'external' && !ev.cancelled && ev.minPlayers && ev.date === etNow().day && reached(ev, ev.start) && c.in < ev.minPlayers && !ranIt(ev);
+      let pollT;
+      const stopToday = () => clearInterval(pollT);
+      const cNames = (ids, regs) => ids.map((id) => regs.find((r) => r.id === id)?.name).filter(Boolean);
+      const phoneLink = (p) => (p.replace(/\D/g, '').length >= 7 ? h('a', { href: 'tel:' + p.replace(/\D/g, '') }, p) : p);
+      const mailLink = (m) => h('a', { href: 'mailto:' + m }, m);
+
+      /** One date's roster in `host`. opts: page (shows a back link), onLoad(data) after every load or change. Returns { load }. */
+      function mountRoster(host, sid, slot, opts = {}) {
+        const st = { d: null, q: '', notHere: false, walk: '', shown: new Set(), flash: new Set() };
+        const path = (p = '') => `admin/roster/${enc(sid)}/${enc(slot)}${p}`;
+        async function load(quiet) {
+          const r = await api('GET', path());
+          if (!r.ok) { if (!quiet) put(host, h('div', { class: 'card' }, h('p', { class: 'big' }, 'The roster did not load.'), h('button', { class: 'btn btn-2', type: 'button', onclick: () => load() }, 'Try again'))); return false; }
+          st.d = r.data; draw(); opts.onLoad?.(r.data); return true;
+        }
+        /** POST one change. Good: the reply is the whole roster again. Bad: say why and reload (the codes in `soft` are left to the caller). */
+        async function act(p, body, soft = []) {
+          const r = await api('POST', path(p), body || {});
+          if (r.ok) { st.d = r.data; draw(); opts.onLoad?.(r.data); return r; }
+          if (!soft.includes(r.data.error) && r.status !== 401) { toast(RERR[r.data.error] || say(r)); load(true); }
+          return r;
+        }
+        const promoted = (r) => { const ids = r.data.result?.promoted || []; ids.forEach((id) => st.flash.add(id)); return cNames(ids, st.d.regs); };
+        const full = () => !!st.d.event.capacity && st.d.counts.in >= st.d.event.capacity;
+        const seats = () => `${st.d.counts.in + 1} of ${st.d.event.capacity}`;
+
+        const checkIn = async (r, on) => { const x = await act(`/${r.id}/checkin`, { on }); if (x.ok) toast(`${r.name} ${on ? 'checked in' : 'is not checked in'}.`, { fn: () => checkIn(r, !on) }); };
+        const setPay = async (r, p, back) => { const x = await act(`/${r.id}/payment`, { payment: p }); if (x.ok) toast(`${r.name}: ${PAYFULL[p]}.`, back ? undefined : { fn: () => setPay(r, r.payment, true) }); };
+        async function noShow(r) {
+          const x = await act(`/${r.id}/noshow`, {}); if (!x.ok) return;
+          const n = promoted(x); draw();
+          toast(`${r.name} marked no-show. ${n.length ? n.join(', ') + ' moved in from the waitlist: call their name.' : st.d.event.capacity && st.d.counts.in < st.d.event.capacity ? '1 seat open for a walk-in.' : ''}`.trim(), { fn: async () => { const u = await act(`/${r.id}/noshow`, { on: false }); if (u.ok) toast(`${r.name} is signed up again.${u.data.result.over ? ' The count reads ' + st.d.counts.in + ' of ' + st.d.event.capacity + '.' : ''}`); } });
+        }
+        async function cancelReg(r) {
+          const x = await act(`/${r.id}/cancel`, {}); if (!x.ok) return;
+          const n = promoted(x); draw();
+          toast(`${r.name} cancelled.${n.length ? ' ' + n.join(', ') + ' moved in from the waitlist.' : ''}`, { fn: () => undoCancel(r) });
+        }
+        async function undoCancel(r) { const u = await act(`/${r.id}/cancel`, { undo: true }); if (u.ok) toast(`${r.name} is signed up again${u.data.result.status === 'waitlist' ? ', back on the waitlist' : ''}.`); }
+        async function moveIn(r) {
+          if (full() && !(await ask('Seat anyway?', `${st.d.event.title} is full (${st.d.counts.in} of ${st.d.event.capacity}). Seating ${r.name} makes it ${seats()}.`, 'Seat anyway', 'Not now', 'btn-act'))) return;
+          const x = await act(`/${r.id}/movein`, {}); if (x.ok) { st.flash.add(r.id); draw(); toast(`${r.name} moved in.`); }
+        }
+        async function seatLate(r) {
+          if (full() && !(await ask('Seat them?', `${st.d.event.title} is full. If you seat ${r.name}, the last person who moved in from the waitlist and has not checked in goes back to #1 on it.`, 'Seat them', 'Not now', 'btn-act'))) return;
+          const x = await act(`/${r.id}/noshow`, { on: false }); if (x.ok) { await act(`/${r.id}/checkin`, { on: true }); toast(`${r.name} is here and checked in.`); }
+        }
+        async function walkIn(name, mode, anyway) {
+          const x = await act('/walkin', { name, mode, anyway }, ['dup', 'invalid']);
+          if (x.data.error === 'invalid') { toast(x.data.errors?.name || 'Check the name.'); return; }
+          if (x.data.error === 'dup') { if (await ask('Same name on the list', `${name} is already signed up. Add another person with this name?`, 'Add anyway', 'Cancel', 'btn-act')) walkIn(name, mode, true); return; }
+          if (!x.ok) return;
+          st.walk = ''; draw(); $('[data-k=walk]', host)?.focus();
+          const res = x.data.result, id = res.id;
+          toast(res.status === 'waitlist' ? `${name} is #${res.position} on the waitlist.` : res.over ? `${name} seated and checked in (${st.d.counts.in} of ${st.d.event.capacity}).` : `${name} checked in.`, { fn: async () => { const u = await act(`/${id}/cancel`, {}); if (u.ok) toast(`${name} removed.`); } });
+        }
+        function preReg(opener) {
+          const ev = st.d.event, name = h('input', { type: 'text', autocomplete: 'off', maxlength: 80 }), email = h('input', { type: 'email', autocomplete: 'off', maxlength: 120 }), phone = h('input', { type: 'tel', autocomplete: 'off', maxlength: 30 }), pay = h('select', {}, PAY.map(([k, , f]) => h('option', { value: k }, f)));
+          const ctl = { name, email, phone, payment: pay }, free = ev.fee === 0;
+          const form = h('form', { novalidate: true }, fld('pr-name', 'Name', name), fld('pr-email', 'Email', email, { optional: true }), fld('pr-phone', 'Phone', phone, { optional: true }), !free && fld('pr-pay', 'Payment so far', pay),
+            h('div', { class: 'row' }, h('button', { class: 'btn btn-act', type: 'submit' }, 'Add pre-registration'), h('button', { class: 'btn btn-2', type: 'button', onclick: () => d.close() }, 'Cancel')));
+          const d = h('dialog', { class: 'ask', 'aria-labelledby': 'pr-t' }, h('h2', { id: 'pr-t' }, 'Add a pre-registration'), h('p', { class: 'hint' }, 'For people who signed up or paid in the shop. They are not checked in until they arrive. Add an email or phone only if they want to be reached.'), form);
+          d.addEventListener('close', () => { d.remove(); opener?.focus(); });
+          async function go(anyway) {
+            Object.values(ctl).forEach((c) => c.closest('.fld') && clearErr(c.closest('.fld')));
+            const x = await act('/prereg', { name: name.value, email: email.value, phone: phone.value, payment: free ? 'unpaid' : pay.value, anyway }, ['invalid', 'dup']);
+            if (x.status === 422) { for (const [k, m] of Object.entries(x.data.errors || {})) if (ctl[k]?.closest('.fld')) markErr(ctl[k], m); return; }
+            if (x.data.error === 'dup') { if (await ask('Same name on the list', `${name.value.trim()} is already on the list. Add another person with this name?`, 'Add anyway', 'Cancel', 'btn-act')) go(true); return; }
+            if (!x.ok) return;
+            d.close(); const res = x.data.result, id = res.id, nm = name.value.trim();
+            toast(res.status === 'waitlist' ? `${nm} is #${res.position} on the waitlist.` : `${nm} added. Not checked in yet.`, { fn: async () => { const u = await act(`/${id}/cancel`, {}); if (u.ok) toast(`${nm} removed.`); } });
+          }
+          form.addEventListener('submit', (e) => { e.preventDefault(); go(false); });
+          document.body.append(d); d.showModal(); name.focus();
+        }
+        async function cancelDate() {
+          const ev = st.d.event, n = st.d.counts.in + st.d.counts.waitlist;
+          if (!(await ask(`Cancel ${ev.title}?`, n ? `${n} ${n === 1 ? 'person is' : 'people are'} signed up. They won’t be told automatically; their contacts are in the roster.` : 'It will show as cancelled on the website.', 'Cancel this date', 'Keep it'))) return;
+          const r = await api('POST', `admin/series/${enc(sid)}/exceptions`, { date: slot, type: 'cancel' });
+          if (!r.ok) return toast(firstErr(r));
+          await load(true); toast(`${ev.title} cancelled.`, { fn: bringBack2 });
+        }
+        async function bringBack2() { const r = await api('DELETE', `admin/series/${enc(sid)}/exceptions/${enc(slot)}`); if (!r.ok) return toast(say(r)); await load(true); toast('It is back on.'); }
+        async function copyCode(code, btn) { try { await navigator.clipboard.writeText(code); toast('Event code copied.'); } catch { toast('Could not copy. Select the code and copy it.'); } btn.focus(); }
+        const toggleContact = (r) => { st.shown.has(r.id) ? st.shown.delete(r.id) : st.shown.add(r.id); draw(); };
+        const contactOf = (r) => st.shown.has(r.id) && h('span', { class: 'rr-contact' }, r.email || r.phone ? [r.email && mailLink(r.email), r.email && r.phone && ' and ', r.phone && phoneLink(r.phone)] : 'No contact given');
+
+        function row(r, nsOpen, fee0, idLabel) {
+          const checked = r.checkedIn, k = (x) => `${x}:${r.id}`;
+          const showNs = nsOpen && !checked, pre = showNs && r.payment !== 'unpaid';
+          const menu = h('details', { class: 'menu' }, h('summary', { 'aria-label': 'More for ' + r.name }, ico('dots')), h('div', { class: 'menu-pop' },
+            h('button', { class: 'menu-b', type: 'button', onclick: () => toggleContact(r) }, ico('eye'), st.shown.has(r.id) ? 'Hide contact' : 'Show contact'),
+            h('button', { class: 'menu-b menu-bad', type: 'button', onclick: () => cancelReg(r) }, ico('x'), 'Cancel sign-up')));
+          return h('li', { class: 'rrow', 'data-reg': r.id, 'data-checked': checked, 'data-flash': st.flash.has(r.id) },
+            h('button', { class: 'chk56', type: 'button', 'data-k': k('chk'), 'aria-pressed': String(checked), 'aria-label': (checked ? 'Undo check-in for ' : 'Check in ') + r.name, onclick: () => checkIn(r, !checked) }, ico('check'), h('span', {}, checked ? 'Checked in' : 'Check in')),
+            h('div', { class: 'rr-who' }, h('strong', { class: 'rr-name' }, r.name), r.playerId && h('span', { class: 'rr-meta rr-id' }, `${idLabel || 'Player ID'} ${r.playerId}`),
+              h('span', { class: 'rr-meta' }, (r.walkIn ? 'Walk-in ' : 'Signed up ') + stamp(r.createdAt)), pre && h('span', { class: 'tag' }, PAYFULL[r.payment]), st.flash.has(r.id) && h('span', { class: 'tag tag-ok' }, 'Moved in from the waitlist'), contactOf(r)),
+            showNs ? h('button', { class: 'btn btn-2 noshow', type: 'button', 'data-k': k('ns'), onclick: () => noShow(r) }, ico('noshow'), 'No-show', h('span', { class: 'vh' }, ` Mark ${r.name} as a no-show`))
+              : fee0 ? h('span', { class: 'tag pay-free' }, 'Free entry')
+                : [h('div', { class: 'pay', role: 'group', 'aria-label': 'Payment for ' + r.name }, PAY.map(([p, short, full]) => h('button', { class: 'pay-b', type: 'button', 'data-pay': p, 'data-k': `pay:${r.id}:${p}`, 'aria-pressed': String(r.payment === p), title: full, onclick: () => setPay(r, p) }, short))),
+                  h('label', { class: 'pay-sel' }, h('span', { class: 'vh' }, 'Payment for ' + r.name), h('select', { 'data-pay': r.payment, 'data-k': k('sel'), onchange: (e) => setPay(r, e.target.value) }, PAY.map(([p, , full]) => h('option', { value: p, selected: r.payment === p }, full))))],
+            menu);
+        }
+        function waitRow(r) {
+          return h('li', { class: 'rrow rrow-wait', 'data-reg': r.id }, h('span', { class: 'wpos', 'aria-label': `Number ${r.waitlistPos} on the waitlist` }, '#' + r.waitlistPos),
+            h('div', { class: 'rr-who' }, h('strong', { class: 'rr-name' }, r.name), h('span', { class: 'rr-meta' }, 'Signed up ' + stamp(r.createdAt)), contactOf(r)),
+            h('button', { class: 'btn btn-act wmove', type: 'button', onclick: () => moveIn(r) }, ico('up'), 'Move in', h('span', { class: 'vh' }, ' ' + r.name)),
+            h('details', { class: 'menu' }, h('summary', { 'aria-label': 'More for ' + r.name }, ico('dots')), h('div', { class: 'menu-pop' },
+              h('button', { class: 'menu-b', type: 'button', onclick: async () => { const x = await act(`/${r.id}/move`, { dir: -1 }); if (x.ok) toast(`${r.name} moved up.`); } }, ico('up'), 'Move up the list'),
+              h('button', { class: 'menu-b', type: 'button', onclick: async () => { const x = await act(`/${r.id}/move`, { dir: 1 }); if (x.ok) toast(`${r.name} moved down.`); } }, ico('down'), 'Move down the list'),
+              h('button', { class: 'menu-b', type: 'button', onclick: () => toggleContact(r) }, ico('eye'), st.shown.has(r.id) ? 'Hide contact' : 'Show contact'),
+              h('button', { class: 'menu-b menu-bad', type: 'button', onclick: () => cancelReg(r) }, ico('x'), 'Remove from the waitlist'))));
+        }
+        function offRow(r) {
+          return h('li', { class: 'rrow rrow-off', 'data-reg': r.id }, h('div', { class: 'rr-who' }, h('strong', { class: 'rr-name' }, r.name), r.status === 'noshow' ? h('span', { class: 'tag' }, ico('noshow'), 'No-show') : h('span', { class: 'tag tag-bad' }, 'Cancelled')),
+            r.status === 'noshow' ? h('button', { class: 'btn btn-2 wmove', type: 'button', onclick: () => seatLate(r) }, 'They’re here: seat them', h('span', { class: 'vh' }, ' ' + r.name)) : h('button', { class: 'btn btn-2 wmove', type: 'button', onclick: () => undoCancel(r) }, 'Undo cancel', h('span', { class: 'vh' }, ' for ' + r.name)));
+        }
+
+        function draw() {
+          const { event: ev, counts: c, regs } = st.d, a = document.activeElement, keep = a && host.contains(a) ? a.dataset.k : null;
+          const mode = ev.signup === 'here' || ev.signup === 'counter' ? 'list' : ev.signup === 'walkin' ? 'count' : 'none', fee0 = ev.fee === 0;
+          const nsOpen = reached(ev, ev.arriveBy || ev.start), cap = ev.capacity;
+          const stat = (i, t, cls) => h('li', { class: 'rstat ' + (cls || '') }, ico(i, 18), h('span', {}, t));
+          const q = st.q.toLowerCase(), match = (r) => !q || r.name.toLowerCase().includes(q) || String(r.playerId || '').toLowerCase().includes(q);
+          const ins = regs.filter((r) => r.status === 'in' && match(r) && (!st.notHere || !r.checkedIn)).sort((x, y) => (x.name.toLowerCase() < y.name.toLowerCase() ? -1 : 1));
+          const wl = regs.filter((r) => r.status === 'waitlist' && match(r)), off = regs.filter((r) => ['noshow', 'cancelled'].includes(r.status) && match(r));
+          const copy = h('button', { class: 'btn btn-2 btn-sm copy', type: 'button' }, ico('copy', 18), h('span', { class: 'lbl' }, 'Copy post text'), h('span', { class: 'vh' }, ` for ${ev.title}, ${md(ev.date)}`));
+          copy.addEventListener('click', () => copyPost({ id: sid, title: ev.title, fee: ev.fee }, { slot, date: ev.date, end: ev.end }, copy));
+          const out = [opts.page && h('a', { class: 'back', href: '#events' }, ico('back', 18), 'Back to events'),
+            h('div', { class: 'roster-head' }, h('h2', { class: 'roster-title' }, ev.title), h('p', { class: 'roster-sub' }, `${UTC(ev.date, { weekday: 'long', month: 'long', day: 'numeric' })}, ${ev.start ? T12(ev.start) : 'time not set'}, ${feeWords(ev.fee) ?? 'fee not set'}`)),
+            h('p', { class: 'roster-tool' }, ev.tool && [`Official tool: `, ev.toolUrl && /^https?:\/\//i.test(ev.toolUrl) ? h('a', { href: ev.toolUrl, target: '_blank', rel: 'noopener' }, ev.tool, ico('ext', 16), h('span', { class: 'vh' }, ' (opens in a new tab)')) : ev.tool,
+              ev.toolCode && [' Event code ', h('strong', {}, ev.toolCode), h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: (e) => copyCode(ev.toolCode, e.currentTarget) }, ico('copy', 18), 'Copy')]], copy)];
+          if (ev.cancelled) return host.replaceChildren(...out.flat(9).filter(Boolean), h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, 'This date is cancelled.'), h('button', { class: 'btn btn-2', type: 'button', onclick: bringBack2 }, 'Bring it back')));
+          out.push(h('ul', { class: 'rstats' }, mode === 'list' ? [stat('check', `Checked in ${c.checkedIn} of ${c.in}`), !fee0 && stat('seat', `Paid ${c.paid}`), cap && stat('users', `${c.in} of ${cap} seats`), c.waitlist > 0 && stat('hourglass', `${c.waitlist} on the waitlist`, 'rstat-wait'),
+            c.noshow > 0 && stat('noshow', `No-shows ${c.noshow}`), ev.minPlayers && c.in < ev.minPlayers && stat('warn', `Needs ${ev.minPlayers - c.in} more to run`, 'rstat-warn')] : stat('users', `Players ${st.d.headcount ?? 0}`)));
+          if (underMin(ev, c)) out.push(h('div', { class: 'runit', role: 'alert' }, h('p', {}, `It has started with ${c.in} of the ${ev.minPlayers} players it needs.`), h('div', { class: 'row' },
+            h('button', { class: 'btn btn-act', type: 'button', onclick: () => { try { localStorage.setItem(runKey(ev), '1'); } catch {} draw(); opts.onLoad?.(st.d); } }, 'Run it'), h('button', { class: 'btn btn-bad', type: 'button', onclick: cancelDate }, 'Cancel this date'))));
+          if (mode === 'list') {
+            const offs = h('details', { class: 'off', open: off.length > 0 && (st.offOpen || !!q), ontoggle: (e) => (st.offOpen = e.target.open) }, h('summary', {}, `No-shows and cancelled (${off.length})`), h('ul', { class: 'rlist' }, off.map(offRow)));
+            const hWl = h('h3', { class: 'rl-h' }, 'Waitlist'), hIn = h('h3', { class: 'rl-h' }, 'Signed up'), jump = (el, t) => h('button', { type: 'button', onclick: () => { if (el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({ block: 'start' }); } }, t);
+            const f = full(), name = h('input', { type: 'text', 'data-k': 'walk', autocomplete: 'off', maxlength: 80, placeholder: 'Walk-in name', value: st.walk, oninput: (e) => (st.walk = e.target.value) });
+            const bar = h('form', { class: 'walkbar', novalidate: true, onsubmit: (e) => { e.preventDefault(); const m = e.submitter?.value || 'auto'; if (!name.value.trim()) { toast('Type a name first.'); name.focus(); return; } if (m === 'over') ask('Seat anyway?', `${ev.title} is full. Seating ${name.value.trim()} makes it ${seats()}.`, 'Seat anyway', 'Not now', 'btn-act').then((ok) => ok && walkIn(name.value, 'over', false)); else walkIn(name.value, m, false); } },
+              h('label', { class: 'fld' }, h('span', { class: 'vh' }, 'Walk-in name'), name),
+              f ? [h('button', { class: 'btn btn-act', type: 'submit', value: 'waitlist' }, 'Add to waitlist'), h('button', { class: 'btn btn-2', type: 'submit', value: 'over' }, `Seat anyway (${seats()})`)] : h('button', { class: 'btn btn-act', type: 'submit', value: 'auto' }, 'Add and check in'));
+            const search = h('input', { type: 'search', 'data-k': 'q', autocomplete: 'off', placeholder: 'Find a name or ID', value: st.q, oninput: (e) => { st.q = e.target.value; draw(); } });
+            out.push(h('div', { class: 'rtools' }, h('label', { class: 'fld' }, h('span', { class: 'vh' }, 'Find a name or ID'), search), h('button', { class: 'filt', type: 'button', 'aria-pressed': String(st.notHere), onclick: () => { st.notHere = !st.notHere; draw(); } }, st.notHere ? 'Showing: not here yet' : 'Not here yet'),
+              h('button', { class: 'btn btn-2', type: 'button', onclick: (e) => preReg(e.currentTarget) }, ico('plus', 18), 'Add a pre-registration')),
+              (wl.length > 0 || off.length > 0) && h('div', { class: 'jump', role: 'group', 'aria-label': 'Jump to' }, jump(hIn, `Signed up (${c.in})`), wl.length > 0 && jump(hWl, `Waitlist (${wl.length})`), off.length > 0 && jump(offs, `No-shows and cancelled (${off.length})`), h('button', { type: 'button', onclick: () => name.focus() }, 'Add a walk-in')),
+              hIn, ins.length ? h('ul', { class: 'rlist' }, ins.map((r) => row(r, nsOpen, fee0, ev.idLabel))) : h('p', { class: 'meta' }, q ? 'Nobody by that name.' : st.notHere ? 'Everyone is here.' : 'No sign-ups yet. Add a walk-in or a pre-registration.'),
+              wl.length > 0 && [hWl, h('ul', { class: 'rlist' }, wl.map(waitRow))], off.length > 0 && offs, bar);
+          } else if (mode === 'count') {
+            const bump = (n, label, icn) => h('button', { class: 'stepper', type: 'button', 'data-k': 'cnt' + n, onclick: () => act('/headcount', { delta: n }) }, ico(icn), h('span', { class: 'vh' }, label));
+            out.push(h('div', { class: 'counter' }, h('h3', { id: 'cnt-h' }, 'Players tonight'), h('div', { class: 'cnt', role: 'group', 'aria-labelledby': 'cnt-h' }, bump(-1, 'One fewer player', 'minus'), h('output', { class: 'cnt-n', 'aria-live': 'polite' }, st.d.headcount ?? 0), bump(1, 'One more player', 'plus')),
+              h('p', { class: 'hint' }, 'Tap + as people sit down. The number goes into the results.')));
+          } else out.push(h('p', { class: 'hint' }, `Players sign up on ${ev.tool || 'another site'}. There is no list here.`));
+          host.replaceChildren(...out.flat(9).filter((x) => x != null && x !== false));
+          if (st.flash.size) setTimeout(() => { st.flash.clear(); host.querySelectorAll('[data-flash]').forEach((e) => e.removeAttribute('data-flash')); }, 1700);
+          if (keep) host.querySelector(`[data-k="${keep}"]`)?.focus();
+          if (keep === 'q') { const s = $('[data-k=q]', host); s?.setSelectionRange?.(s.value.length, s.value.length); }
+        }
+        stopToday();
+        // a second counter device stays in step. Redraws keep focus (data-k), search and the walk-in name, so only skip while a dialog or row menu is open or a field is being typed in.
+        const busy = () => document.querySelector('dialog[open]') || host.querySelector('details.menu[open]') || (host.contains(document.activeElement) && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName));
+        pollT = setInterval(() => { if (!document.hidden && host.isConnected && !host.closest('[hidden]') && !busy()) load(true); }, 30000);
+        return { load };
+      }
+
+      // ----- Today: today's events as 2-line buttons, then the roster of the one picked (DESIGN 9.2) -----
+      let tsel = null; // 'series|slot': a one-off date's slot is just the day, so two series can share one
+      const tkey = (x) => x.s.id + '|' + x.o.slot;
+      async function renderToday() {
+        guard = null;
+        const sec = $('[data-section=today]');
+        if (!(await loadEv())) return;
+        const day = EV.today, list = [];
+        for (const s of EV.series) for (const o of EV.upcoming[s.id] || []) if (o.date === day && !o.cancelled) list.push({ s, o, d: null });
+        list.sort((a, b) => (a.o.start || '').localeCompare(b.o.start || ''));
+        const head = h('div', { class: 'today-head' }, h('h1', {}, 'Today, ' + UTC(day, { weekday: 'long', month: 'short', day: 'numeric' })));
+        if (!list.length) {
+          let nx = null;
+          for (const s of EV.series) for (const o of EV.upcoming[s.id] || []) if (o.date > day && !o.cancelled && (!nx || (o.date + (o.start || '')) < (nx.o.date + (nx.o.start || '')))) nx = { s, o };
+          setBadge('today', 0);
+          return put(sec, head, h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, 'Nothing on today.'), h('p', {}, nx ? `The next event is ${nx.s.title}, ${wd(nx.o.date)}${nx.o.start ? ' at ' + T12(nx.o.start) : ''}.` : 'Nothing is scheduled yet.'), h('a', { class: 'btn btn-act', href: '#events' }, 'Make a one-off event')));
+        }
+        await Promise.all(list.map(async (x) => { const r = await api('GET', `admin/roster/${enc(x.s.id)}/${enc(x.o.slot)}`); if (r.ok) x.d = r.data; }));
+        if (!list.some((x) => tkey(x) === tsel)) {
+          const n = etNow(), on = list.filter((x) => x.o.start && mins(x.o.start) <= n.m && n.m < (x.o.end ? mins(x.o.end) : mins(x.o.start) + 180)), nxt = list.filter((x) => x.o.start && mins(x.o.start) > n.m);
+          tsel = tkey(on[0] || nxt[0] || list[list.length - 1]);
+        }
+        const countText = (x) => { const e = x.d?.event, c = x.d?.counts; if (!e) return ''; if (e.signup === 'walkin') return 'Walk-in'; if (e.signup === 'external') return 'Sign up on another site'; return `${c.in}${e.capacity ? ' of ' + e.capacity : ''} signed up${c.waitlist ? ', ' + c.waitlist + ' waiting' : ''}`; };
+        const sel = h('ul', { class: 'evsel' });
+        let host = h('div', { class: 'roster' });
+        const drawSel = () => { put(sel, list.map((x) => h('li', {}, h('button', { class: 'evb', type: 'button', 'data-game': x.s.game, 'aria-pressed': String(tkey(x) === tsel), onclick: () => { tsel = tkey(x); drawSel(); open(); } },
+          h('span', { class: 'evb-t' }, h('b', {}, x.o.start ? T12(x.o.start) : ''), x.s.title), h('span', { class: 'evb-c' }, countText(x)))))); setBadge('today', list.filter((x) => x.d && underMin(x.d.event, x.d.counts)).length); };
+        // A fresh host per pick: a toast Undo from the event shown before draws into the old, detached one and redraws Today instead of swapping the roster under the staff
+        const open = () => { const x = list.find((y) => tkey(y) === tsel), hst = h('div', { class: 'roster' }); host.replaceWith(hst); host = hst;
+          mountRoster(hst, x.s.id, x.o.slot, { onLoad: (d) => { x.d = d; drawSel(); if (cur === 'today' && (d.event.cancelled || !hst.isConnected)) renderToday(); } }).load(); };
+        put(sec, head, h('nav', { 'aria-label': 'Events today' }, sel), host);
+        drawSel(); open();
+      }
+      function renderRosterPage([sid, slot]) {
+        guard = null;
+        const sec = $('[data-section=roster]');
+        if (!sid || !slot) { location.hash = 'events'; return; }
+        const host = h('div', { class: 'roster' });
+        put(sec, host); mountRoster(host, sid, slot, { page: true }).load();
+      }
+
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: renderEvents, store: renderStore, security: renderSecurity, account: renderAccount };
+      const VIEWS = { today: renderToday, roster: renderRosterPage, dashboard: renderDashboard, events: renderEvents, store: renderStore, security: renderSecurity, account: renderAccount };
+      const TITLE = { today: 'Today', roster: 'Roster', dashboard: 'Dashboard', events: 'Events', store: 'Store info', security: 'Security log', account: 'Account' };
       let cur = '', restoring = false;
       function show() {
-        const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
-        cur = v; $('#mnav').open = false;
+        const parts = location.hash.slice(1).split('/'), v = VIEWS[parts[0]] ? parts[0] : 'today', lit = v === 'roster' ? 'events' : v;
+        cur = v; stopToday();
         document.querySelectorAll('[data-section]').forEach((s) => (s.hidden = s.dataset.section !== v));
-        document.querySelectorAll('[data-view]').forEach((a) => (a.dataset.view === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
-        VIEWS[v]();
+        document.querySelectorAll('[data-view]').forEach((a) => (a.dataset.view === lit ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+        $('#top-title').textContent = TITLE[v];
+        VIEWS[v](parts.slice(1).map(decodeURIComponent));
       }
       async function start() {
         const r = await api('GET', 'admin/state');
         if (!r.ok) return showLogin();
         S = r.data;
-        put($('#links'), navLinks()); put($('#tail'), navTail()); put($('#mlinks'), navLinks(), navTail());
+        put($('#links'), sideLinks()); put($('#tabs'), tabLinks()); put($('#mlinks'), moreLinks());
+        document.querySelectorAll('.who').forEach((e) => (e.textContent = S.user));
         $('#gate').hidden = true; $('#app').hidden = false;
         $('#default-warning').hidden = !S.defaultPassword;
         show();
+        api('GET', 'admin/security').then((sr) => { if (sr.ok) setBadge('security', sr.data.events.filter((e) => e.at > Date.now() - 7 * 864e5 && ['warn', 'bad'].includes(evInfo(e).kind)).length); });
       }
       addEventListener('hashchange', async () => {
         if (!S) return;

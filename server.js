@@ -310,7 +310,7 @@ function signupCancelApi(req, url, undo = false) { // undo: POST /api/signup/und
     if (!allow(`tok:${ip}`, 120)) return { status: 429, body: { error: 'rate' } };
     const token = String(f.token ?? ''), reg = regs.byToken(db, token), ctx = publicCtx(url), o = reg && occurrenceOf(ctx, reg.series, reg.slot);
     if (!o || endM(o) <= ctx.now.m) return { status: 404, body: { error: 'not_found' } };
-    const r = undo ? regs.undoCancel(db, o, reg.id) : regs.cancel(db, o, reg.id);
+    const r = undo ? regs.undoCancel(db, o, reg.id, { self: true }) : regs.cancel(db, o, reg.id, { self: true });
     return { status: r.ok ? 200 : 409, body: r.ok ? { ok: true } : { error: r.error }, location: `/signup/${token}${ctx.keepNow ? `?now=${encodeURIComponent(ctx.keepNow)}` : ''}` };
   } });
 }
@@ -586,7 +586,7 @@ function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
   if (m !== 'GET' && !allow(`ro:${ip}`, 1200)) { note('roster_blocked', 'rate limit'); return bad('rate', 429); }
   const o = occurrenceOf(publicCtx(url), series ?? '', slot ?? '');
   if (!o) return bad('not_found', 404);
-  const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null },
+  const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null, toolUrl: o.tool?.url ?? null, toolCode: o.tool?.code ?? null, minPlayers: o.minPlayers ?? null, idLabel: regs.playerIdLabel(o.tool) },
     counts: regs.counts(db, o.seriesId, o.slot), headcount: o.signup === 'walkin' ? regs.getHeadcount(db, o.seriesId, o.slot) : null, regs: regs.roster(db, o.seriesId, o.slot) });
   if (m === 'GET' && !id) return full();
   if (m !== 'POST') return bad('not_found', 404);

@@ -134,19 +134,20 @@ export function register(db, o, form, { nowM, now = Date.now() } = {}) {
 export function byToken(db, token) {
   if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{20,64}$/.test(token)) return null;
   const r = db.prepare('SELECT * FROM registrations WHERE token_hash = ?').get(hashToken(token));
-  return r ? { ...view(r), series: r.series, slot: r.slot } : null;
+  const u = r?.status === 'cancelled' && r.undo ? JSON.parse(r.undo) : null; // undoable: the player's own Undo button (G6) shows for UNDO_MS, for their own cancel only
+  return r ? { ...view(r), series: r.series, slot: r.slot, undoable: !!u?.self && Date.now() - u.at <= UNDO_MS } : null;
 }
 
 // ---------- changes (player or staff). Each returns { ok, ... } and changes nothing when ok is false ----------
 /** Cancel (player's own link, or staff removal). An 'in' seat goes to the next waitlisted person. refundDue: they had paid something real. */
-export function cancel(db, o, id, { now = Date.now() } = {}) {
+export function cancel(db, o, id, { now = Date.now(), self = false } = {}) { // self: the player cancelled on their own page
   const k = keyOf(o);
   return tx(db, () => {
     const r = getReg(db, k, id);
     if (!r || !['in', 'waitlist'].includes(r.status)) return { ok: false, error: 'state' };
     // what Undo needs (G6): where they were and when; who moved in since is read from promoted_at
     db.prepare("UPDATE registrations SET status = 'cancelled', checked_in = 0, wait_pos = NULL, promoted_at = NULL, undo = ? WHERE id = ?")
-      .run(JSON.stringify({ from: r.status, pos: r.wait_pos, checked: r.checked_in, at: now }), r.id);
+      .run(JSON.stringify({ from: r.status, pos: r.wait_pos, checked: r.checked_in, at: now, self }), r.id);
     const promoted = r.status === 'in' ? promote(db, k, now) : (renumber(db, k), []);
     return { ok: true, promoted, refundDue: r.status === 'in' && REFUNDABLE.includes(r.payment) };
   });
@@ -182,11 +183,11 @@ export function undoNoShow(db, o, id) {
  *  when that makes the event full, the LAST person auto-promoted since the cancel who has not checked in goes back to waitlist #1 (as No-show
  *  undo, so nobody behind them in line keeps a seat they lose). Nobody like that (checked in, walk-in took the seat): "29 of 28".
  *  Ends with promote(), so a seat freed meanwhile never sits empty while someone waits. */
-export function undoCancel(db, o, id, { now = Date.now() } = {}) {
+export function undoCancel(db, o, id, { now = Date.now(), self = false } = {}) { // self: the player's link, which can't take back a staff removal (D31 (2))
   const k = keyOf(o);
   return tx(db, () => {
     const r = getReg(db, k, id), u = r?.status === 'cancelled' && r.undo ? JSON.parse(r.undo) : null;
-    if (!u) return { ok: false, error: 'state' };
+    if (!u || (self && !u.self)) return { ok: false, error: 'state' };
     if (now - u.at > UNDO_MS) return { ok: false, error: 'expired' };
     if (dupOf(db, k, r.name, r.email, r.phone)) return { ok: false, error: 'dup' }; // they signed up again meanwhile
     let bumped = null;
