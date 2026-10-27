@@ -481,3 +481,18 @@ row at 1280; detail dialog action box ends at 625px on 390 and 827px on 1280, X 
 **Carried, not blocking:** the hero at 1440/1920 is a portrait clip upscaled (soft); Q21 landscape clips fix it. The Visit
 head's address line repeats "Find us" on phones. At 1280 the toast can briefly cover the walk-in bar when the roster is
 short (pre-existing). The counter-only card (Star Trek Prerelease) has its text and Call button on different baselines.
+
+### D39. Owner answers: reviews, T-shirt, TCGplayer, cEDH fee, player counts, hours (2026-10-27, owner)
+- **Owner (Mish):** "just use the 5 star reviews, if they have t-shirts for sale then use that, i logged into tcg player
+  and just research the cEDH entry fee, also yes player counts should be shown public, just use whatever hours you can
+  find and assume they are closed otherwise".
+- **Q23 reviews:** show five-star Google reviews only: three short quotes (first name + initial as Google shows them,
+  linked to the Google listing) plus "4.9 on Google, 81 reviews". One quiet row, no carousel.
+- **Q24 T-shirt:** if the research finds the shirt is for sale, one line + one photo in the Shop / New and preorders
+  area; if not confirmed, leave it out.
+- **TCGplayer:** the owner signed in to TCGplayer in Chrome on the Laptop for research. Only public-facing facts go on the
+  site (what they sell, rating, pickup / shipping); nothing from the seller account's private numbers.
+- **cEDH entry fee:** research it (TopDeck event pages, store posts) and show it.
+- **Player counts:** public. Show attendance (TopDeck circuit table) on the cEDH section and past-event results.
+- **Hours (Q2):** use the hours found (Google, 2026-10-27: Wed-Thu 2-10 PM, Fri-Sat 2 PM-midnight, Sun 1-10 PM). Any
+  day with no hours found is **closed**; the site never shows a day as open without hours.

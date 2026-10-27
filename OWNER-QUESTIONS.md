@@ -73,3 +73,10 @@ write the answer and date under the question and, if it changes a ruling, add an
 23. **Google review quotes:** the store has 4.9 stars from 81 Google reviews. OK to show "4.9 on Google, 81 reviews" plus
     3 short quotes (first name + initial, linked to Google) on the front page? The research doc has a shortlist of 6.
 24. **Store T-shirt:** is it for sale? If yes, one line in the Shop section.
+
+## Answered 2026-10-27 (D39)
+- **Q2 hours:** use the Google hours; any day without hours is closed.
+- **Q23 reviews:** yes, five-star reviews only, three short quotes + the 4.9 / 81 line, linked to Google.
+- **Q24 T-shirt:** show it if the research confirms it is for sale.
+- **Player counts:** public.
+- **cEDH entry fee / TCGplayer:** research them (owner signed in to TCGplayer in Chrome on the Laptop).
