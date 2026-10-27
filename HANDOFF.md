@@ -38,7 +38,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** round 3 (D36) pushed (f35974c, 8f90656); next: round 4 polish from the Desktop's post-port screenshots (event detail page layout, remaining formatting). Files: `prototype/`, `DESIGN.md`, `docs/review/`. The Laptop now has Node 24 (no gh/python): tests run headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** #14 round-2 non-layout port done. Waiting for Laptop round 3 (front/events layout, full-bleed hero, public print rules, D33 bar, D34 nav). Nothing claimed.
+- **Desktop:** (1) #14 round-3 port (f35974c, 8f90656): `src/`, `public/`, `server.js`, `test/`. (2) Owner-asked deep asset research (Instagram carousels, TikTok, Facebook, TCGplayer, TopDeck): `docs/research/social-assets-2.md`, `public/img/social/`, local `source/social/desktop/`.
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;
