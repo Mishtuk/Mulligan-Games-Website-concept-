@@ -34,11 +34,11 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** P1.5 owner click-through pack (`docs/owner-pack.md`); read-only review of P2.3a (`docs/review/p2.3a-laptop-review.md`).
-- **Desktop:** #11 P2.3a send-back fixes (`server.js`, `src/lib/*`, `src/pages/admin.astro`, `test/*`); then P2.4 sign-ups, waitlist, check-in (claim before starting); store videos (`docs/research/store-videos.md`, `tools/enhance-video.sh`, `media/` gitignored).
+- **Desktop:** out of usage (2026-10-26, claims released). Resumes with #11 (needs Node), then P2.4. Laptop: #12.
 
 ## Status (handoff, 2026-10-26)
-**Research is done, the plan is set, the server base is ported, the design is signed off (P1.3, 2026-10-26). P2.2 can start;
-P1.3b (DESIGN.md for D16-D18) comes before P2.3 / P2.4.**
+**P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;
+store video waits on owner clips (Q21).**
 
 ### Done
 - **Team setup** (2cdf876): `BRIEF.md` (the goal), agents in `.claude/agents/` (boss opus/high, designer opus/high,
