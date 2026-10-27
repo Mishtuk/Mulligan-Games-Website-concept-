@@ -280,3 +280,11 @@ Boss overrule: none.
   local" part of the earlier rulings and the DESIGN 6.1 note that video stays out of the public repo.
 - **Also (owner):** the first look was too flashy (saturated red + navy) and lacked photos; the redesign uses a calmer
   palette, photo-led sections and a clearly labelled light/dark switch.
+
+### D28. Look A, "Brick and sign", for the whole site (2026-10-27, owner delegated the pick)
+- **Question:** which of the three calmer looks (A brick and sign, B felt table, C clean neutral; `docs/review/looks/`).
+- **Ruling:** A. Mish asked for "whatever a TCG card shop would most like". A is built from the store's own identity
+  (the sign's deep blue on the brick front at 445 York Rd, the real logo on a white sign plate), so it reads as
+  Mulligan rather than as any game store; warm cream / charcoal keeps it calm. B (felt) was the runner-up.
+- **Next:** roll A across events, event detail and admin in `prototype/`, retire the B/C files and the look picker,
+  update DESIGN.md tokens; the build (P2.3 `src/styles`) adopts the same tokens.
