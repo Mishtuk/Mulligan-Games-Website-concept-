@@ -209,11 +209,11 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [x] Admin edits appear on the public pages without a rebuild (markers), including cancellations.
   - [x] Open-now strip correct across midnight closes and holiday overrides (tested).
   - [x] `.ics` feed and per-event files include admin edits and exceptions (tested); JSON-LD validates (tested).
-  - [ ] (P2.3b) Admin events (moved from P2.2b, D23): game colour band on each list row, game chips + search on the list,
+  - [x] (P2.3b) Admin events (moved from P2.2b, D23): game colour band on each list row, game chips + search on the list,
         live card preview in the editor (the real P2.3 event card); the photo picker (VFW) for the room photo slot.
-  - [ ] (P2.3b) Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
-        from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2). Until then
-        `store.json` is read once at server start (a change needs a restart); P2.3b makes it live.
+  - [x] (P2.3b) Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
+        from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2). Done: store facts
+        live from the kv `store` row, seeded once from `store.json` (boss review 2026-10-26, D25).
   - [x] Every upcoming date has its own page (D16) with Event JSON-LD: name, start/end with UTC offset, location Place
         with name and full address, offers (price, 0 when free, USD, availability from seats), `eventStatus`
         (EventCancelled / EventRescheduled + `previousStartDate`) (field tests). Google's Rich Results Test moved

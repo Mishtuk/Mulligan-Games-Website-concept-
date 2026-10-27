@@ -247,3 +247,20 @@ accepted: Rich Results Test and the `robots.txt` Sitemap line wait for the domai
 at server start until P2.3b makes them editable.
 **Why:** text APIs and an escape-everything tag can't miss a value; the rest are the smallest fixes that close real
 500s and a CSP gap. Boss overrule: none.
+
+### D25. P2.3b review calls (2026-10-26)
+(1) Admin keeps its plain look; the DESIGN.md 9.1 shell stays in P2.4 (D23 confirmed). (2) The editor's live preview
+mirrors render.js `card()` with DOM calls in a same-origin frame of `/new-here/` (no `srcdoc`, no `document.write`),
+accepted: sharing would mean inserting an HTML string. Drift guard (boss): a test renders `card()` for every sign-up
+kind and fails if any class or data attribute is missing from `pvCard`. Boss fixes found by it: the game badge lacked
+its own `data-game` (icon showed the default colour) and an external sign-up with no link showed a button instead of
+"Sign up online.". (3) Preview shows only the fresh "open" seat state, accepted (a form has no sign-ups yet).
+(4) Holiday overrides are not in JSON-LD opening hours yet: deferred to P3.2 with the Rich Results Test
+(`specialOpeningHoursSpecification`); the page strip and table already show them. (5) New `<!--mg:*-->` markers in
+`Base.astro`, `index.astro`, `new-here.astro` beyond the claim, accepted: Desktop files, and "live without a restart"
+needs them; each keeps its baked default. Injected parts are now server markup from `h` (D24 (1)); CSP hashes still
+come from the template (D24 (2)) and the parts carry no inline script or style. (6) The icon SVG paths go in by
+`innerHTML` / `new Html` from the `ICONS` constant only, never stored data (same as D24 (1)). (7) The room photo must
+be one the picker offers (`pickablePhotos`), not any file on disk such as a `-800` thumbnail (boss fix, tested).
+**Why:** each is the smaller option with no loss for owners or players; the test makes the copy safe to keep.
+Boss overrule: none.

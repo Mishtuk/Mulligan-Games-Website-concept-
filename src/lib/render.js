@@ -18,7 +18,7 @@ export const safe = (s) => new Html(s);
 
 // ---------- icons (constant paths, see icons.js) ----------
 const P = ICONS;
-const icon = (name, cls = '') => h`<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${new Html(P[name] ?? '')}</svg>`;
+export const icon = (name, cls = '') => h`<svg class="ic${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${new Html(P[name] ?? '')}</svg>`;
 
 // ---------- words ----------
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -62,7 +62,7 @@ const keep = (ctx, path, params = {}) => {
 export const eventPath = (o) => `/events/${encodeURIComponent(o.seriesId)}?date=${encodeURIComponent(o.slot)}`;
 const eventHref = (ctx, o) => (ctx.keepNow ? `${eventPath(o)}&now=${encodeURIComponent(ctx.keepNow)}` : eventPath(o));
 const idKey = (o) => `${o.seriesId}-${o.slot}`.replace(/[^A-Za-z0-9-]/g, '');
-const mapsUrl = (store) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address.street} ${store.address.city} ${store.address.region} ${store.address.zip}`)}`;
+export const mapsUrl = (store) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address.street} ${store.address.city} ${store.address.region} ${store.address.zip}`)}`;
 const live = (o) => !o.cancelled;
 
 /** Occurrences between two dates that have not ended yet, earliest first. */

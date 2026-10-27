@@ -44,8 +44,10 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           <dl class="cedh-facts">
             <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
             <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
+            <Fragment set:html="<!--mg:cedh-live-->" />
             {circuit && <div><dt>Standings</dt><dd><a href={circuit} target="_blank" rel="noopener">Circuit points on TopDeck<span class="vh"> (opens TopDeck)</span></a></dd></div>}
             {store.parking && <div><dt>Parking</dt><dd>{store.parking}</dd></div>}
+            <Fragment set:html="<!--/mg:cedh-live-->" />
           </dl>
         </div>
         <div class="cedh-next">
@@ -68,6 +70,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
 
     <!-- 6. Visit -->
     <section class="sec visit" id="visit" aria-labelledby="visit-h">
+      <Fragment set:html="<!--mg:visit-->" />
       <div class="wrap visit-in no-photo">
         <div class="visit-hours">
           <h2 id="visit-h">Visit</h2>
@@ -92,12 +95,14 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           </dl>
         </div>
       </div>
+      <Fragment set:html="<!--/mg:visit-->" />
     </section>
 
     <!-- 7. Community -->
     <section class="sec community" id="community" aria-labelledby="comm-h">
       <div class="wrap comm-in">
         <div class="comm-discord">
+          <Fragment set:html="<!--mg:discord-->" />
           <h2 id="comm-h">Between events</h2>
           {discord
             ? <><p>Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
@@ -106,6 +111,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           <ul class="socials">
             {social.map(([n, u]) => <li><a href={u} target="_blank" rel="noopener">{n}<span class="vh"> (opens in a new tab)</span></a></li>)}
           </ul>
+          <Fragment set:html="<!--/mg:discord-->" />
         </div>
       </div>
     </section>

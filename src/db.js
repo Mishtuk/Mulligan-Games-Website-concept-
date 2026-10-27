@@ -4,6 +4,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import seed from './content/series.json' with { type: 'json' };
+import storeSeed from './content/store.json' with { type: 'json' };
 
 export function openDb(dir) {
   if (dir !== ':memory:') mkdirSync(dir, { recursive: true });
@@ -42,6 +43,13 @@ export const listExceptions = (db, series) => (series === undefined ? db.prepare
   : db.prepare('SELECT data FROM exceptions WHERE series = ? ORDER BY date').all(series)).map((r) => JSON.parse(r.data));
 export const putException = (db, x) => db.prepare('INSERT INTO exceptions (series, date, data) VALUES (?, ?, ?) ON CONFLICT(series, date) DO UPDATE SET data = excluded.data').run(x.series, x.date, JSON.stringify(x));
 export const deleteException = (db, series, date) => db.prepare('DELETE FROM exceptions WHERE series = ? AND date = ?').run(series, date).changes > 0;
+
+// ---------- store facts (kv key "store"; src/lib/store.js owns the shape). Seeded once from store.json, then edited in admin; read per request, so edits are live. ----------
+export function seedStore(db) {
+  if (!db.prepare("SELECT 1 FROM kv WHERE key = 'store'").get()) putStore(db, storeSeed);
+}
+export const getStore = (db) => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'store'").get()?.value ?? JSON.stringify(storeSeed));
+export const putStore = (db, facts) => db.prepare("INSERT INTO kv (key, value) VALUES ('store', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(facts));
 
 /** Daily copy to DATA_DIR/backup/mg-YYYY-MM-DD.db, keeping the newest 7. Safe while the app runs. */
 export function backup(db, dir, now = new Date()) {

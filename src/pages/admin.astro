@@ -51,7 +51,7 @@
       .fld > label { display: block; font-weight: 600; }
       .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
       .hint { display: block; }
-      input[type=text], input[type=password], input[type=time], input[type=date], select, textarea { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
+      input[type=text], input[type=password], input[type=time], input[type=date], input[type=tel], input[type=email], select, textarea { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
       .fld.bad input { border-color: var(--red-ink); }
       .ferr, .err { color: var(--red-ink); font-weight: 700; margin: .3rem 0 0; }
 
@@ -133,8 +133,36 @@
       .drw { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0 .75rem; align-items: end; } .drw .btn { margin-bottom: 1.1rem; }
       .date-rows { margin-bottom: .5rem; }
       body:has(.savebar) .toast { bottom: 6rem; }
+      input[type=search] { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
+      .main:has(.ewrap) { max-width: 82rem; }
+      .ewrap { display: grid; gap: 0 1.25rem; align-items: start; } .ewrap .savebar { margin: 0 0 -5rem; }
+      @media (min-width: 1100px) { .ewrap { grid-template-columns: minmax(0, 1fr) 24rem; } .ewrap > .pv { position: sticky; top: 1rem; } }
+      .pv { background: var(--card); border-radius: 6px; padding: .25rem 1rem 1rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(29 29 38 / .12); }
+      .pv summary { cursor: pointer; font-weight: 700; min-height: 56px; display: flex; align-items: center; }
+      .pv iframe { width: 100%; height: 22rem; border: 0; display: block; color-scheme: light; }
+      details.srow { border-left: 6px solid var(--gc, var(--stone)); padding-left: .75rem; }
+      .gchips { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
+      .gchip { display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; padding: 0 1rem; border: 2px solid var(--field); border-radius: 999px; background: var(--card); font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+      .gchip i { width: 14px; height: 14px; border-radius: 3px; background: var(--gc, var(--stone)); flex: none; outline: 1px solid rgb(255 255 255 / .7); }
+      .gchip .n { font-size: .85rem; color: var(--ink-2); } .gchip[aria-pressed=true] { background: var(--night); color: var(--on-dark); border-color: var(--night); } .gchip[aria-pressed=true] .n { color: var(--on-dark); }
+      .hrow { display: grid; grid-template-columns: 8rem 7.5rem 1fr 1fr; gap: .25rem 1rem; align-items: center; border-top: 1px solid var(--line); padding: .5rem 0; margin: 0; }
+      .hrow > .ferr, .hrow > .hnote { grid-column: 1 / -1; margin: 0; } .hrow .hnote:empty { display: none; } .hday { margin: 0; font-size: 1.05rem; }
+      .tl { font-size: .9rem; font-weight: 600; } .tl input { margin-top: .1rem; }
+      .orow { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: flex-end; border-top: 1px solid var(--line); padding: .75rem 0; margin: 0; }
+      .orow > .tl { flex: 1 1 9rem; } .orow > .onote { flex: 1 1 100%; } .orow > .ferr { flex: 1 1 100%; margin: 0; } .orow > .check { margin: 0; }
+      .pimg { width: 240px; max-width: 100%; height: 180px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: .6rem; }
+      .pimg.none { display: grid; place-items: center; border: 2px dashed var(--field); color: var(--ink-2); font-weight: 600; }
+      .picker { margin-top: 1rem; padding: 1rem; background: var(--stone); border-radius: 6px; }
+      .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .6rem; max-height: 24rem; overflow: auto; padding: 4px; margin-bottom: 1rem; }
+      label.pick { position: relative; display: block; margin: 0; aspect-ratio: 4 / 3; border-radius: 6px; background: var(--card); cursor: pointer; overflow: hidden; }
+      label.pick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      label.pick.up { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 2px dashed var(--field); font-weight: 700; text-align: center; }
+      label.pick:has(input:checked) { outline: 3px solid var(--ink); outline-offset: -3px; } label.pick:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+      label.pick .chosen { display: none; position: absolute; right: 6px; top: 6px; gap: .25rem; align-items: center; background: var(--ink); color: var(--on-dark); border-radius: 999px; padding: 0 .55rem; font-size: .85rem; font-weight: 700; } label.pick:has(input:checked) .chosen { display: flex; }
+      .picker .preview img { width: 100%; height: auto; border-radius: 6px; display: block; margin-bottom: .75rem; }
       @media (max-width: 800px) {
         .gtiles { grid-template-columns: 1fr 1fr; } .savebar { margin: 0 -1rem -5rem; } .btn.sm { min-height: 48px; }
+        .hrow { grid-template-columns: 1fr 1fr; } .hrow .hclosed { justify-self: end; }
         .fgrid { grid-template-columns: 1fr; } .rcards { grid-template-columns: 1fr; } .drow .dact { width: 100%; } body:has(.savebar) .toast { bottom: 10rem; }
       }
       @media (max-width: 800px) {
@@ -184,6 +212,7 @@
         <div class="banner" id="default-warning" hidden><span>The password is still the starter password. Please change it now.</span><a class="btn" href="#account">Change the password</a></div>
         <section data-section="dashboard"></section>
         <section data-section="events" hidden></section>
+        <section data-section="store" hidden></section>
         <section data-section="security" hidden></section>
         <section data-section="account" hidden></section>
       </main>
@@ -208,7 +237,8 @@
         ext: '<path d="M7 17L17 7M9 7h8v8"/>', up: '<path d="M12 19V5M5 12l7-7 7 7"/>', down: '<path d="M12 5v14M5 12l7 7 7-7"/>', check: '<path d="M5 12l5 5 9-10"/>',
         warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>', bshield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
         pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-        cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>', plus: '<path d="M12 5v14M5 12h14"/>', back: '<path d="M15 5l-7 7 7 7"/>' };
+        cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>', plus: '<path d="M12 5v14M5 12h14"/>', back: '<path d="M15 5l-7 7 7 7"/>',
+        pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', upload: '<path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>' };
       const ico = (n, s = 20) => { const e = h('span', { class: 'ic', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
       const ERR = { signed_out: 'Please sign in again.', origin: 'Reload the page and try again.', current: 'The current password is not right.', too_short: 'The new password needs at least 10 characters.',
         too_easy: 'Pick a harder password.', same: 'That is the same as the old password.', too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.' };
@@ -267,7 +297,7 @@
         f.password.value = '';
         start();
       });
-      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'cal'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
+      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'cal'], ['store', 'Store info', 'pin'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
       const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t)));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
       async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
@@ -337,7 +367,7 @@
         password_change_blocked: ['Password changes paused: too many tries', 'bad'], photo_upload: ['Uploaded a picture', 'edit'], photo_delete: ['Deleted a picture', 'edit', 'bin'],
         photo_upload_blocked: ['Stopped a picture upload that was not allowed', 'warn'], series_create: ['Added an event', 'edit'], series_update: ['Changed an event', 'edit'], series_delete: ['Deleted an event', 'edit', 'bin'],
         exception_set: ['Changed or cancelled one date', 'edit'], exception_clear: ['Put one date back to normal', 'edit'], template_create: ['Saved an event template', 'edit'], template_delete: ['Deleted an event template', 'edit', 'bin'],
-        events_blocked: ['Stopped too many event changes at once', 'warn'] };
+        events_blocked: ['Stopped too many event changes at once', 'warn'], store_update: ['Changed the store info', 'edit'], store_blocked: ['Stopped too many store info changes at once', 'warn'] };
       const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
       function evInfo(e) {
         let [name, kind, icon] = EVT[e.type] || ['Other activity', 'muted'], detail = e.detail;
@@ -405,6 +435,7 @@
       let EV = null;
       const openSeries = new Set();
       ERR.not_found = 'That is not there any more. Reload the page and try again.'; ERR.body = 'Something was wrong with what was sent. Reload and try again.'; ERR.in_use = 'That is still in use.';
+      ERR.file_type = 'That file is not a picture we can use. Please choose a JPEG, PNG or WebP photo.'; ERR.file_size = 'That picture is too big. Please choose one under 15 MB.'; ERR.upload = 'The picture could not be saved. Try again in a minute.';
       const firstErr = (r) => (r.data.errors ? Object.values(r.data.errors)[0] : say(r));
 
       function repeatWords(s) {
@@ -430,18 +461,33 @@
       }
       const refresh = async () => { if (await loadEv()) drawEvList(); };
 
-      // ----- list -----
+      // ----- list: game chips and search narrow it; each row wears its game colour (DESIGN.md 2.2, 9.3) -----
+      const GC = { magic: '#B8541A', cedh: '#6A2FB5', pokemon: '#A87C00', onepiece: '#B02D66', riftbound: '#0B7F75', hololive: '#1F7FC4', warhammer: '#4A6378', other: '#5E6A7D' };
+      const gcolor = (id) => GC[id] || GC.other;
+      let evGame = 'all', evQ = '';
+      const evMatch = (s) => (evGame === 'all' || s.game === evGame) && (!evQ || [s.title, s.format, gameShort(s.game), KIND_NAME[s.kind]].filter(Boolean).join(' ').toLowerCase().includes(evQ.toLowerCase()));
       function drawEvList() {
         guard = null;
-        const up = (s) => EV.upcoming[s.id] || [], coming = EV.series.filter((s) => up(s).length), past = EV.series.filter((s) => !up(s).length);
-        put($('[data-section=events]'), h('div', { class: 'head' }, h('h1', {}, 'Events'), h('button', { class: 'btn', type: 'button', onclick: drawNew }, ico('plus'), 'New event')),
-          EV.series.length ? [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, coming.length ? coming.map(seriesRow) : h('p', { class: 'meta' }, 'Nothing is coming up.')),
+        const holder = h('div'), sec = $('[data-section=events]');
+        const chip = (id, label, n) => h('button', { class: 'gchip', type: 'button', style: id === 'all' ? null : `--gc:${gcolor(id)}`, 'aria-pressed': String(evGame === id), onclick: () => { evGame = id; drawEvList(); } },
+          id !== 'all' && h('i', { 'aria-hidden': 'true' }), label, h('span', { class: 'n' }, h('span', { class: 'vh' }, ', '), n, h('span', { class: 'vh' }, n === 1 ? ' event' : ' events')));
+        const q = h('input', { type: 'search', id: 'ev-q', value: evQ, autocomplete: 'off', placeholder: 'Name, game or format' });
+        q.addEventListener('input', () => { evQ = q.value.trim(); rows(); });
+        const rows = () => {
+          const up = (s) => EV.upcoming[s.id] || [], all = EV.series.filter(evMatch), coming = all.filter((s) => up(s).length), past = all.filter((s) => !up(s).length);
+          put(holder, all.length ? [coming.length > 0 && [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, coming.map(seriesRow))], !coming.length && h('div', { class: 'card' }, h('p', { class: 'meta' }, 'Nothing is coming up.')),
             past.length > 0 && h('details', { class: 'card' }, h('summary', {}, 'Already happened ', h('span', { class: 'chip' }, past.length)), past.map(seriesRow))]
+            : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No events match.'), h('p', {}, 'Try another game or clear the search.'), h('button', { class: 'btn alt', type: 'button', onclick: () => { evGame = 'all'; evQ = ''; drawEvList(); } }, 'Show every event')));
+        };
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Events'), h('button', { class: 'btn', type: 'button', onclick: drawNew }, ico('plus'), 'New event')),
+          EV.series.length ? [h('div', { class: 'gchips', role: 'group', 'aria-label': 'Show one game' }, chip('all', 'All games', EV.series.length), EV.games.filter((g) => g.shown !== false).map((g) => chip(g.id, g.short, EV.series.filter((s) => s.game === g.id).length))),
+            h('div', { class: 'fld wide' }, h('label', { for: 'ev-q' }, 'Search events'), q), holder]
             : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No events yet.'), h('p', {}, 'Choose New event to make the first one.')));
+        rows();
       }
       function seriesRow(s) {
         const dates = EV.upcoming[s.id] || [], next = dates.find((o) => !o.cancelled);
-        const d = h('details', { class: 'srow', 'data-sid': s.id }, h('summary', {}, h('div', { class: 'sum' }, h('div', {}, h('strong', {}, s.title), ' ', h('span', { class: 'chip' }, gameShort(s.game)), s.enabled === false && h('span', { class: 'chip warn' }, 'Hidden from the website')),
+        const d = h('details', { class: 'srow', 'data-sid': s.id, style: `--gc:${gcolor(s.game)}` }, h('summary', {}, h('div', { class: 'sum' }, h('div', {}, h('strong', {}, s.title), ' ', h('span', { class: 'chip' }, gameShort(s.game)), s.enabled === false && h('span', { class: 'chip warn' }, 'Hidden from the website')),
           h('div', { class: 'meta' }, [repeatWords(s), feeWords(s.fee), s.capacity ? s.capacity + ' seats' : 'No seat limit', cap1(SIGNUP_WORDS[s.signup] || '')].filter(Boolean).join(' · ')),
           next && h('div', { class: 'meta' }, `Next: ${wd(next.date)}${next.start ? ', ' + T12(next.start) : ''}`))),
           h('div', { class: 'sbody' }, h('h3', {}, 'Next dates'), dates.length ? h('ul', { class: 'dates' }, dates.map((o) => dateRow(s, o))) : h('p', { class: 'meta' }, 'No dates coming up.'),
@@ -573,10 +619,11 @@
         const sec = $('[data-section=events]'), E = editorForm(v, isNew);
         const base = JSON.stringify(E.read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn alt', type: 'button' }, 'Cancel');
         let dirty = false;
-        const upd = () => { E.sync(); dirty = JSON.stringify(E.read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
+        const upd = () => { E.sync(); PV.draw(); dirty = JSON.stringify(E.read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
         const close = () => { guard = null; drawEvList(); };
         discard.addEventListener('click', close);
         E.form.addEventListener('input', upd); E.form.addEventListener('change', upd); E.form.addEventListener('dates', upd);
+        const PV = previewPane(E);
         const tplBtn = h('button', { class: 'btn alt', type: 'button' }, 'Save as a template');
         tplBtn.addEventListener('click', () => saveTemplate(E, tplBtn));
         E.form.addEventListener('submit', async (e) => {
@@ -588,10 +635,62 @@
         });
         E.form.append(h('div', { class: 'savebar' }, msg, discard, tplBtn, h('button', { class: 'btn', type: 'submit' }, 'Save event')));
         put(sec, h('button', { class: 'btn alt', type: 'button', onclick: async () => { if (await leave()) close(); } }, ico('back', 18), 'Back to the list'),
-          h('h1', {}, isNew ? 'New event' : 'Edit event'), tplName && h('p', { class: 'say' }, `Filled in from the template "${tplName}". Change anything you like.`), E.form);
+          h('h1', {}, isNew ? 'New event' : 'Edit event'), tplName && h('p', { class: 'say' }, `Filled in from the template "${tplName}". Change anything you like.`), h('div', { class: 'ewrap' }, E.form, PV.box));
         E.sync();
         guard = () => dirty && 'What you typed has not been saved.';
         scrollTo(0, 0); E.form.elements.title.focus();
+      }
+      // ----- live card preview (DESIGN.md 15.2): the public card's own markup and stylesheet, shown in a frame of the real site and built with DOM calls -----
+      function previewPane(E) {
+        const f = h('iframe', { title: 'How the card looks on the website', src: '/new-here/' }), box = h('details', { class: 'pv' }, h('summary', {}, 'Preview the card'),
+          h('p', { class: 'hint' }, 'How it looks on the website. It updates as you type.'), f);
+        let ready = false;
+        const draw = () => {
+          const d = ready && box.open ? f.contentDocument : null;
+          if (!d?.body) return;
+          d.documentElement.style.colorScheme = 'light'; // the admin is light only
+          const wrap = d.createElement('div');
+          wrap.className = 'wrap'; wrap.style.cssText = 'padding:.5rem 0';
+          wrap.append(pvCard(d, E.read()));
+          d.body.replaceChildren(wrap); d.body.style.cssText = 'margin:0;background:transparent';
+          f.style.height = d.documentElement.scrollHeight + 'px';
+        };
+        box.open = matchMedia('(min-width: 1100px)').matches;
+        f.addEventListener('load', () => { ready = true; draw(); });
+        box.addEventListener('toggle', draw);
+        return { box, draw };
+      }
+      /** The event card for form values b, in document d. Same class names and structure as src/lib/render.js card(); every value is set with textContent. The icon paths are our own constants from the server. */
+      function pvCard(d, b) {
+        const e = (tag, cls, ...kids) => { const x = d.createElement(tag); if (cls) x.className = cls; for (const k of kids.flat()) if (k != null && k !== false && k !== '') x.append(k.nodeType ? k : d.createTextNode(String(k))); return x; };
+        const ic = (n, cls = '') => {
+          const v = d.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          for (const [k, x] of Object.entries({ class: 'ic' + (cls ? ' ' + cls : ''), viewBox: '0 0 24 24', width: 24, height: 24, fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false' })) v.setAttribute(k, x);
+          v.innerHTML = EV.icons[n] || ''; return v;
+        };
+        const g = EV.games.find((x) => x.id === b.game) || { id: 'other', short: 'Other' }, tool = b.tool || {};
+        const st = b.recurrence.type === 'dates' ? b.recurrence.dates.find((x) => isT(x.start))?.start : b.start;
+        const time = !isT(st) ? 'Time to be announced' : isT(b.doors) ? `Doors ${T12(b.doors)}, starts ${T12(st)}${isT(b.end) ? ', until ' + T12(b.end) : ''}` : `${T12(st)}${isT(b.end) ? ' to ' + T12(b.end) : ''}`;
+        const fee = b.fee === null || b.fee === '' ? '?' : /^\d+$/.test(String(b.fee)) ? (+b.fee === 0 ? 'Free' : '$' + b.fee) : '?';
+        const tag = (icon, label) => e('span', 'tag', ic(icon), label);
+        const tags = [b.beginnerFriendly && tag('sprout', 'Beginner friendly'), b.kidsWelcome ? tag('kid', 'Kids welcome') : b.ageNote && tag('info', b.ageNote), b.playStyle === 'casual' ? tag('mug', 'Casual') : b.playStyle === 'competitive' ? tag('trophy', 'Competitive') : null, b.inviteOnly && tag('lock', 'Invite only')];
+        const cap = /^\d+$/.test(String(b.capacity ?? '')) && +b.capacity > 0 ? +b.capacity : 0;
+        const link = (cls, ...kids) => { const a = e('a', cls, ...kids); a.href = '#'; a.addEventListener('click', (ev) => ev.preventDefault()); return a; };
+        let act = null, stat = null, state = 'walkin';
+        if (b.signup === 'here') { state = 'open'; act = link('btn btn-act', 'Sign up'); if (cap) stat = e('p', 'ev-stat', ic('seat'), e('span', 'ev-stat-big', cap), e('span', 'ev-stat-unit', 'seats left'), e('span', 'ev-stat-small', 'of ' + cap)); }
+        else if (b.signup === 'counter') { state = 'counter'; act = [e('p', 'ev-how', ic('door'), 'Pre-register at the counter.'), link('btn btn-2', ic('phone'), 'Call the shop')]; }
+        else if (b.signup === 'external') { state = 'external'; act = b.inviteOnly ? e('p', 'ev-how', ic('lock'), 'Invite only. Seats come from the Championship Series.') : tool.url ? link('btn btn-act', tool.name ? 'Sign up on ' + tool.name : 'Sign up online', e('span', 'vh', ` (opens ${tool.name || 'another site'})`), ic('external', 'ic-ext')) : e('p', 'ev-how', `Sign up ${tool.name ? 'on ' + tool.name : 'online'}.`); }
+        else if (b.signup === 'walkin') act = e('p', 'ev-how', ic('door'), 'Just show up. No sign-up needed.');
+        const m = b.arriveByMins === null || b.arriveByMins === '' ? null : +b.arriveByMins;
+        const arrive = m !== null && Number.isFinite(m) && isT(st) && ['here', 'counter'].includes(b.signup) ? e('p', 'ev-arrive', ic('clock'), `Arrive by ${T12(hmOf(mins(st) - m))} to keep your seat.`) : null;
+        const more = b.prize ? e('p', 'ev-prize', b.prize) : b.description ? e('p', '', b.description) : null;
+        const art = e('article', 'ev', e('div', 'ev-bar', e('h4', 'ev-title', link('', b.title || 'Event name')), e('p', 'ev-cost', e('span', 'vh', 'Entry: '), fee)),
+          e('p', 'ev-type', e('span', 'gbadge', ic(EV.icons[g.id] ? g.id : 'other', 'gi'), e('span', '', g.short)), b.format && e('span', 'ev-fmt', b.format)),
+          e('div', 'ev-text', e('p', 'ev-when', ic('clock'), e('span', '', time), tags), arrive, more), act && e('div', 'ev-foot', act, stat));
+        for (const k of ['game', 'fgame', 'ffam']) art.setAttribute('data-' + k, k === 'ffam' ? g.family || g.id : g.id);
+        art.querySelector('.gbadge').setAttribute('data-game', g.id); // the badge resets --gc, so it needs its own data-game like render.js
+        art.setAttribute('data-state', state);
+        return art;
       }
       function saveTemplate(E, opener) {
         if (EV.templates.yours.length >= 40) return toast('You have the most templates allowed. Delete one first.');
@@ -736,8 +835,178 @@
         return { form, read, sync, clearAll, showErrors, localCheck };
       }
 
+      // ---------- store info (D7, P2.3b; DESIGN.md 9.7). D20: every value goes in with textContent / attributes ----------
+      const WEEK = [1, 2, 3, 4, 5, 6, 0]; // Monday first, like the website
+      let ST = null;
+      async function renderStore() {
+        guard = null;
+        const [a, p] = await Promise.all([api('GET', 'admin/store'), api('GET', 'admin/photos')]);
+        if (!a.ok) return toast(say(a));
+        ST = { ...a.data, photos: p.ok ? p.data.photos : [] };
+        drawStore();
+      }
+
+      /** The room photo: current picture with Change / Remove, and an inline picker with Upload plus the pictures already on the site. */
+      function photoPicker(cur) {
+        const hid = h('input', { type: 'hidden', name: 'photo', value: cur || '' }), pv = h('div'), panel = h('div', { class: 'picker', hidden: true }), perr = h('p', { class: 'err', role: 'alert', hidden: true });
+        const thumb = (n) => '/media/photos/' + (ST.photos.find((p) => p.name === n)?.thumb || n);
+        const set = (n) => { hid.value = n; drawPv(); hid.dispatchEvent(new Event('change', { bubbles: true })); };
+        const fail = (m) => { perr.textContent = m; perr.hidden = false; };
+        const drawPv = () => put(pv, hid.value ? h('img', { class: 'pimg', src: thumb(hid.value), alt: 'The picture now chosen' }) : h('div', { class: 'pimg none' }, 'No picture'),
+          h('div', { class: 'row' }, h('button', { class: 'btn alt', type: 'button', onclick: () => { grid(); panel.hidden = false; } }, hid.value ? 'Change picture' : 'Add a picture'),
+            hid.value && h('button', { class: 'btn danger', type: 'button', onclick: () => set('') }, 'Remove picture')));
+        function grid() {
+          perr.hidden = true;
+          put(panel, h('div', { class: 'photo-grid' },
+            h('label', { class: 'pick up' }, h('input', { type: 'file', class: 'vh', accept: 'image/jpeg,image/png,image/webp', onchange: (e) => choose(e.target.files[0]) }), ico('upload', 28), h('span', {}, 'Upload a new picture')),
+            ST.photos.map((p, i) => h('label', { class: 'pick' }, h('input', { type: 'radio', class: 'vh', name: 'pick', value: p.name, checked: p.name === hid.value, 'aria-label': `Picture ${i + 1} of ${ST.photos.length}`, onchange: () => set(p.name) }),
+              h('img', { src: '/media/photos/' + p.thumb, alt: '', loading: 'lazy' }), h('span', { class: 'chosen' }, ico('check', 14), 'Chosen')))),
+            perr, h('button', { class: 'btn alt', type: 'button', onclick: () => (panel.hidden = true) }, 'Done'));
+        }
+        async function choose(file) {
+          if (!file) return;
+          if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return fail(ERR.file_type);
+          if (file.size > 15 * 1024 * 1024) return fail(ERR.file_size);
+          let bmp;
+          try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { return fail(ERR.file_type); }
+          const crop = (w) => { // centre-crop to 4:3, then scale; re-encoding drops EXIF, including the location
+            const cw = Math.min(bmp.width, (bmp.height * 4) / 3), ch = (cw * 3) / 4, c = h('canvas', { width: w, height: (w * 3) / 4 });
+            c.getContext('2d').drawImage(bmp, (bmp.width - cw) / 2, (bmp.height - ch) / 2, cw, ch, 0, 0, c.width, c.height);
+            return c.toDataURL('image/webp', 0.82);
+          };
+          const big = crop(1024), small = crop(800);
+          if (!small.startsWith('data:image/webp')) return fail(ERR.file_type);
+          const go = h('button', { class: 'btn', type: 'button' }, 'Use this picture');
+          go.addEventListener('click', async () => {
+            go.disabled = true; go.textContent = 'Saving the picture…';
+            const r = await api('POST', 'admin/photos', { big, small });
+            if (!r.ok) { go.disabled = false; go.textContent = 'Use this picture'; return fail(say(r)); }
+            ST.photos = r.data.photos; set(r.data.name); grid(); toast('Picture added.');
+          });
+          put(panel, h('div', { class: 'preview' }, h('img', { src: small, alt: 'Preview of the new picture' }), bmp.width < 800 && h('p', { class: 'meta' }, 'This picture is small and may look soft.'),
+            h('p', { class: 'meta' }, "The picture is trimmed to the website's shape. If something important is cut off, try a different photo."), perr,
+            h('div', { class: 'row' }, go, h('button', { class: 'btn alt', type: 'button', onclick: grid }, 'Choose a different one'))));
+        }
+        drawPv();
+        return h('div', { class: 'fld wide' }, h('p', { class: 'lbl' }, 'Room photo', h('span', { class: 'opt' }, 'Optional')), h('span', { class: 'hint' }, 'Shows next to the opening hours on the front page.'), hid, pv, panel, h('p', { class: 'ferr', role: 'alert', hidden: true }));
+      }
+
+      function drawStore() {
+        const sec = $('[data-section=store]'), v = ST.store, form = h('form', { class: 'eform', novalidate: true, autocomplete: 'off' });
+        const val = (n) => form.elements[n].value.trim();
+        const inp = (name, cur, x = {}) => h('input', { type: x.type || 'text', name, value: cur ?? '', inputmode: x.mode, placeholder: x.ph, maxlength: x.max, autocomplete: x.auto || 'off' });
+        const group = (legend, ...kids) => h('fieldset', { class: 'fgroup' }, h('legend', {}, legend), h('div', { class: 'fgrid' }, kids.flat()));
+        const unmark = (d) => { clearErr(d); d.querySelectorAll('[aria-invalid]').forEach((c) => c.removeAttribute('aria-invalid')); };
+
+        // opening hours: one row per weekday, Closed toggle, "not set yet" switch
+        const unset = h('input', { type: 'checkbox', name: 'hoursUnset', checked: !Array.isArray(v.hours) });
+        const days = WEEK.map((d) => {
+          const r = (v.hours || []).find((x) => x.day === d) || {};
+          const closed = h('input', { type: 'checkbox', name: `closed.${d}`, checked: !!r.closed }), open = h('input', { type: 'time', name: `open.${d}`, value: r.open || '' }),
+            close = h('input', { type: 'time', name: `close.${d}`, value: r.close === '24:00' ? '00:00' : r.close || '' }), note = h('span', { class: 'hint hnote', 'aria-live': 'polite' });
+          const row = h('div', { class: 'fld hrow' }, h('p', { class: 'lbl hday' }, DAYN[d]), h('label', { class: 'check hclosed' }, closed, h('span', {}, 'Closed')),
+            h('label', { class: 'tl' }, 'Opens', open), h('label', { class: 'tl' }, 'Closes', close), note, h('p', { class: 'ferr', role: 'alert', hidden: true }));
+          const sync = () => {
+            open.parentElement.hidden = close.parentElement.hidden = closed.checked;
+            note.textContent = !closed.checked && isT(open.value) && isT(close.value) ? (close.value === '00:00' ? 'Closes at midnight.' : close.value <= open.value ? `Closes at ${T12(close.value)} the next morning.` : '') : '';
+          };
+          row.addEventListener('input', () => { unmark(row); sync(); }); row.addEventListener('change', () => { unmark(row); sync(); });
+          sync();
+          return row;
+        });
+        const hoursBox = h('div', { class: 'wide' }, days), unsetSay = h('p', { class: 'say wide' }, 'The website says "Hours coming soon" and shows no hours table until you set them.');
+        const tick = () => { hoursBox.hidden = unset.checked; unsetSay.hidden = !unset.checked; };
+        unset.addEventListener('change', tick); tick();
+        const hoursFld = h('div', { class: 'fld wide' }, h('label', { class: 'check' }, unset, h('span', {}, 'Hours are not set yet')), h('p', { class: 'ferr', role: 'alert', hidden: true }));
+        hoursFld.addEventListener('change', () => unmark(hoursFld));
+
+        // special days (holidays, special hours)
+        const orows = h('div', { class: 'wide orows' });
+        const addOv = (o = {}) => {
+          const date = h('input', { type: 'date', name: 'o-date', value: o.date || '' }), closed = h('input', { type: 'checkbox', name: 'o-closed', checked: o.date ? !!o.closed || !o.open : true }),
+            open = h('input', { type: 'time', name: 'o-open', value: o.open || '' }), close = h('input', { type: 'time', name: 'o-close', value: o.close === '24:00' ? '00:00' : o.close || '' }),
+            note = h('input', { type: 'text', name: 'o-note', maxlength: 120, value: o.note || '', placeholder: 'Closed for Thanksgiving' });
+          const rm = h('button', { class: 'btn alt sm', type: 'button', onclick: () => { row.remove(); form.dispatchEvent(new Event('dates')); } }, ico('bin', 18), 'Remove', h('span', { class: 'vh' }, ' this special day'));
+          const row = h('div', { class: 'fld orow' }, h('label', { class: 'tl' }, 'Date', date), h('label', { class: 'check hclosed' }, closed, h('span', {}, 'Closed')), rm,
+            h('label', { class: 'tl' }, 'Opens', open), h('label', { class: 'tl' }, 'Closes', close), h('label', { class: 'tl onote' }, 'Note shown on the website', note), h('p', { class: 'ferr', role: 'alert', hidden: true }));
+          const sync = () => { open.parentElement.hidden = close.parentElement.hidden = closed.checked; };
+          row.addEventListener('input', () => { unmark(row); sync(); }); row.addEventListener('change', () => { unmark(row); sync(); });
+          sync(); orows.append(row);
+        };
+        (v.hourOverrides || []).forEach(addOv);
+        const ovEmpty = h('p', { class: 'meta wide' }, 'No special days. Add one for a holiday or a day with different hours.');
+        const noteOv = () => { ovEmpty.hidden = orows.children.length > 0; };
+        form.addEventListener('dates', noteOv);
+
+        // photo, alt text
+        const picker = photoPicker(v.photo), alt = inp('photoAlt', v.photoAlt, { max: 160, ph: 'Tables set up for a Friday night draft' });
+        const altFld = fld('s-alt', 'Describe the picture', alt, { hint: 'For people who cannot see it. Needed when there is a picture.' });
+        const showAlt = () => { altFld.hidden = !form.elements.photo.value; };
+
+        const L = (id, label, name, cur, x = {}) => fld(id, label, inp(name, cur, x), x);
+        put(form, h('div', { class: 'errsum', role: 'alert', tabindex: '-1', hidden: true }),
+          group('Opening hours', hoursFld, unsetSay, hoursBox),
+          group('Holidays and special days', h('p', { class: 'meta wide' }, 'These replace the usual hours for that one date. Closed days show on the website with your note.'), orows, ovEmpty,
+            h('div', { class: 'wide' }, h('button', { class: 'btn alt sm', type: 'button', onclick: () => { addOv(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a special day'))),
+          group('Where and how to reach you', L('s-street', 'Street address', 'address.street', v.address?.street, { auto: 'street-address' }), L('s-city', 'Town', 'address.city', v.address?.city, { half: true }),
+            L('s-region', 'State', 'address.region', v.address?.region, { half: true, max: 2, ph: 'PA' }), L('s-zip', 'ZIP code', 'address.zip', v.address?.zip, { half: true, mode: 'numeric', max: 10 }),
+            L('s-phone', 'Phone', 'phone', v.phone, { half: true, type: 'tel', ph: '(215) 555-0100', auto: 'tel' }), L('s-email', 'Email', 'email', v.email, { half: true, optional: true, type: 'email', max: 120 })),
+          group('Links', ST.links.map(([k, label]) => L(`s-link-${k}`, label, `links.${k}`, v.links?.[k], { half: true, optional: true, ph: 'https://', max: 500 }))),
+          group('Notes for visitors', L('s-free', 'Free-play line', 'freePlay', v.freePlay, { optional: true, max: 120, hint: 'For example: Free Play All Day, Everyday.' }),
+            L('s-parking', 'Parking note', 'parking', v.parking, { optional: true, max: 300 }), L('s-kids', 'Kids and ages', 'kids', v.kids, { optional: true, max: 300, hint: 'Your age policy, in your words.' }),
+            L('s-tag', 'One line about the shop', 'tagline', v.tagline, { optional: true, max: 160, hint: 'Used in the description Google shows.' })),
+          group('Room photo', picker, altFld));
+        showAlt();
+
+        function read() {
+          const hours = unset.checked ? null : WEEK.slice().sort((a, b) => a - b).map((d) => (form.elements[`closed.${d}`].checked ? { day: d, closed: true } : { day: d, open: val(`open.${d}`), close: val(`close.${d}`) }));
+          const hourOverrides = [...orows.children].map((r) => {
+            const q = (n) => r.querySelector(`[name=${n}]`), c = q('o-closed').checked;
+            return { date: q('o-date').value, ...(c ? { closed: true } : { open: q('o-open').value, close: q('o-close').value }), note: q('o-note').value.trim() };
+          });
+          const photo = val('photo');
+          return { address: { street: val('address.street'), city: val('address.city'), region: val('address.region'), zip: val('address.zip') }, phone: val('phone'), email: val('email'),
+            hours, hourOverrides, links: Object.fromEntries(ST.links.map(([k]) => [k, val(`links.${k}`)])), freePlay: val('freePlay'), parking: val('parking'), kids: val('kids'), tagline: val('tagline'),
+            photo, photoAlt: photo ? val('photoAlt') : '' };
+        }
+        const ctlOf = (k) => {
+          let m;
+          if (k === 'hours') return unset;
+          if ((m = /^hours\.(\d)$/.exec(k))) return form.elements[`open.${m[1]}`];
+          if (k === 'hourOverrides') return orows.children[0]?.querySelector('[name=o-date]');
+          if ((m = /^hourOverrides\.(\d+)(?:\.(date|note))?$/.exec(k))) return orows.children[+m[1]]?.querySelector({ date: '[name=o-date]', note: '[name=o-note]' }[m[2]] || '[name=o-open]');
+          if (k === 'photo') return form.elements.photo;
+          return form.elements[k];
+        };
+        const sum = () => $('.errsum', form);
+        const clearAll = () => { form.querySelectorAll('.fld.bad').forEach(unmark); sum().hidden = true; };
+        function showErrors(errors) {
+          const items = Object.entries(errors).map(([k, m]) => ({ m, c: ctlOf(k) }));
+          for (const { c, m } of items) if (c?.closest('.fld')) markErr(c, m);
+          put(sum(), h('strong', {}, items.length === 1 ? '1 thing needs fixing' : `${items.length} things need fixing`),
+            h('ul', {}, items.map(({ m, c }) => h('li', {}, c && c.type !== 'hidden' ? h('a', { href: '#', onclick: (e) => { e.preventDefault(); c.focus(); } }, m) : m))));
+          sum().hidden = false; sum().scrollIntoView({ block: 'center' }); sum().focus();
+        }
+
+        const base = JSON.stringify(read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn alt', type: 'button' }, 'Cancel');
+        let dirty = false;
+        const upd = () => { showAlt(); noteOv(); dirty = JSON.stringify(read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
+        discard.addEventListener('click', () => { guard = null; drawStore(); });
+        form.addEventListener('input', upd); form.addEventListener('change', upd); form.addEventListener('dates', upd);
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); clearAll();
+          const r = await api('PUT', 'admin/store', read());
+          if (!r.ok) { if (r.status === 422) showErrors(r.data.errors); else toast(say(r)); return; }
+          guard = null; ST.store = r.data.store; drawStore(); toast('Saved. The website shows it now.');
+        });
+        form.append(h('div', { class: 'savebar' }, msg, discard, h('button', { class: 'btn', type: 'submit' }, 'Save store info')));
+        put(sec, h('div', { class: 'head' }, h('h1', {}, 'Store info')), h('p', {}, 'Hours, address, links and notes. Saving updates the opening-hours strip, the hours table, the footer, Google data and the calendar location at once.'), form);
+        noteOv();
+        guard = () => dirty && 'What you typed has not been saved.';
+      }
+
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, events: renderEvents, security: renderSecurity, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: renderEvents, store: renderStore, security: renderSecurity, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';

@@ -138,3 +138,12 @@ test('no TODO reaches a built public page or the New here? source', () => {
     if (existsSync(p)) assert.ok(!/TODO/.test(readFileSync(p, 'utf8')), f);
   }
 });
+
+test('editing the store hours in admin changes the open-now strip without a restart', async () => {
+  const cur = (await (await fetch(`${base}/api/admin/store`, { headers: { Cookie: cookie } })).json()).store;
+  const hours = [0, 1, 2, 3, 4, 5, 6].map((day) => ({ day, open: '10:00', close: '22:00' }));
+  assert.equal((await admin('PUT', 'store', { ...cur, hours })).status, 200);
+  assert.ok((await text(`/?now=${NOW}`)).includes('<strong>Open now</strong> till 10 PM'));
+  assert.equal((await admin('PUT', 'store', { ...cur, hours: null })).status, 200);
+  assert.ok((await text(`/?now=${NOW}`)).includes('Hours coming soon.'));
+});

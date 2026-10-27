@@ -5,16 +5,18 @@ import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, sta
 import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
-import { openDb, getState, backup, seedSeries, listSeries, getSeries, putSeries, deleteSeries, listExceptions, putException, deleteException } from './src/db.js';
+import { openDb, getState, backup, seedSeries, seedStore, getStore, putStore, listSeries, getSeries, putSeries, deleteSeries, listExceptions, putException, deleteException } from './src/db.js';
 import { clean as cleanSeries, cleanException, cleanTemplate, copyText, hasSlot, newId, occurrences, validate as validateSeries, validateException, validateTemplate, KINDS, SIGNUPS, TEMPLATES } from './src/lib/events.js';
 import { GAMES } from './src/lib/games.js';
+import { ICONS } from './src/lib/icons.js';
 import { clean, createAudit } from './src/audit.js';
 import {
   allow, adminRow, checkLogin, clearFailures, clientIp, cookieHeader, dataDirProblem, defaultInUse, locked, readCookie, recordFailure, sameOrigin, seedAdmin, setPassword,
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
 import { etDay, injectMarkers } from './src/lib/state.js';
-import store from './src/content/store.json' with { type: 'json' };
+import { clean as cleanStore, validate as validateStore, LINKS } from './src/lib/store.js';
+import * as facts_view from './src/lib/store-render.js';
 import releases from './src/content/releases.json' with { type: 'json' };
 import { etNow, NOW_TEST, realDay } from './src/lib/clock.js';
 import * as view from './src/lib/render.js';
@@ -61,6 +63,7 @@ if (dirProblem) { console.error(`Refusing to start: ${dirProblem}`); process.exi
 
 const db = openDb(DATA);
 seedSeries(db);
+seedStore(db);
 const audit = createAudit({ db, log });
 const stats = createStats({ db, log });
 
@@ -192,11 +195,13 @@ function sendRange(nreq, nres, file, st, headers) {
 }
 
 // ---------- live public pages (D11, D16): rendered from the database on every request, so admin edits and cancellations show without a rebuild ----------
+/** The store facts as saved in admin (hours, address, links ...), read on every request so an edit shows without a restart. */
+const facts = () => getStore(db);
 const FAMILY = Object.fromEntries(GAMES.map((g) => [g.id, g.family]));
 /** The data the renderers read. ?now=YYYY-MM-DDTHH:MM (store time) sets the clock outside production, for screenshots and tests. */
 function publicCtx(url) {
   const t = url.searchParams.get('now'), keepNow = !PROD && NOW_TEST.test(t ?? '') && realDay(t.slice(0, 10)) ? t : null;
-  return { store, series: listSeries(db), exceptions: listExceptions(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL };
+  return { store: facts(), series: listSeries(db), exceptions: listExceptions(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL };
 }
 /** Marker name -> function, for injectMarkers(); the database is read only when a page actually has a marker. */
 function liveParts(url, more = {}) {
@@ -204,7 +209,10 @@ function liveParts(url, more = {}) {
   const ctx = () => (c ??= publicCtx(url));
   const script = (obj) => view.h`<script type="application/ld+json">${view.safe(ldScript(obj))}</script>`;
   return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), cedh: () => view.cedh(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
-    events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(store, PUBLIC_URL)), ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
+    events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(ctx().store, PUBLIC_URL)),
+    bar: () => facts_view.bar(ctx()), 'foot-addr': () => facts_view.footAddr(ctx()), socials: () => facts_view.socials(ctx()), 'cedh-live': () => facts_view.cedhLive(ctx()), visit: () => facts_view.visit(ctx()), discord: () => facts_view.discord(ctx()),
+    'nh-toc': () => facts_view.nhToc(ctx()), 'nh-free': () => facts_view.nhFree(ctx()), 'nh-kids': () => facts_view.nhKids(ctx()), 'nh-here': () => facts_view.nhHere(ctx()), 'nh-ask': () => facts_view.nhAsk(ctx()),
+    ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
 }
 /** tpl = the built page before injectMarkers(): only its inline scripts get CSP hashes. */
 function sendHtml(nreq, nres, url, html, tpl, status = 200) {
@@ -226,7 +234,7 @@ const template = (name) => { try { return readFileSync(join(DIST, name, 'index.h
 function eventPage(nreq, nres, url, id) {
   const tpl = template('event-page');
   if (!tpl) return notFound(nreq, nres, url);
-  const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === id && x.enabled !== false);
+  const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === id && x.enabled !== false), store = ctx.store;
   const page = (status, body, head = view.h`<title>Event not found | ${store.name}</title>`) => {
     let out = injectMarkers(tpl, getState(db), etDay(), { ...liveParts(url), head: () => head, event: () => body });
     if (status !== 200) out = out.replace('</head>', '<meta name="robots" content="noindex"></head>');
@@ -253,7 +261,7 @@ async function publicRoute(nreq, nres, url) {
   if (p === '/events.ics') {
     const ctx = publicCtx(url), game = url.searchParams.get('game');
     const occs = feedOccurrences(ctx.series, ctx.exceptions, ctx.now.ymd, 120, GAMES.some((g) => g.id === game) ? game : null, FAMILY);
-    sendText(nreq, nres, url, calendar(occs, store, PUBLIC_URL, { name: `${store.name} events` }), TYPES['.ics']);
+    sendText(nreq, nres, url, calendar(occs, ctx.store, PUBLIC_URL, { name: `${ctx.store.name} events` }), TYPES['.ics']);
     return true;
   }
   if (p === '/sitemap.xml') { const ctx = publicCtx(url); sendText(nreq, nres, url, sitemap(ctx.series, ctx.exceptions, PUBLIC_URL, etDay()), TYPES['.xml']); return true; }
@@ -262,7 +270,7 @@ async function publicRoute(nreq, nres, url) {
   if (m) {
     const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === m[1] && x.enabled !== false), o = s && view.findOccurrence(ctx, s, url.searchParams.get('date'), url.searchParams.get('time'));
     if (!o) { notFound(nreq, nres, url); return true; }
-    sendText(nreq, nres, url, calendar([o], store, PUBLIC_URL, { name: o.title }), TYPES['.ics'], { 'Content-Disposition': `attachment; filename="mulligan-${s.id}-${o.date}.ics"` });
+    sendText(nreq, nres, url, calendar([o], ctx.store, PUBLIC_URL, { name: o.title }), TYPES['.ics'], { 'Content-Disposition': `attachment; filename="mulligan-${s.id}-${o.date}.ics"` });
     return true;
   }
   m = /^\/events\/([a-z0-9][a-z0-9-]{0,59})\/?$/.exec(p);
@@ -368,7 +376,7 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     if (m === 'GET') {
       const series = listSeries(db), exceptions = listExceptions(db), today = etDay(), to = new Date(Date.parse(today) + 400 * 864e5).toISOString().slice(0, 10);
       const upcoming = Object.fromEntries(series.map((s) => [s.id, occurrences(s, today, to, exceptions).slice(0, 8).map((o) => ({ date: o.date, slot: o.slot, originalDate: o.originalDate, start: o.start, end: o.end, capacity: o.capacity, cancelled: o.cancelled, moved: o.moved, changed: o.changed, note: o.note }))]));
-      return json({ series, exceptions, upcoming, today, games: GAMES, kinds: KINDS, signups: SIGNUPS });
+      return json({ series, exceptions, upcoming, today, games: GAMES, kinds: KINDS, signups: SIGNUPS, icons: ICONS });
     }
     if (m !== 'POST') return bad('not_found', 404);
     if (!plain) return bad('body');
@@ -417,6 +425,23 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
   return bad('not_found', 404);
 }
 
+// ---------- store facts (admin): GET store | PUT store. Session + origin check come from route(); the body is capped here as well ----------
+const MAX_STORE_BODY = 32 * 1024;
+function storeApi(req, body, ip, note, photoFiles) {
+  const m = req.method;
+  if (m === 'GET') return json({ store: facts(), links: LINKS });
+  if (m !== 'PUT') return bad('not_found', 404);
+  if (!allow(`store:${ip}`, 120)) { note('store_blocked', 'rate limit'); return bad('rate', 429); }
+  if (!body || typeof body !== 'object' || Array.isArray(body) || JSON.stringify(body).length > MAX_STORE_BODY) return bad('body');
+  const errors = validateStore(body);
+  if (body.photo && !errors.photo && !pickablePhotos(photoFiles()).includes(body.photo)) errors.photo = 'That picture is not available any more. Pick another one.';
+  if (Object.keys(errors).length) return invalid(errors);
+  const prev = facts(), next = cleanStore(body, prev);
+  putStore(db, next);
+  note('store_update', ['hours', 'hourOverrides', 'photo', 'links', 'address', 'phone', 'email', 'parking', 'kids', 'freePlay', 'tagline'].filter((k) => JSON.stringify(prev[k] ?? null) !== JSON.stringify(next[k] ?? null)).join(', ') || 'no change');
+  return json({ store: next });
+}
+
 // ---------- event templates (admin): the built-ins from events.js plus staff-saved ones in kv key "templates" ----------
 const MAX_TEMPLATES = 40;
 const savedTemplates = () => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'templates'").get()?.value ?? '[]');
@@ -460,13 +485,14 @@ async function adminApi(req, url, user) {
   if (key === 'GET photos') return json({ photos: photoList() });
   if (key === 'POST photos') return uploadPhoto(body, ip, note, photoList);
   if (key === 'DELETE photos' && /^photo-\d{8}-[0-9a-f]{6}\.webp$/.test(a1 ?? '')) { // only uploads; built photos are never touched
-    if (Object.values(getState(db)).some((v) => Array.isArray(v) && v.some((x) => x?.photo === a1))) return bad('in_use', 409); // any saved item with this photo
+    if (facts().photo === a1 || Object.values(getState(db)).some((v) => Array.isArray(v) && v.some((x) => x?.photo === a1))) return bad('in_use', 409); // the room photo, or any saved item with this photo
     if (!existsSync(join(PHOTOS, a1))) return bad('not_found', 404);
     for (const f of [a1, a1.replace('.', '-800.')]) try { unlinkSync(join(PHOTOS, f)); } catch {}
     note('photo_delete', a1);
     return json({ ok: true, photos: photoList() });
   }
   if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
+  if (section === 'store') return storeApi(req, body, ip, note, photoFiles);
   if (section === 'templates') return templatesApi(req, body, [a1], ip, note);
   if (key === 'GET security') return json({ events: audit.recent(500) });
 

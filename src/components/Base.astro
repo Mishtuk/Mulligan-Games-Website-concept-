@@ -31,9 +31,11 @@ const nav = [['This week', '/#week', 'home'], ['cEDH', '/#cedh', ''], ['New and 
     <div class="openbar">
       <div class="wrap openbar-in">
         <Fragment set:html="<!--mg:strip--><p class='ob-status'><span class='ob-dot' aria-hidden='true'></span><span><strong>Hours coming soon.</strong> Call the shop for today’s hours.</span></p><!--/mg:strip-->" />
+        <Fragment set:html="<!--mg:bar-->" />
         <p class="ob-addr">{a.street}, {a.city}</p>
         {tel && <a class="ob-link" href={tel}><Icon name="phone" /><span class="ob-long">{store.phone}</span><span class="ob-short">Call</span></a>}
         <a class="ob-link" href={maps} target="_blank" rel="noopener"><Icon name="pin" />Directions<span class="vh"> (opens Google Maps)</span></a>
+        <Fragment set:html="<!--/mg:bar-->" />
       </div>
     </div>
 
@@ -66,14 +68,18 @@ const nav = [['This week', '/#week', 'home'], ['cEDH', '/#cedh', ''], ['New and 
     <footer class="site-foot">
       <div class="wrap foot-in">
         <div>
+          <Fragment set:html="<!--mg:foot-addr-->" />
           <p class="foot-name">{store.name}</p>
           <p>{a.street}, {a.city}, {a.region} {a.zip}<br />{tel ? <a href={tel}>{store.phone}</a> : store.phone}</p>
+          <Fragment set:html="<!--/mg:foot-addr-->" />
         </div>
         <ul class="foot-links">
           <li><a href="/new-here/">New here?</a></li>
           <li><a href="/events/">All events</a></li>
           <li><a href="/events.ics">Calendar feed</a></li>
+          <Fragment set:html="<!--mg:socials-->" />
           {social.map(([n, u]) => <li><a href={u} target="_blank" rel="noopener">{n}<span class="vh"> (opens in a new tab)</span></a></li>)}
+          <Fragment set:html="<!--/mg:socials-->" />
           <li><a href="/admin/">Staff sign-in</a></li>
         </ul>
       </div>
