@@ -4,18 +4,40 @@
   <meta charset="utf-8">
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>(function () { var t = new URLSearchParams(location.search).get('theme'), s = null, m = document.querySelector('meta[name="color-scheme"]'); try { s = localStorage.getItem('mg-scheme'); } catch (e) {} if (t === 'light' || t === 'dark') m.content = t; else if (s) m.content = s; })();</script>
   <title>Tests running...</title>
+  <meta name="description" content="Checks for the Mulligan Games concept: sign-up rules, recurrence, calendar files, stock, and that typed text is shown as text.">
+  <link rel="icon" href="img/logo/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/logo/logo-180.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mulligan Games">
+  <meta property="og:title" content="Mulligan Games concept: tests">
+  <meta property="og:description" content="Checks for the Mulligan Games concept: sign-up rules, recurrence, calendar files, stock, and that typed text is shown as text.">
+  <meta property="og:image" content="img/og/mulligan-games-og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Mulligan Games logo on its sign plate, next to the play room doorway">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="css/tokens.css">
+  <!-- Look A chrome (D28): charcoal bar with the logo plate, cream page; results use the status colours from tokens.css. -->
   <style>
-    body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 1rem 1.25rem 4rem; background: #fff; color: #131A3A; max-width: 60rem; }
-    h1 { margin: 0 0 .25rem; }
-    #summary { display: inline-block; padding: .25rem .75rem; border-radius: 6px; font-weight: 800; background: #eee; }
-    #summary.pass { background: #E3F4EA; color: #1C6B3F; } #summary.fail { background: #FCE6E7; color: #B3141D; }
+    body { font: 16px/1.5 var(--font); margin: 0; background: var(--paper); color: var(--ink); }
+    .t-bar { display: flex; align-items: center; gap: .75rem; padding: .6rem 1.25rem; background: var(--charcoal); color: var(--on-band); }
+    .t-plate { display: inline-flex; padding: 4px 7px; border-radius: var(--r-box); background: var(--plate); }
+    .t-plate img { width: 6.25rem; height: auto; display: block; }
+    .t-bar a { color: var(--on-band); font-weight: 700; margin-left: auto; }
+    main { padding: 1.25rem 1.25rem 4rem; max-width: 60rem; }
+    h1 { margin: 0 0 .25rem; font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.25rem; line-height: 1.05; }
+    #summary { display: inline-block; padding: .25rem .75rem; border-radius: var(--r-box); font-weight: 800; background: var(--surface-2); }
+    #summary.pass { background: var(--ok-bg); color: var(--ok); } #summary.fail { background: var(--bad-bg); color: var(--bad); }
     h2 { margin: 1.5rem 0 .25rem; font-size: 1.1rem; }
-    ul { list-style: none; margin: 0; padding: 0; }
-    li { padding: .2rem 0; border-bottom: 1px solid #eee; }
+    ul { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-ctl); }
+    li { padding: .25rem .6rem; border-bottom: 1px solid var(--line); }
+    li:last-child { border-bottom: 0; }
     .mark { display: inline-block; width: 3.2rem; font-weight: 800; font-size: .8rem; }
-    .pass .mark { color: #1C6B3F; } .fail .mark { color: #B3141D; } li.fail { background: #FCE6E7; }
-    pre { margin: .25rem 0 0 3.2rem; white-space: pre-wrap; color: #B3141D; }
+    .pass .mark { color: var(--ok); } .fail .mark { color: var(--bad); } li.fail { background: var(--bad-bg); }
+    pre { margin: .25rem 0 0 3.2rem; white-space: pre-wrap; color: var(--bad); }
     #sandbox { position: absolute; left: -9999px; top: 0; width: 1px; height: 1px; overflow: hidden; }
   </style>
   <script>window.MG_NO_PERSIST = true; window.__xss = 0;</script>
@@ -37,9 +59,12 @@
   <script src="js/tests-boot.js" defer></script>
 </head>
 <body>
+  <div class="t-bar"><span class="t-plate"><img src="img/logo/logo-plate-330.webp" alt="Mulligan Games" width="330" height="102"></span><a href="index.html">Back to the concept</a></div>
+  <main>
   <h1>Mulligan Games concept: tests</h1>
   <p>Rules for capacity and waitlist, minimum to run, recurrence, .ics, stock, reservations, low-stock and preorders, plus checks that typed text is shown as text. <span id="summary">running...</span></p>
   <div id="results"></div>
+  </main>
   <div id="sandbox" aria-hidden="true"></div>
 </body>
 </html>

@@ -1,19 +1,33 @@
 /* Mulligan Games concept: the events page (events.html). Reuses site.css (chips, day heads, slots, event card). */
-.ep { padding-block: var(--s5) var(--s7); }
-.ep-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s3) var(--s5); margin-bottom: var(--s4); }
+.ep { padding-block: var(--s4) var(--s7); }
+/* page head: title, one line on how sign-ups work, the calendar button; a shop photo beside it (D27, look A) */
+.ep-head { display: grid; grid-template-areas: "photo" "copy"; gap: var(--s4); margin-bottom: var(--s5); }
+.ep-copy { grid-area: copy; display: grid; justify-items: start; gap: var(--s3); }
 .ep-head h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
+.ep-lede { margin: 0; max-width: 46ch; font-size: 1.125rem; color: var(--ink-2); }
+.ep-photo { grid-area: photo; position: relative; margin: 0 calc(-1 * var(--gutter)); aspect-ratio: 16 / 7; overflow: hidden; background: var(--surface-2); }
+.ep-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; }
+.ep-photo figcaption {
+  position: absolute; left: var(--s3); bottom: var(--s3); max-width: calc(100% - 1.5rem); padding: 0.35rem 0.7rem; border-radius: var(--r-pill);
+  background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
+}
+@media (min-width: 768px) {
+  .ep-head { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); grid-template-areas: "copy photo"; align-items: center; column-gap: var(--s7); margin-block: var(--s4) var(--s6); }
+  .ep-photo { margin: 0; aspect-ratio: 4 / 3; border-radius: var(--r-photo); }
+}
+@media (min-width: 1024px) { .ep-photo { aspect-ratio: 16 / 10; } }
 .ep-format { display: flex; align-items: center; gap: var(--s3); margin: 0 0 var(--s5); }
 .ep-format label { font-weight: 750; }
 .ep-format select { min-height: var(--tap); padding: 0 2rem 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 650; max-width: 100%; }
 .ep-sec { margin-top: var(--s6); }
-.ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 3px solid var(--ink); }
+.ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 2px solid var(--line); }
 .ep .chips { margin-bottom: var(--s3); }
 
 /* add to calendar */
 .cal-menu { position: relative; }
 .cal-menu summary { list-style: none; cursor: pointer; }
 .cal-menu summary::-webkit-details-marker { display: none; }
-.cal-pop { position: absolute; right: 0; top: calc(100% + 0.4rem); z-index: 10; min-width: 14rem; padding: var(--s2); background: var(--surface); border: 2px solid var(--ink); border-radius: var(--r-card); box-shadow: var(--lift); }
+.cal-pop { position: absolute; left: 0; top: calc(100% + 0.4rem); z-index: 10; min-width: 14rem; padding: var(--s2); background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-card); box-shadow: var(--lift); }
 .cal-pop .btn { width: 100%; justify-content: flex-start; }
 
 /* special events: the day groups come from site.css (.day, .slot) */

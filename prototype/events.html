@@ -5,9 +5,22 @@
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <script>try { var s = localStorage.getItem('mg-scheme'); if (s) document.querySelector('meta[name="color-scheme"]').content = s; } catch (e) {}</script>
+  <!-- ?theme=light|dark shows one scheme without saving it (for screenshots); otherwise the visitor's saved choice, else the system setting. -->
+  <script>(function () { var t = new URLSearchParams(location.search).get('theme'), s = null, m = document.querySelector('meta[name="color-scheme"]'); try { s = localStorage.getItem('mg-scheme'); } catch (e) {} if (t === 'light' || t === 'dark') m.content = t; else if (s) m.content = s; })();</script>
   <title>Events and sign-ups, Mulligan Games, Warminster PA</title>
   <meta name="description" content="Every event at Mulligan Games in Warminster, PA: Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer. See the fee and open seats, sign up or join the waitlist, add it to your calendar.">
+  <meta name="theme-color" content="#6B3A2C">
+  <link rel="icon" href="img/logo/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/logo/logo-180.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mulligan Games">
+  <meta property="og:title" content="Events and sign-ups at Mulligan Games, Warminster PA">
+  <meta property="og:description" content="Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer. See the fee and open seats, hold a seat, pay at the store.">
+  <meta property="og:image" content="img/og/mulligan-games-og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Mulligan Games logo on its sign plate, next to the play room doorway">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/site.css">
   <link rel="stylesheet" href="css/ui.css">
@@ -38,39 +51,42 @@
 
   <header class="site-head">
     <div class="wrap head-in">
-      <a class="brand" href="index.html" aria-label="Mulligan Games, home">
-        <svg class="mark" viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
-          <rect x="7" y="5" width="21" height="30" rx="3.5" transform="rotate(-13 17.5 20)" fill="none" stroke="var(--sign)" stroke-width="2.5"/>
-          <rect x="15" y="9" width="21" height="30" rx="3.5" fill="var(--flyer-red)"/>
-          <path d="M25.5 15.5 31 24l-5.5 8.5L20 24z" fill="#fff"/>
-        </svg>
-        <span class="brand-name">Mulligan<small>Games</small></span>
+      <!-- The store's wordmark on a white plate, like the sign on the building (the artwork has a white background). -->
+      <a class="plate" href="index.html" aria-label="Mulligan Games, home">
+        <img src="img/logo/logo-plate-330.webp" alt="" width="330" height="102">
       </a>
       <nav class="site-nav" aria-label="Main">
         <ul>
           <li><a href="index.html#week">This week</a></li>
+          <li><a href="index.html#shop">The shop</a></li>
           <li><a href="index.html#cedh">cEDH</a></li>
           <li><a href="index.html#new">New and preorders</a></li>
           <li><a href="index.html#visit">Visit</a></li>
           <li><a href="events.html" aria-current="page">All events</a></li>
         </ul>
       </nav>
-      <button class="theme-btn" id="theme-btn" type="button">
-        <svg class="ic i-moon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
-        <svg class="ic i-sun" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
-        <span class="vh t-dark">Switch to dark theme</span><span class="vh t-light">Switch to light theme</span>
-      </button>
+      <!-- Light / Dark switch: follows the system until a visitor picks one; the pick is remembered (mg-scheme). -->
+      <div class="scheme" role="group" aria-label="Colour theme">
+        <span class="scheme-k" aria-hidden="true">Theme</span>
+        <button type="button" data-scheme="light" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><span>Light</span></button>
+        <button type="button" data-scheme="dark" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg><span>Dark</span></button>
+      </div>
     </div>
   </header>
 
   <main id="main">
     <div class="wrap ep">
       <div class="ep-head">
-        <h1>Events</h1>
-        <details class="cal-menu" id="cal-menu">
-          <summary class="btn btn-2"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Add to my calendar</summary>
-          <div class="cal-pop"><button type="button" class="btn btn-2" id="cal-all"><span id="cal-game">All events</span><span class="vh"> (saves a calendar file)</span></button></div>
-        </details>
+        <div class="ep-copy">
+          <h1>Events</h1>
+          <p class="ep-lede">Every game night at the shop, from Learn to Play Pokemon to the cEDH Championship Series. Pick a game, check the fee and open seats, and hold a seat. You pay at the store.</p>
+          <details class="cal-menu" id="cal-menu">
+            <summary class="btn btn-2"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Add to my calendar</summary>
+            <div class="cal-pop"><button type="button" class="btn btn-2" id="cal-all"><span id="cal-game">All events</span><span class="vh"> (saves a calendar file)</span></button></div>
+          </details>
+        </div>
+        <!-- A shop photo so the list feels like the room it happens in (D27). Decorative context; the alt says what it shows. -->
+        <figure class="ep-photo"><img src="img/social/interior-welcome-banner-800.webp" width="800" height="600" alt="The Welcome to Mulligan Games banner over the doorway into the play room" fetchpriority="high"><figcaption>The play room is through this door</figcaption></figure>
       </div>
       <nav class="chips" id="chips" aria-label="Show one game"></nav>
       <div class="ep-format"><label for="fmt">Format</label><select id="fmt"><option value="">All formats</option></select></div>
@@ -99,7 +115,7 @@
   <footer class="site-foot">
     <div class="wrap foot-in">
       <div>
-        <p class="foot-name">Mulligan Games</p>
+        <p class="foot-plate"><img src="img/logo/logo-plate-330.webp" alt="Mulligan Games" width="330" height="102" loading="lazy"></p>
         <p>445 York Rd, Warminster, PA 18974<br><a href="tel:+12157893299">(215) 789-3299</a></p>
       </div>
       <p id="foot-hours">Wed and Thu 2 to 10 PM. Fri and Sat 2 PM to midnight. Sun 1 to 10 PM. Closed Mon and Tue.</p>

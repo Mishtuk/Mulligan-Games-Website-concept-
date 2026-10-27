@@ -33,28 +33,6 @@
     links.push('<a href="' + e(href({ now: null })) + '"' + (!cur ? ' aria-current="true"' : '') + '>Right now' +
       (MG.isDemoClock() ? ' (sample week)' : '') + '</a>');
     $('#demo-links').innerHTML = links.join(' ');
-    // the three palette directions from the owner review (D27); index.html's head script reads ?look=
-    var look = document.documentElement.getAttribute('data-look') || 'a', lk = $('#look-links');
-    if (lk) lk.innerHTML = [['a', 'A, Brick and sign'], ['b', 'B, Felt table'], ['c', 'C, Clean neutral']].map(function (x) {
-      return '<a href="' + e(href({ look: x[0] === 'a' ? null : x[0] })) + '"' + (look === x[0] ? ' aria-current="true"' : '') + '>' + e(x[1]) + '</a>';
-    }).join(' ');
-  }
-
-  /* ---------- light / dark switch: two labelled buttons, system default, choice remembered (MG.scheme) ---------- */
-  function wireScheme() {
-    var btns = document.querySelectorAll('.scheme [data-scheme]');
-    function show() {
-      var cur = MG.scheme.current();
-      Array.prototype.forEach.call(btns, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-scheme') === cur)); });
-    }
-    Array.prototype.forEach.call(btns, function (b) {
-      b.addEventListener('click', function () { MG.scheme.set(b.getAttribute('data-scheme')); show(); });
-    });
-    window.addEventListener('storage', function (ev) {
-      if (ev.key === 'mg-scheme') { document.querySelector('meta[name="color-scheme"]').content = ev.newValue || 'light dark'; show(); }
-    });
-    try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', show); } catch (err) { /* old browsers */ }
-    show();
   }
 
   /* ---------- hero video (DESIGN 6.1): poster first; the loop starts after load unless motion or data is limited ---------- */
@@ -69,7 +47,15 @@
       if (playing) btn.removeAttribute('data-paused'); else btn.setAttribute('data-paused', '');
     }
     function start() { v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
-    v.addEventListener('playing', function () { box.classList.add('is-on'); label(true); });
+    // Reveal the video only once a real frame has been painted. Until then (and if it never plays: blocked autoplay,
+    // headless capture, a decode error) the poster <img> and the box's poster background stay in view.
+    function reveal() { box.classList.add('is-on'); }
+    function onFrame() {
+      if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(reveal);
+      else v.addEventListener('timeupdate', function t() { if (v.currentTime > 0) { v.removeEventListener('timeupdate', t); reveal(); } });
+    }
+    v.addEventListener('playing', function () { label(true); onFrame(); });
+    ['error', 'emptied', 'abort'].forEach(function (n) { v.addEventListener(n, function () { box.classList.remove('is-on'); label(false); }); });
     v.addEventListener('pause', function () { label(false); });
     btn.addEventListener('click', function () {
       var go = v.paused;
@@ -368,7 +354,7 @@
     renderChips(); renderDays(); renderLater();
     renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips();
   }
-  try { wireScheme(); wireVideo(); } catch (err) { if (window.console) console.error(err); }
+  try { MG.scheme.wire(); wireVideo(); } catch (err) { if (window.console) console.error(err); }
   try { init(); } catch (err) {
     // error state: say what failed and what to do (DESIGN.md "Loading, empty, error")
     var days = document.getElementById('days');

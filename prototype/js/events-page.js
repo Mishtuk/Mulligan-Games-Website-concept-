@@ -125,10 +125,13 @@
     host.hidden = false;
     var g = game === 'all' ? null : MG.game(game), label = (g ? g.short + ' ' : '') + (format ? format + ' ' : '');
     var future = MG.allOccurrences(MG.ymd(MG.addDays(now, SPECIAL_DAYS + 1)), MG.ymd(MG.addDays(now, 400))).filter(function (o) { return !o.cancelled && passes(o.series); })[0];
-    host.innerHTML = '<div class="empty lattice" role="note"><p class="empty-h">No ' + e(label.trim() || 'events') + ' events right now.</p>' +
+    // a shop photo beside the words: the room is open for free play even when nothing is scheduled
+    host.innerHTML = '<div class="empty empty-photo" role="note"><img src="img/social/staff-corgi-interior-800.webp" width="512" height="640" alt="A Mulligan Games staff member holding a corgi in the play room" loading="lazy">' +
+      '<div class="empty-in"><p class="empty-h">No ' + e(label.trim() || 'events') + ' events right now.</p>' +
       (future ? '<p>The next one is ' + e(future.series.title) + ' on ' + e(MG.dayName(MG.parseYmd(future.date)) + ', ' + MG.fmtDate(MG.parseYmd(future.date))) + ' at ' + e(MG.fmtTime(future.start)) + '.</p>'
         : '<p>Nothing is scheduled yet. Ask at the counter or watch the Discord.</p>') +
-      '<a class="btn btn-2" href="' + e(url({ game: null, format: null })) + '" data-chip="all">Show all games</a></div>';
+      '<p>Free play is on all day, every day we’re open.</p>' +
+      '<a class="btn btn-2" href="' + e(url({ game: null, format: null })) + '" data-chip="all">Show all games</a></div></div>';
   }
   function render() {
     renderChips(); renderFormats(); calLabels();
@@ -255,8 +258,7 @@
     dlg.addEventListener('click', function (ev) { if (ev.target === dlg || ev.target.closest('#det-x')) dlg.close(); });
     dlg.addEventListener('close', closeDetail);
     window.addEventListener('hashchange', fromHash);
-    $('#theme-btn').addEventListener('click', function () { MG.scheme.toggle(); });
-    window.addEventListener('storage', function (ev) { if (ev.key === 'mg-scheme') document.querySelector('meta[name="color-scheme"]').content = ev.newValue || 'light dark'; });
+    MG.scheme.wire();
     MG.state.subscribe(function () { now = MG.now(); render(); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && $('#cal-menu').open) $('#cal-menu').open = false; });
   }

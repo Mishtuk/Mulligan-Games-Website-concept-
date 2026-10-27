@@ -1,55 +1,25 @@
-/* Front page only (index.html): the photo-led layout from the owner review (D27).
- * Loads after site.css and the three look files (theme-a/b/c.css). Colours come only from tokens, so the same
- * rules serve all three looks; the look files hold the few look-specific touches.
+/* Front page only (index.html): the photo-led layout (D27), look A (D28). Loads after tokens.css and site.css;
+ * colours come only from tokens. The header, the Light | Dark switch and the event card live in site.css.
  */
 
-/* ---------- concept bar: look picker ---------- */
-.demo-looks a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--s2); font-weight: 700; }
-.demo-looks a[aria-current] { background: var(--ink); color: var(--paper); border-radius: var(--r-box); text-decoration: none; }
-
-/* ---------- header: logo on its sign plate + labelled light/dark switch ---------- */
-.site-head { background: var(--head-bg, var(--paper)); color: var(--ink); }
-.site-head .head-in { padding-block: var(--s3) 0; gap: var(--s2) var(--s4); }
-.plate {
-  display: inline-flex; align-items: center; margin-right: auto; padding: 6px 10px; border-radius: 6px;
-  background: #FFFFFF; box-shadow: 0 0 0 1px var(--plate-edge), 0 2px 6px -2px rgb(0 0 0 / 0.25);
-}
-.plate img { width: 10.5rem; height: auto; }
-.plate:focus-visible { outline-offset: 4px; }
-.site-head .site-nav a { color: var(--ink); }
-.site-head .site-nav a:hover { background: color-mix(in oklab, var(--ink) 10%, transparent); }
-
-.scheme {
-  display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-pill);
-  border: 1px solid var(--line-strong); background: var(--surface);
-}
-.scheme-k { padding: 0 var(--s2) 0 var(--s3); font-size: var(--t-xs); font-weight: 750; color: var(--ink-2); }
-.scheme button {
-  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0 0.8rem; border: 0; border-radius: var(--r-pill);
-  background: transparent; color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer;
-}
-.scheme button .ic { width: 1.05rem; height: 1.05rem; }
-.scheme button:hover { background: var(--surface-2); }
-.scheme button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-@media (max-width: 420px) { .scheme-k { display: none; } .scheme button { padding: 0 0.6rem; } .plate img { width: 8.25rem; } }
-@media (min-width: 900px) { .site-head .head-in { padding-block: var(--s3); } .site-head .site-nav { margin-left: auto; } .plate { margin-right: 0; } }
-
 /* ---------- hero: the room, then what's on ---------- */
-.phero { background: var(--hero-bg); color: var(--ink); }
+.phero { background: var(--paper); color: var(--ink); }
 .phero-in {
   display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "media" "copy" "deck";
   gap: var(--s5); padding-block: 0 var(--s6);
 }
 .phero-media {
   grid-area: media; position: relative; overflow: hidden; margin: 0 calc(-1 * var(--gutter));
-  aspect-ratio: 4 / 3; background: var(--band);
+  aspect-ratio: 4 / 3;
+  /* the poster is also the box background, so the frame is never empty or black while the image decodes */
+  background: var(--surface-2) url("../media/video/cedh-players-tables-loop-poster.webp") 50% 28% / cover no-repeat;
 }
 .phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
 .phero-media video { opacity: 0; transition: opacity 600ms; }
 .phero-media.is-on video { opacity: 1; }
 .media-cap, .vid-btn {
   position: absolute; z-index: 1; margin: 0; display: inline-flex; align-items: center; gap: 0.4rem;
-  background: rgb(18 16 14 / 0.84); color: #FFFFFF; border-radius: var(--r-pill); font-size: var(--t-sm); font-weight: 700; line-height: 1.2;
+  background: var(--scrim); color: #FFFFFF; border-radius: var(--r-pill); font-size: var(--t-sm); font-weight: 700; line-height: 1.2;
 }
 .media-cap { left: var(--s3); bottom: var(--s3); padding: 0.4rem 0.8rem; max-width: calc(100% - 10rem); }
 .vid-btn { right: var(--s3); bottom: var(--s3); min-height: var(--tap); padding: 0 1rem; border: 0; font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; visibility: hidden; }
@@ -105,24 +75,15 @@
 }
 @media (min-width: 1024px) {
   .phero-in {
-    grid-template-columns: var(--hero-cols, minmax(0, 1.2fr) minmax(0, 0.8fr));
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     grid-template-areas: "copy media" "deck media"; grid-template-rows: auto 1fr;
     column-gap: var(--s7); row-gap: var(--s6); padding-block: var(--s7) var(--s8); align-items: start;
   }
-  .phero-media { margin: 0; aspect-ratio: var(--hero-ratio, 4 / 5); }
+  .phero-media { margin: 0; aspect-ratio: 4 / 5; }
   .phero-media img, .phero-media video { object-position: 50% 40%; }
   .phero-copy { padding-top: var(--s4); }
   .wdeck { align-self: end; }
 }
-
-/* ---------- this week: calmer cards (game colour is a thin rule and the icon, not a band) ---------- */
-.day-h { background: var(--paper); }
-.day-dia { color: var(--on-flyer); }
-.ev-bar { background: var(--surface); border-top-width: 3px; border-bottom-color: var(--line); }
-.ev-cost { box-shadow: none; border-width: 1.5px; }
-.chip[data-game="cedh"] { border-color: var(--line); }
-.chip[aria-current="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.later { box-shadow: none; }
 
 /* ---------- inside the shop: photo gallery ---------- */
 .shop { padding-top: var(--s6); }
@@ -132,7 +93,7 @@
 .shot img { width: 100%; height: 100%; object-fit: cover; }
 .shot figcaption {
   position: absolute; left: var(--s3); right: var(--s3); bottom: var(--s3); width: fit-content; max-width: calc(100% - 1.5rem);
-  padding: 0.35rem 0.7rem; border-radius: var(--r-box); background: rgb(18 16 14 / 0.84); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
+  padding: 0.35rem 0.7rem; border-radius: var(--r-box); background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
 }
 .shot-corgi img { object-position: 50% 30%; }
 .shot-crew img { object-position: 50% 45%; }
@@ -148,14 +109,8 @@
 @media (min-width: 1024px) { .shots { grid-template-rows: 19rem 17rem; } }
 
 /* ---------- cEDH: a photo from the tables ---------- */
-.cedh { background-image: none; }
 .cedh-photo { margin: 0 0 var(--s5); aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--r-photo); background: #000; }
 .cedh-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
-.tix { border-left-width: 4px; }
-
-/* ---------- new and preorders: no colour blocks ---------- */
-.rel-art { background-image: none; background-color: var(--surface-2); border-bottom: 1px solid var(--line); aspect-ratio: auto; height: 4.5rem; }
-.rel-art .gi { width: 2.5rem; height: 2.5rem; }
 
 /* ---------- visit: the storefront ---------- */
 .visit-pics { display: grid; gap: var(--s3); grid-template-columns: 1.4fr 1fr; align-self: start; margin: 0; }
@@ -169,10 +124,5 @@
 .vp-note { align-self: end; margin: 0; font-size: var(--t-sm); font-weight: 650; color: var(--ink-2); }
 @media (min-width: 768px) { .visit-pics { grid-column: 1 / -1; } .vp-front { aspect-ratio: 4 / 3; } }
 @media (min-width: 1024px) { .visit-pics { grid-column: auto; } .vp-front { aspect-ratio: 3 / 4; } }
-
-/* ---------- community bullets and footer ---------- */
-.proof li::before, .lately li::before { border-radius: 50%; transform: none; background: var(--line-strong); }
-.foot-plate { display: inline-flex; padding: 5px 8px; border-radius: 6px; background: #FFFFFF; margin-bottom: var(--s3); }
-.foot-plate img { width: 7.5rem; height: auto; }
 
 @media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } }

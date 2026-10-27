@@ -64,7 +64,7 @@
   };
   U.debounce = function (fn, ms) { var t; return function () { var a = arguments, s = this; clearTimeout(t); t = setTimeout(function () { fn.apply(s, a); }, ms); }; };
 
-  /* ---------- toast with Undo (DESIGN.md 9.1: bottom centre, navy, foil Undo, 6 seconds) ---------- */
+  /* ---------- toast with Undo (DESIGN.md 9.1: bottom centre, charcoal, highlight Undo, 6 seconds) ---------- */
   var toastEl, toastTimer;
   U.toast = function (msg, opts) {
     opts = opts || {};
@@ -152,18 +152,7 @@
     });
   };
 
-  /* ---------- theme button (same behaviour as the front page) ---------- */
-  U.wireTheme = function (btn) {
-    if (!btn) return;
-    btn.addEventListener('click', function () { MG.scheme.toggle(); });
-    window.addEventListener('storage', function (ev) {
-      if (ev.key === 'mg-scheme') document.querySelector('meta[name="color-scheme"]').content = ev.newValue || 'light dark';
-    });
-  };
-  U.themeButtonHtml = function (cls) {
-    return '<button class="theme-btn' + (cls ? ' ' + cls : '') + '" type="button" data-theme-btn>' + MG.icon('moon', 'i-moon') + MG.icon('sun', 'i-sun') +
-      '<span class="vh t-dark">Switch to dark theme</span><span class="vh t-light">Switch to light theme</span></button>';
-  };
+  /* the Light | Dark switch is MG.scheme.html() / MG.scheme.wire() in mg.js, shared with the public pages */
 
   /* ---------- a live region for "Showing Magic: 9 events" style messages ---------- */
   U.announce = function (msg) {

@@ -1,28 +1,29 @@
 <!doctype html>
-<html lang="en" data-look="a">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <!-- Concept: ?look=a|b|c picks a palette direction (default a). ?theme=light|dark shows one scheme without saving it
-       (for screenshots). Otherwise the visitor's saved choice, else the system setting. -->
-  <script>(function () {
-    var d = document.documentElement, q = new URLSearchParams(location.search), l = q.get('look'), t = q.get('theme'), s = null;
-    d.setAttribute('data-look', /^[abc]$/.test(l || '') ? l : 'a');
-    try { s = localStorage.getItem('mg-scheme'); } catch (e) {}
-    var m = document.querySelector('meta[name="color-scheme"]');
-    if (t === 'light' || t === 'dark') m.content = t; else if (s) m.content = s;
-  })();</script>
+  <!-- ?theme=light|dark shows one scheme without saving it (for screenshots); otherwise the visitor's saved choice, else the system setting. -->
+  <script>(function () { var t = new URLSearchParams(location.search).get('theme'), s = null, m = document.querySelector('meta[name="color-scheme"]'); try { s = localStorage.getItem('mg-scheme'); } catch (e) {} if (t === 'light' || t === 'dark') m.content = t; else if (s) m.content = s; })();</script>
   <title>Mulligan Games, Warminster PA: events this week</title>
   <meta name="description" content="Card and game shop in Warminster, PA. Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights every week. Open till midnight Friday and Saturday.">
-  <link rel="icon" href="img/logo/favicon-32.png" sizes="32x32">
+  <meta name="theme-color" content="#6B3A2C">
+  <link rel="icon" href="img/logo/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/logo/logo-180.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mulligan Games">
+  <meta property="og:title" content="Mulligan Games, Warminster PA: events this week">
+  <meta property="og:description" content="Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights at 445 York Rd. See what's on and sign up for a seat.">
+  <meta property="og:image" content="img/og/mulligan-games-og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Mulligan Games logo on its sign plate, next to the play room doorway">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preload" as="image" href="media/video/cedh-players-tables-loop-poster.webp" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/site.css">
-  <link rel="stylesheet" href="css/theme-a.css">
-  <link rel="stylesheet" href="css/theme-b.css">
-  <link rel="stylesheet" href="css/theme-c.css">
   <link rel="stylesheet" href="css/front.css">
   <script src="data/sample.js" defer></script>
   <script src="js/mg.js" defer></script>
@@ -32,12 +33,11 @@
 <body>
   <a class="skip" href="#week">Skip to this week's events</a>
 
-  <!-- Concept only: not part of the real site. Lets the owners see the page at different times and in three looks. -->
+  <!-- Concept only: not part of the real site. Lets the owners see the page at different times. -->
   <aside class="demo" aria-label="About this concept">
     <div class="wrap demo-in">
       <p><strong>Concept with sample data.</strong> Some seat counts, one cancellation and one change are made up to show every state.</p>
       <p class="demo-times">See the page on: <span id="demo-links"></span></p>
-      <p class="demo-looks">Look: <span id="look-links"></span></p>
     </div>
   </aside>
 
@@ -81,9 +81,10 @@
     <section class="phero" aria-labelledby="hero-h">
       <div class="wrap phero-in">
         <div class="phero-media" id="hero-media">
-          <img src="media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Players at the cEDH tables in the Mulligan Games play room" fetchpriority="high" decoding="async">
-          <!-- Decoration: muted, no captions needed. The script starts it after load unless motion or data is limited (DESIGN 6.1). -->
-          <video id="hero-video" muted loop playsinline preload="none" width="540" height="960" aria-hidden="true" tabindex="-1">
+          <img src="media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Players at the cEDH tables in the Mulligan Games play room" fetchpriority="high">
+          <!-- Decoration: muted, no captions needed. The script starts it after load unless motion or data is limited (DESIGN 6.1).
+               The poster shows until a real frame has been painted (front.js), so the box is never black. -->
+          <video id="hero-video" muted loop playsinline preload="none" poster="media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" aria-hidden="true" tabindex="-1">
             <source src="media/video/cedh-players-tables-loop.mp4" type="video/mp4">
             <source src="media/video/cedh-players-tables-loop.webm" type="video/webm">
           </video>

@@ -1,6 +1,6 @@
 # Mulligan Games: design spec
 
-Owner: Laptop designer (P1.3 review: Desktop designer). Status: **P1.1 draft, reviewed against the P1.2 prototype in P1.3; signed off. Section 15 (P1.3b, D16 to D18) signed off by the boss, D22** (2026-10-26). Built from `BRIEF.md`, `DECISIONS.md` (D1 to D14),
+Owner: Laptop designer (P1.3 review: Desktop designer). Status: **look A rolled out to every prototype page (D28, 2026-10-27; sections 1, 2, 2.5)**; **P1.1 draft, reviewed against the P1.2 prototype in P1.3; signed off. Section 15 (P1.3b, D16 to D18) signed off by the boss, D22** (2026-10-26). Built from `BRIEF.md`, `DECISIONS.md` (D1 to D14),
 `docs/research/*.md` (including `mulligan-facebook.md` and the "Rendered look" screenshot notes) and the Warminster VFW admin.
 The front page prototype (`prototype/index.html`) is the reference build of this spec: when the two disagree, fix one
 and note it here.
@@ -12,31 +12,26 @@ here?, No-show)
 
 ---
 
-## 1. Concept: "the flyer, made live"
+## 1. Concept: look A, "Brick and sign" (D27, D28)
 
-The store already has a look: red flyers with a white diamond and a black "Free Play All Day Everyday!" circle, posted
-one a day on Facebook (fb, "How events are announced"). Players know it. The site takes that flyer and makes it live data,
-then borrows the one layout every card player reads without thinking: **the trading card**.
+The site looks like the shop at 445 York Rd: a brick front with the store's own sign on it. The owners found the first
+look (saturated flyer red and navy) too flashy and short on photos (D27); of three calmer looks, A was chosen for the
+whole site (D28; review shots in `docs/review/looks/`, the roll-out in `docs/review/look-a/`). It is built from the
+store's identity rather than a generic game-shop palette, so it reads as Mulligan:
 
-Three ideas, used everywhere and nowhere else:
+1. **The brick wall and the sign plate.** Every public page opens with a header in brick (`--brick`) with a very faint
+   coursing pattern, and the store's real logo on a white sign plate, like the sign on the building. Nothing else on
+   the page is a coloured field.
+2. **Calm surfaces, real photos.** Warm cream paper and near-white cards in light; warm charcoal in dark. The colour on
+   the page comes from the store's own photos and video (the play room, the tables, the singles case, the storefront).
+3. **One accent: the sign's blue.** `--act` (#2F5FB0, the blue of the sign) is the only accent: primary buttons and
+   links that act. Game colours appear only as dots, thin rules and icons, never as fills. No saturated red anywhere.
+4. **Event cards keep the trading-card anatomy** (name bar + cost pip, type line, text box, stat box) with a thin 3px
+   game-colour rule on top instead of a tinted band. Day numbers sit in small brick diamonds (`--mark`).
 
-1. **Flyer red field with a white diamond.** Only the hero is a red field. The diamond holds what's next ("Next up 7 PM,
-   Draft FNM"); the black circle says "Free play all day, every day we're open". Day headers carry a small red diamond
-   with the date number (the screenshot study's "white diamond day number", turned round so it reads on the page).
-2. **Event cards use card anatomy.** Name bar with the fee in a round cost pip (top right, like a mana cost); a type
-   line with the game and format; a text box; a stat box in the bottom right for seats (like power/toughness). The
-   game's colour is the frame band. Players parse it in one glance.
-3. **The week is a dealt hand.** The hero shows the next seven days as small cards dealt in a row, with game-colour
-   diamond pips for each event. Days the shop is closed are **tapped**: turned sideways, dashed, "Closed". This is
-   the one animated moment (the deal on load); everything else is still.
-
-What is deliberately quiet: a cool card-stock page (not cream), navy ink, one action colour (flyer red, only for "Sign
-up" and other primary actions, per the screenshot study's "one accent colour, used for the action"), one type family.
-cEDH, the store's identity (D4), gets the only other dark field: a navy band with a card-back lattice.
-
-Placeholder wordmark (D13): two cards, the back one outlined in sign blue (from the storefront sign's lettering), the
-front one flyer red with a white diamond, next to "Mulligan" in condensed black and "GAMES" letter-spaced in sign blue.
-It is ours, not the store's logo; the real logo replaces it when the owners allow (Q12).
+Logo: the store's wordmark (`prototype/img/logo/logo-plate-330.webp`, white background, so it always sits on the white
+plate). The placeholder two-card mark of P1 is retired. Favicon `img/logo/favicon-32.png`, home-screen icon
+`img/logo/logo-180.png` (section 2.5).
 
 Voice: plain, short, friendly; sentence case; times as "7 PM", never "19:00"; money as "$20", "Free". Say what happens:
 "Sign up", "Join the waitlist", "Pre-register at the counter", "Just show up". No jargon in admin ("Seats", not
@@ -46,42 +41,48 @@ Voice: plain, short, friendly; sentence case; times as "7 PM", never "19:00"; mo
 
 ## 2. Tokens
 
-Source of truth: `prototype/css/tokens.css`. Colours use `light-dark()` keyed off `color-scheme`; the
-`<meta name="color-scheme">` content is mapped back to the property (see section 11, theme toggle). Elements that
-must stay one scheme set `color-scheme` locally: the cEDH band, open-now strip and footer are `dark`; the white day
-cards and next-up diamond in the hero are `light`. That makes every token inside them resolve to the right variant
+Source of truth: `prototype/css/tokens.css`. **The build's `src/styles` adopts the same token names and values** (P2.3):
+copy the `:root` block as is; any change is made in both places and the contrast table below is re-run. Colours use
+`light-dark()` keyed off `color-scheme`; the `<meta name="color-scheme">` content is mapped back to the property (see
+section 11, theme switch). Elements that must stay one scheme set `color-scheme: dark` locally: the header, the
+open-now strip, the cEDH band, the footer and all admin chrome. Every token inside them then resolves to its dark value
 with no extra rules.
 
 ### 2.1 Colour (semantic)
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--paper` | `#EDF0F5` card stock | `#0B1027` night | page background |
-| `--surface` | `#FFFFFF` | `#151C3D` | cards, panels, visit block |
-| `--surface-2` | `#F6F7FA` | `#1C2449` | stat box, cancelled card, chip counts |
-| `--ink` | `#131A3A` | `#EEF1FA` | text |
-| `--ink-2` | `#4B546F` | `#AAB3D4` | secondary text |
-| `--line` | `#C9CFDC` | `#2E3863` | decorative borders only |
-| `--line-strong` | `#7A849C` | `#7C88B8` | input borders, stat box, dashed outlines (3:1+) |
-| `--act` | `#C8161F` flyer red | `#FF6B70` | the one action colour: primary buttons |
-| `--on-act` | `#FFFFFF` | `#0B1027` | text on `--act` |
-| `--act-hover` | `#A3121A` | `#FF8F93` | |
-| `--flyer` | `#C8161F` | `#A3121A` | hero field, day diamonds (white text on it) |
-| `--sign` | `#2A3BD1` | `#A3AFFF` | wordmark only |
-| `--band` | `#131A3A` | `#0E1534` | open-now strip, cEDH band, footer, admin sidebar |
-| `--highlight` | `#FFE27A` foil | same | "Today", "Updated" (navy text) |
-| `--focus` | `#131A3A` | `#FFFFFF` | focus ring (white inside the hero) |
+| `--paper` | `#F5EFE4` cream | `#1B1715` warm charcoal | page background |
+| `--surface` | `#FFFCF6` | `#25201C` | cards, panels, dialogs |
+| `--surface-2` | `#EEE5D6` | `#2E2823` | stat box, cancelled card, chip counts, photo placeholders |
+| `--ink` | `#2B211C` | `#F3ECE2` | text |
+| `--ink-2` | `#5F5047` | `#C0B3A5` | secondary text |
+| `--line` | `#DED3C2` | `#3C342E` | decorative borders only |
+| `--line-strong` | `#8D7C6D` | `#877869` | input borders, stat box, dashed outlines (3:1+) |
+| `--act` | `#2F5FB0` sign blue | `#9DB8F2` | the one accent: primary buttons, links that act, current-item bars in admin |
+| `--act-hover` | `#244C8F` | `#BBCEF7` | |
+| `--on-act` | `#FFFFFF` | `#16120F` | text on `--act` |
+| `--mark` / `--on-mark` | `#9C4A32` brick / white | `#C77A5E` / `#1B1715` | date diamonds only |
+| `--brick` | `#6B3A2C` | same | public header wall (with the coursing pattern) |
+| `--charcoal` | `#26211D` | same | admin top bar, sidebar, tab bar; toast; tests page bar |
+| `--band` / `--on-band` / `--on-band-2` | `#3E2A22` | `#120F0D` (always used dark) | open-now strip, cEDH band, footer; text `#F5EFE4` / `#CDBFB0` |
+| `--plate` | `#FFFFFF` | same | the sign plate behind the logo |
+| `--highlight` / `--on-highlight` | `#F2D58A` / `#2B211C` | same | "Today", "Changed", admin count badges, Undo |
+| `--scrim` | `rgb(18 16 14 / 0.84)` | same | caption chips and the video button on photos |
+| `--focus` | `#2B211C` | `#FFFFFF` | focus ring |
 | `--ok` / `--ok-bg` | `#1C6B3F` / `#E3F4EA` | `#6FD49A` / `#12321F` | open seats, on now, checked in |
 | `--warn` / `--warn-bg` | `#8A5300` / `#FFF3D6` | `#F2B24C` / `#3A2C10` | few seats, needs players, low stock |
-| `--bad` / `--bad-bg` | `#B3141D` / `#FCE6E7` | `#FF7A7F` / `#3D1418` | cancelled, errors, short stock |
+| `--bad` / `--bad-bg` | `#A3291B` / `#F8E4DE` | `#F08A78` / `#3A1A14` | cancelled, errors, short stock (text and borders, never a big field) |
 | `--wait` | `#5B3FB0` | `#C1A9FF` | waitlist |
 
-Status is never colour alone: every status has an icon and words (section 5.3).
+Retired with look A: `--flyer`, `--flyer-red*`, `--sign`, `--foil`, `--ink-navy`, `--night*`, `--cardstock`, the
+`?look=` picker and `theme-a/b/c.css`. Status is never colour alone: every status has an icon and words (section 5.3).
 
-### 2.2 Game colours (band + icon + written name)
+### 2.2 Game colours (dots, thin rules, icons + written name)
 
-The game's name is always written in `--ink`; the colour only paints the card's top band, the name-bar tint (13% mix),
-the cost pip's inner ring, the chip icon and the diamond pips. Icons are simple generic shapes (no publisher marks).
+The game's name is always written in `--ink`; the colour only paints a 3px rule on top of the event card, release tile,
+admin event button and template tile, a 4px left edge on admin event rows, the chip and badge icon, and the dots on the
+week cards. Never a fill or a tint. Icons are simple generic shapes (no publisher marks).
 
 | Game (chip label) | Token | Light | Dark | Icon |
 |---|---|---|---|---|
@@ -102,20 +103,23 @@ is a chip (not under Other as D14 listed) because Facebook shows a weekly One Pi
 
 | Pair | Light | Dark |
 |---|---|---|
-| ink on paper / surface | 14.9 / 17.0 | 16.6 / 14.7 |
-| ink-2 on paper / surface / surface-2 | 6.6 / 7.5 / 7.0 | 9.0 / 8.0 / 7.2 |
-| text on `--act` button | 5.9 (white on red) | 6.8 (night on coral) |
-| white on `--flyer` (hero, day diamond) | 5.9 | 7.9 |
-| `--act` as text on paper | 5.1 | 6.8 |
-| ok / warn / bad / wait text on surface | 6.5 / 6.3 / 6.9 / 7.6 | 9.1 / 8.9 / 6.6 / 8.2 |
-| navy on foil highlight | 13.3 | 13.3 |
-| foil on flyer (hero "Today" outline) | 4.6 | 6.2 |
-| line-strong (non-text) on surface | 3.7 | 4.8 |
-| game colours (non-text) on surface | 3.8 (Pokemon, lowest) to 7.8 | 6.0 to 9.9 |
-| on-band / on-band-2 on band | 15.0 / 8.2 | 15.8 / 8.6 |
+| ink on paper / surface | 13.7 / 15.3 | 15.2 / 13.9 |
+| ink-2 on paper / surface-2 | 6.7 / 6.2 | 8.7 / 7.1 |
+| `--act` as text on paper / surface | 5.4 / 6.1 | 9.0 / 8.1 |
+| text on `--act` button (white / `#16120F`) | 6.2 (hover 8.4) | 9.4 |
+| on-mark on `--mark` (date diamond) | 6.1 | 5.4 |
+| white / cream on `--brick` (header) | 9.3 / 8.1 | same |
+| cream / on-band-2 on `--charcoal` (admin) | 13.9 / 8.9 | same |
+| `--act` (dark value) on charcoal (admin current bar) | 8.0 | same |
+| on-band on band / on-band-2 on band | 16.7 on `#120F0D` / 7.5 on `#3E2A22` | same |
+| ok / warn / bad / wait text on surface | 6.4 / 6.2 / 7.1 / 7.4 | 9.1 / 8.9 / 6.6 / 8.2 |
+| warn on warn-bg / bad on bad-bg | 5.7 / 5.9 | 6.2 / 6.4 |
+| ink on highlight | 11.0 | 11.0 |
+| line-strong (non-text) on surface | 3.9 | 3.8 |
+| game colours (non-text) on surface | 3.6 (Pokemon, lowest) to 7.5 | 6.0 to 9.9 |
 
-The black free-play circle on red is 3.2:1 as a shape; its white text is 17:1. Anyone changing a colour re-runs these
-pairs (a PowerShell snippet is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
+All pass AA (text 4.5, large text and UI parts 3). Anyone changing a colour re-runs these pairs (a PowerShell snippet
+is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
 
 ### 2.4 Space, radius, elevation, motion, sizes
 
@@ -125,14 +129,58 @@ pairs (a PowerShell snippet is enough: relative luminance, `(L1+0.05)/(L2+0.05)`
   `--r-ctl` 10px buttons and inputs; `--r-box` 6px stat box and tags; `--r-pill` chips and the cost pip.
 - Elevation: one shadow, `--lift` (hairline + soft drop) on cards and tiles. Nothing else floats except dialogs and the
   admin toast.
-- Motion: the deal-in of the week cards (520ms, `--ease-deal`, 60ms stagger, closed cards rotate to tapped at the end);
-  the "On now" dot pulse; 140ms colour transitions on buttons. `prefers-reduced-motion: reduce` collapses all of it to
+- Motion (look A, calm): no load animation; the hero video fade-in (600ms, opacity only); the "On now" dot pulse;
+  smooth anchor scrolling only when motion is allowed; 140ms colour transitions on buttons. `prefers-reduced-motion: reduce` collapses all of it to
   the end state. No scroll reveals, no hover lifts on cards.
 - Targets: public `--tap` 48px minimum for buttons, chips and nav; text links inside a sentence or a card title follow
   WCAG 2.5.8 (24px or spaced) because the card's button is the target. Admin `--tap-admin` 56px for the counter actions
   (check-in, steppers, primary and secondary buttons, inputs); 48px floor for secondary controls that come in sets
   (chips, payment segments, row menu and its items, reminder chips, tabs, `btn-sm`), with 8px between separate targets
   (segments touch, as one control). P1.3: 56px everywhere made the roster row two lines on a tablet.
+
+
+### 2.5 Header and sign plate, photos, video hero, theme switch, icons and link previews (look A)
+
+- **Header (public pages, `.site-head` in `site.css`):** `--brick` with an inline SVG brick coursing pattern at 11%
+  opacity; `color-scheme: dark`. Left: the logo on the **sign plate** (`.plate`: white, 6px radius, 6px 10px padding,
+  hairline `--plate-edge` ring and a small drop shadow; logo 168px wide, 132px under 420px; the link says "Mulligan
+  Games, home"). Nav links in cream; the current page underlined. Right: the theme switch. Under 900px the nav drops
+  to its own sideways-scrolling row. The footer repeats the plate (120px) on `--band`.
+- **Admin chrome (`admin.css`):** plainer and calm for the counter: `--charcoal`, no brick texture. Sidebar (1024+,
+  16rem): the plate (160px) with "SHOP ADMIN" under it, sections with a 4px `--act` bar on the current one, then
+  open status, "View the website" and the labelled theme switch. Under 1024: a charcoal top bar with a small plate
+  (100px), the page name and the open status (plus the switch from 600px), and a charcoal tab bar with a 3px `--act`
+  bar on the current tab; on phones the switch is under More. Count badges use `--highlight`.
+- **Photos (D27):** the store's own photos and stills only (`prototype/img/social/`, `media/video/*-poster.webp`;
+  sources in `docs/research/social-photos.md`). `object-fit: cover`, `--r-photo` 12px corners (full-bleed on phones),
+  explicit `width`/`height`, `loading="lazy"` except the first one on the page, and a real `alt`. Captions sit on a
+  `--scrim` chip at the bottom left, never as text over the bare photo. Sources are max 960px, so photos are used at
+  card size, never as a full-width hero. Where they appear: front hero (video), "Inside the shop" gallery, cEDH
+  section, Visit (storefront); events page head (the "Welcome to Mulligan Games" banner over the play-room door: a
+  16:7 strip on phones, beside the title from 768px); the public empty state (`.empty-photo`, staff with the corgi,
+  plus "Free play is on all day"). Admin uses no photos (speed at the counter). Flyers built on third-party art and
+  stills with burned-in captions are not used.
+- **Video hero (front page):** the hero copy and week strip on the left, a framed 4:5 box (16:9 on tablets, 4:3
+  full-bleed on phones) on the right holding the poster `<img>` (LCP, `fetchpriority=high`, no `decoding=async`) and a
+  muted looping `<video>` (`preload="none"`, `poster` set to the same image, started 300ms after `load` unless
+  reduced motion, Save-Data or a slow link). The box background is the poster too, so it is never black or empty.
+  The video stays at opacity 0 until a real frame has been painted (`requestVideoFrameCallback`, else the first
+  `timeupdate` past 0), and drops back to the poster on `error`, `emptied` or `abort`; blocked autoplay simply leaves
+  the poster. A "Play video / Pause video" button (48px, `--scrim`) is the control (WCAG 2.2.2); the choice lasts the
+  visit (`sessionStorage`). Section 6.1 keeps the encoding, crop and size budgets.
+- **Theme switch:** a labelled pill on every page, "Theme | Light | Dark" (two `aria-pressed` buttons with sun and
+  moon icons, in a `role="group"` named "Colour theme"; the word "Theme" hides under 420px). Follows the system until
+  the visitor picks; the pick is stored (`mg-scheme`) only when it differs from the system. One implementation:
+  `MG.scheme` in `mg.js` (`html()` draws it, `wire()` handles clicks with one delegated listener, other tabs via the
+  `storage` event and system changes). `?theme=light|dark` shows one scheme without saving it (screenshots, reviews);
+  every page's head script reads it before first paint.
+- **Icons and link previews (every page, relative paths so they work under the Pages subpath
+  `/Mulligan-Games-Website-concept-/`):** `<link rel="icon" href="img/logo/favicon-32.png">`, `<link
+  rel="apple-touch-icon" href="img/logo/logo-180.png">` (admin pages use `../`), `theme-color` (`#6B3A2C` public,
+  `#26211D` admin), `og:type`, `og:site_name`, `og:title`, `og:description`, `og:image` =
+  `img/og/mulligan-games-og.jpg` (1200x630: the logo plate on brick with "Card nights five days a week." beside the
+  play-room door photo) with width, height and alt, and `twitter:card` = `summary_large_image`. Note for the build:
+  Facebook and X want an absolute `og:image`; the build writes `{siteUrl}/img/og/...` from the configured origin.
 
 ---
 
@@ -183,7 +231,7 @@ heading; the date line above the hero headline is information, not decoration. T
 ## 5. Components
 
 ### 5.1 Buttons and links
-- **Primary** `.btn.btn-act`: flyer red, white text (dark: coral, night text), 48px tall (56 in admin), radius 10.
+- **Primary** `.btn.btn-act`: sign blue `--act`, white text (dark: light blue, charcoal text), 48px tall (56 in admin), radius 10.
   One per card or section. Labels say what happens: "Sign up", "Register on TopDeck", "Join the Discord", "Save event".
 - **Secondary** `.btn.btn-2`: surface with a `--line-strong` 2px border, ink text. "Join the waitlist", "Call the shop",
   "Directions", "Show all games".
@@ -195,7 +243,7 @@ heading; the date line above the hero headline is information, not decoration. T
 
 ### 5.2 Game chips (filter)
 Pill links, 48px, icon in the game colour + name + count for the next 7 days ("Magic 9"). Current chip: ink fill,
-paper text, `aria-current="true"`. cEDH chip has a cEDH-purple border at rest (highlighted, per the screenshot study).
+paper text, `aria-current="true"`. The cEDH chip looks like the others (its crown icon is cEDH purple; look A: no coloured borders).
 Phone: one row, scrolls sideways; desktop: wraps. The Magic chip includes cEDH (cEDH is Magic; `family: 'magic'`);
 the cEDH chip shows only cEDH. A visually hidden live region says "Showing Magic: 9 events this week." after a change.
 A chip with 0 still shows (so you learn the game exists) and leads to the empty state (section 10).
@@ -205,9 +253,9 @@ A chip with 0 still shows (so you learn the game exists) and leads to the empty 
 Anatomy, top to bottom (markup from `MG.eventCard()` in `prototype/js/mg.js`):
 
 ```
-┌──────────────────────────────────────────────┐ ← 6px band in game colour
+┌──────────────────────────────────────────────┐ ← 3px rule in game colour
 │ Draft FNM                              ($20) │ ← name bar: title (h4, link to detail) + cost pip ("Free" when 0)
-├──────────────────────────────────────────────┤   bar tinted 13% game colour
+├──────────────────────────────────────────────┤   bar on --surface, no tint
 │ ⬠ Magic  ◆  Draft, newest set               │ ← type line: game badge (icon + name) ◆ format
 ├──────────────────────────────────────────────┤
 │ ◷ 7 PM to 11 PM   [● On now] [Kids welcome]  │ ← text box: time line + tags
@@ -226,7 +274,7 @@ Anatomy, top to bottom (markup from `MG.eventCard()` in `prototype/js/mg.js`):
 - The time line always shows start and end ("7 PM to 11 PM"); with doors: "Doors 11 AM, starts noon".
 - Fee pip: "$20", "Free", or "?" only when the admin left the fee blank (admin warns; section 9.3).
 - Tags (small, rounded 6px): **On now** (green dot pulse) between start and end; **Kids welcome**; **Invite only**;
-  **Changed** (foil yellow, pencil icon; was "Updated") when a one-date change has a note; the note follows the tag,
+  **Changed** (`--highlight`, pencil icon; was "Updated") when a one-date change has a note; the note follows the tag,
   then "Updated Oct 25.". D17 tags (beginner friendly, age rule, casual / competitive) and the "Arrive by" line:
   section 15.5.
 
@@ -260,48 +308,46 @@ The card's power/toughness corner: 2px `--line-strong` border, 6px radius, `--su
 number + unit, small line under. Reused for cEDH "registered" counts, preorder "6 days left", and admin counts.
 
 ### 5.5 Day header
-Red diamond with the date number (white, condensed) + day name ("Today", "Tomorrow", then "Wednesday") + a "Today"
-foil tag with the weekday when relative + meta line "Oct 28, open 2 PM to 10 PM" (with any date override note:
+Brick diamond (`--mark`) with the date number (`--on-mark`, condensed) + day name ("Today", "Tomorrow", then "Wednesday") + a "Today"
+highlight tag with the weekday when relative + meta line "Oct 28, open 2 PM to 10 PM" (with any date override note:
 "Opening at 10 AM for the cEDH Championship Series"). Sticky while you scroll the day (phone: top of screen; desktop:
 left rail). Closed day: dashed diamond, "The shop is closed.", compact row.
 
-### 5.6 Week deck (hero)
-Seven cards (63:88 portrait, 70x98px phone, 80x111px desktop), white with navy text in both themes: weekday ("Today"
-for the first), date number, up to eight diamond pips in game colours; caption under the card "4 events" or "Closed".
-Each card links to that day's section (`#d-YYYY-MM-DD`) with an `aria-label` like "Wednesday Oct 28, today, 5 events".
-Today: foil outline and foil caption. Closed: transparent, dashed white border, rotated 90° and scaled 0.74 (tapped).
-Counts ignore the game filter and cancelled dates. Phone: scrolls sideways.
+### 5.6 Week strip (hero)
+Seven flat day cards in a row under "THE NEXT SEVEN DAYS" (look A replaced the dealt, tapped hand): `--surface`, 1px
+`--line`, 10px radius, 5.6rem tall; weekday, condensed date number, up to eight round dots in game colours; caption
+under the card ("4 events", "Closed"). Today: 2px `--act` border, ink caption. Closed: transparent with a dashed
+`--line-strong` border. No deal animation. Each links to its day section (`#d-YYYY-MM-DD`) with an `aria-label` like
+"Wednesday Oct 28, today, 5 events". Counts ignore the game filter and cancelled dates. Phone: scrolls sideways.
 
-### 5.7 Next-up diamond (hero)
-Tablet and up: a white rotated square (the flyer's diamond), upright text inside: "Next up" (red, small; "Next up
-tomorrow", "On now"), the time huge ("7 PM"), up to two event names + "and 2 more". Links to that day. The black
-free-play circle overlaps its lower left, rotated -10°. Phone: a white ticket row with a small red diamond on the left,
-same text; the free-play line becomes a black pill under it.
+### 5.7 Next-up ticket (hero)
+A `--surface` ticket with a 4px `--act` left edge: the time huge ("5 PM"), "NEXT UP" / "NEXT UP WEDNESDAY" / "ON NOW"
+small caps in `--ink-2`, up to two event names + "and 2 more"; links to that day. Beside it the primary "This week's
+events" button. Under both, "Free play all day, every day we're open" with a small `--ok` dot (the flyer's black
+circle is retired with look A).
 
 ### 5.8 Other public components
-- **Open-now strip** (navy, always dark): status dot + "**Open now** till midnight" / "**Closed now.** Opens at 2 PM" /
+- **Open-now strip** (`--band`, always dark): status dot + "**Open now** till midnight" / "**Closed now.** Opens at 2 PM" /
   "**Closed today.** Opens Wednesday at 2 PM"; address (768+); phone link ("Call" on phones under 600); Directions.
   Logic: `MG.openStatus()`, handles closes at or after midnight and date overrides.
 - **Further out list** (under the week): one row per series for days 8 to 35 (big one-offs, prereleases, cEDH, RCQs,
   monthly events), "and 2 more dates" tag for short series; date block, title link, game badge, time, fee, sign-up
   mode in words. Max 6 rows, then "See every date".
 - **cEDH ticket** (in the band): date block, title, long date + time + entry, primary "Sign up on TopDeck" (the same
-  label as the event card, so one action has one name; P1.3) or the invite-only sentence, stat box "120 registered on TopDeck". 6px cEDH-purple left edge.
-- **Release tile**: the card anatomy again, portrait: art box (lattice in the game colour + big game icon; a real
+  label as the event card, so one action has one name; P1.3) or the invite-only sentence, stat box "120 registered on TopDeck". 4px cEDH-purple left edge.
+- **Release tile**: the card anatomy again, portrait: art box (4.5rem `--surface-2`, 3px game rule on top, the game icon; a real
   product image later, if the owners want), name, type line (game ◆ "Preorder" / "Out now" / "Coming soon"), text box
   (note, linked prerelease dates + fee), stat box ("6 days left, preorders end Sun Nov 1"; "Last day today";
   "Preorders closed"; "On the shelf"). Phone: horizontal rail with snap (80% width tiles); 768+: grid.
-- **Hours table**: Monday to Sunday rows; today's row foil with a "Today" tag; closed rows in `--ink-2`; a date
+- **Hours table**: Monday to Sunday rows; today's row in `--highlight` with a "Today" tag; closed rows in `--ink-2`; a date
   override inside the next 7 days shows under its weekday ("Sun Nov 1: 10 AM to 10 PM. Opening at 10 AM for cEDH.").
   Note under: "Hours from public listings. The owners will confirm them before launch." (until confirmed, D12).
-- **Photo slot**: a 4:3 (phone), 21:9 (tablet), 4:5 (desktop) frame with the lattice and a caption saying what goes
-  there. If an image loads, it covers the frame and the caption hides; if not, the frame stays honest. In the build,
-  the photo comes from admin uploads (VFW photo pipeline), with required alt text.
+- **Photos**: the store's own photos in fixed-ratio frames (section 2.5); `--surface-2` shows while one loads. In the
+  build, photos come from admin uploads (VFW photo pipeline), with required alt text.
 - **Proof list** and **Lately at the shop**: diamond bullets; each line says its source ("Source: Facebook"); results
   come from public results (`results[].public`). A dashed slot holds 2 or 3 real reviews once the owners choose them.
   No made-up quotes, ever.
-- **Theme toggle**: round 48px button in the header; shows the moon in light, sun in dark; text "Switch to dark
-  theme". Two-state: system default + the opposite; never stores the value that equals the system (section 11).
+- **Theme switch**: the labelled "Theme | Light | Dark" pill in the header (section 2.5, section 11).
 
 ---
 
@@ -310,6 +356,9 @@ same text; the free-play line becomes a black pill under it.
 Order (D1 and the brief): open-now strip > header > hero (status + next up + week deck) > This week at Mulligan >
 cEDH band > New and preorders > Visit > Between events (Discord, proof, lately) > footer. The concept-only demo bar
 sits above everything in the prototype and is not built.
+
+Look A (D28) keeps this order and grid; the hero is now copy + next-up ticket + week strip on the left and the video
+box on the right (section 2.5), the header is brick with the logo plate, and the bands are `--band` brown, not navy.
 
 ```
 PHONE 360                                   DESKTOP 1280
@@ -361,6 +410,11 @@ day starts right under the chips.
 know (kids, sign-up, free play, preorders: the questions customers asked in Facebook comments, fb takeaway 9), parking.
 
 ### 6.1 Hero video slot (build with P2.3; issue #12; owner questions Q12, Q21)
+
+**Look A (D27, D28) supersedes the layers and scrim below:** the video sits in its own framed box beside the hero
+copy (section 2.5), not behind a red field, so no scrim is needed (captions use `--scrim` chips), and the store's clips
+and posters are committed (D27 lifts the repo rule at the end of this section). The encoding, crop and size budgets
+still apply.
 
 A muted loop of the shop sits **behind** the red hero as a texture, never in front of it. The hero is still the flyer:
 red field, white next-up diamond, white day cards, black free-play circle. The video only shows through the red.
@@ -545,13 +599,13 @@ deleting a whole series, deleting a product, and cancelling a date that has sign
 won't be told automatically; their contacts are in the roster.").
 
 ### 9.1 Shell
-- **≥1024px:** VFW layout: navy sidebar 15rem (`--band`, always dark): wordmark + "Shop admin", sections with icon,
+- **≥1024px:** VFW layout: charcoal sidebar 16rem (`--charcoal`, always dark): logo plate + "SHOP ADMIN", sections with icon,
   label and count badge: **Today** (default), **Events**, **Inventory** (badge: low + short count), **Preorders**
-  (badge: arrived, to call), **Store info**, then Security log, Account, "View the website". Current item: foil left
-  bar + tinted background (VFW `aria-current` style, foil instead of brass).
+  (badge: arrived, to call), **Store info**, then Security log, Account, "View the website". Current item: 4px `--act` left
+  bar + tinted background (VFW `aria-current` style, the sign blue instead of brass).
 - **<1024px:** top bar 56px (wordmark mark + section title + open-now dot) and a **bottom tab bar** 64px, fixed:
   Today, Events, Stock, Preorders, More (More opens a sheet with the rest). Badges on the tabs. Safe-area padding.
-- Toast: bottom centre above the tab bar, navy, foil Undo button, `role="status"`.
+- Toast: bottom centre above the tab bar, `--charcoal`, `--highlight` Undo button, `role="status"`.
 - Offline/unsaved: a sticky banner "Can't reach the server. Your last change isn't saved." with "Try again".
 - Unsaved-changes bar in editors (VFW): sticky bottom "You have unsaved changes [Discard] [Save event]".
 
@@ -699,9 +753,9 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 
 | Where | Loading | Empty | Error |
 |---|---|---|---|
-| Front, This week | Server-rendered, so none in the build. Prototype: spinner + "Loading this week's events..." | Per day: "No scheduled events. Free play all day." Filter with no events: dashed lattice panel "No Riftbound events this week. The next one is Nexus Nights on Friday, Nov 6 at 7 PM." + "Show all games" | Panel `role=alert`: "The schedule didn't load. Reload the page. If it still fails, call the shop at (215) 789-3299 for tonight's events." |
+| Front, This week | Server-rendered, so none in the build. Prototype: spinner + "Loading this week's events..." | Per day: "No scheduled events. Free play all day." Filter with no events: dashed panel with a shop photo (public pages; `.empty-photo`) "No Riftbound events this week. The next one is Nexus Nights on Friday, Nov 6 at 7 PM." + "Show all games" | Panel `role=alert`: "The schedule didn't load. Reload the page. If it still fails, call the shop at (215) 789-3299 for tonight's events." |
 | Further out / cEDH / releases | none (server) | "Nothing big on the calendar yet." / cEDH list hidden, link to TopDeck kept / section hidden | section hidden; never an empty box |
-| Photo slot | lattice + caption | caption explains what goes there | same as empty |
+| Photo | `--surface-2` frame + caption | caption explains what goes there | same as empty |
 | Events page | none (server) | as front filter | as front |
 | Sign-up | button spinner "Holding your seat..." | n/a | field errors and messages in section 8 |
 | Admin lists | 3 skeleton rows (surface-2 bars, no shimmer under reduced motion) | one sentence + the action ("No sign-ups yet. Share the event link or add a walk-in.") | toast with the server's plain message + "Try again"; field errors under the field (VFW `markErr`) |
@@ -721,7 +775,7 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 - Each card is an `article` labelled by its title; the fee pip has a hidden "Entry:" prefix; stat boxes read as text.
 - Week deck links have full `aria-label`s; captions are `aria-hidden` (duplicated in the label).
 - Chips: links with `aria-current`; filter results announced via a polite live region.
-- Focus: 3px ring, `--focus` colour, 3px offset; white inside the red hero. Never removed.
+- Focus: 3px ring, `--focus` colour, 3px offset; white on dark chrome (header, strip, admin bars). Never removed.
 - Targets: section 2.4 (48px public, 56px admin counter actions, 48px admin floor); spacing between adjacent targets
   at least 8px.
 - Motion: one load animation, reduced-motion respected. The pulse dot stops.
@@ -742,11 +796,13 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 | Admin shell | sidebar sections, current-item bar, count badges, `toast()` with Undo, `ask()` confirm, `fld`/`markErr` errors under the field, unsaved-changes bar, Coming up / Already happened | **Bottom tab bar under 1024px** instead of VFW's top "Menu" dropdown under 800px: the counter tablet is used one-handed mid-event and Today must be one tap away. **56px targets** (VFW 52): gloves-off, standing, busy. |
 | Recurrence | `occurrences()` weekly / monthly / Nth weekday | add "On these dates" (prerelease slots, RCQ dates) and per-date exceptions (cancel / change / note) shown publicly as Cancelled / Updated |
 | Sign-ups | volunteer shift sign-up shape (name, contact, slots, retention) | add waitlist with auto-promote, check-in, payment status, player ID |
-| Open-now | `bar-hours.js` midnight-close logic and the strip | add date overrides with a public note; strip is navy, not the VFW bar colours |
-| Theme | `ThemeFab` toggle | a header button, not a floating one; two-state with system default (modern-web-guidance) |
+| Open-now | `bar-hours.js` midnight-close logic and the strip | add date overrides with a public note; strip is `--band` (warm dark brown), not the VFW bar colours |
+| Theme | `ThemeFab` toggle | a labelled Light / Dark switch in the header (owner, D27), two-state with system default (modern-web-guidance) |
 | Fonts | Archivo self-hosted | drop Literata: one family, the width axis gives the display voice |
 | Public pages | server-rendered with markers | the card component and week deck are new |
 | Events calendar | hall month grid | not on public pages (players want this week, not a month); the admin list uses "Next dates" per series |
+| Base polish (look A) | `global.css`: smooth anchor scroll gated on reduced motion, `touch-action: manipulation` on controls, tap-highlight and `::selection` in the accent tint, `safe-area-inset-top` on the header | the header is not sticky on Mulligan: the day headings are the sticky element while you scroll the week |
+| Owner's other sites (Madison Networks, Riverside) | Madison `docs/design.md`: 12px radius for media, dark bands reserved for header / strip / footer (and here cEDH), white and cream sections alternating, a phone bottom bar for the main actions (the admin tab bar), field borders at 3:1 | no transparent-over-hero header and no scroll reveals: the hero is a framed photo, and the counter screens stay still. Riverside's public repo showed no design notes to borrow beyond the same Astro + server.js stack |
 
 ---
 
@@ -780,9 +836,9 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 
 ## 14. What may change (provisional) and what changed today
 
-- **Provisional until the owners react (P1.4/P3.4):** the exact flyer red and sign blue (taken from their flyers and
-  sign by eye, no file); game colours; the placeholder wordmark (replaced by their logo with permission, Q12); the
-  photo slots (their room photo, Q12). Layout, components and states are not provisional.
+- **Provisional until the owners react (P1.4/P3.4):** the sign blue and brick (sampled from the sign and
+  the brick front by eye, no file); game colours; logo artwork (a crop from their flyer until they send the original).
+  Look A itself is decided (D28). Layout, components and states are not provisional.
 - **Folded in from R1 (Facebook, 2026-10-26):** real weekly schedule (four 7 PM events on Wednesday, two on Thursday
   and Friday), the flyer look, the black free-play circle, prize wording, caps and minimum to run (new "Needs players"
   state), in-store pre-registration (new "Pre-register at the counter" state), last-minute changes (the "Updated" tag),
@@ -1059,10 +1115,10 @@ The card (5.3) gets the new tags in its tag row and one arrive-by line. Tag orde
 **Beginner friendly** (sprout icon), **Kids welcome** (existing kid icon) *or* the age rule (info icon, text as typed,
 e.g. "13 and up"), **Casual** (mug icon) / **Competitive** (trophy icon), **Invite only**. The D17 tags are neutral:
 `--surface-2` fill, `--ink` text, 1px `--line-strong` border, 6px radius, `--t-xs`; only On now (green) and Changed
-(foil) keep colour. Tags wrap; at 360 a card with four tags takes two tag lines, never truncated. New icons (sprout,
+(`--highlight`) keep colour. Tags wrap; at 360 a card with four tags takes two tag lines, never truncated. New icons (sprout,
 info, mug, trophy) are simple generic shapes like the rest of the set.
 
-The "Updated" tag (5.3, 9.3) is renamed **Changed** (same foil + pencil) to match the page banner and Boss ranking #2,
+The "Updated" tag (5.3, 9.3) is renamed **Changed** (same highlight + pencil) to match the page banner and Boss ranking #2,
 and the note ends with the date in `--ink-2`: "[✎ Changed] Starts at 7:30 this week. Updated Oct 25." A cancelled
 card's note also ends "Updated Oct 24."
 
