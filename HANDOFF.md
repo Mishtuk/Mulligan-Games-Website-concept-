@@ -32,13 +32,14 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   other machine, post a "Handoff" comment, email it, release your claims.
 
 ### Who does what (agreed on #2, 2026-10-26)
-- **Laptop** (no Node/Python): research, `DESIGN.md`, static prototypes in `prototype/` (open from disk, no build).
+- **Laptop** (Node 24 since 2026-10-27; no Python, no gh): research, `DESIGN.md`, static prototypes in `prototype/` (open from disk, no build).
 - **Desktop** (Node, Chrome with sign-ins): Chrome research and screenshots, the Astro build reusing the Warminster
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** #16 front-page hero video like the VFW / Riverside sites (prototype side) + round 7 from the Desktop's
-  post-port findings: `prototype/`, `DESIGN.md`, `docs/review/`. The Laptop has Node 24 (no gh/python): tests run
+- **Laptop:** round 7 pushed (3d832d0: plain compact week strip, warm hero line + status chip, featured TikToks;
+  D51/D52, port list `docs/review/round-7-port.md`). Now: #16 hero montage video, prototype side: `prototype/index.html`,
+  `prototype/js/front.js`, `prototype/css/front.css`, `prototype/media/video/`, `DESIGN.md`. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
 - **Desktop:** handed off (owner, 2026-10-27 evening). Nothing claimed. When back: finish the hero montage encode
   (#16, Desktop part), then P2.6 results and prizes.
