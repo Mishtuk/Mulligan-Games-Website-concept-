@@ -342,14 +342,19 @@
   MG.scheme = {
     stored: function () { try { return localStorage.getItem('mg-scheme'); } catch (e) { return null; } },
     system: function () { return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; },
-    current: function () { return MG.scheme.stored() || MG.scheme.system(); },
-    toggle: function () {
-      var target = MG.scheme.current() === 'dark' ? 'light' : 'dark', meta = document.querySelector('meta[name="color-scheme"]');
-      try { if (target === MG.scheme.system()) localStorage.removeItem('mg-scheme'); else localStorage.setItem('mg-scheme', target); } catch (e) { /* not persisted */ }
-      meta.content = target === MG.scheme.system() ? 'light dark' : target;
+    current: function () {
+      var m = document.querySelector('meta[name="color-scheme"]'), c = m && m.content;
+      return c === 'light' || c === 'dark' ? c : MG.scheme.stored() || MG.scheme.system();
+    },
+    // set a scheme; choosing the system's own scheme forgets the choice, so the page follows the system again
+    set: function (target) {
+      var meta = document.querySelector('meta[name="color-scheme"]'), sys = MG.scheme.system();
+      try { if (target === sys) localStorage.removeItem('mg-scheme'); else localStorage.setItem('mg-scheme', target); } catch (e) { /* not persisted */ }
+      meta.content = target === sys ? 'light dark' : target;
       document.documentElement.dataset.scheme = target;
       return target;
-    }
+    },
+    toggle: function () { return MG.scheme.set(MG.scheme.current() === 'dark' ? 'light' : 'dark'); }
   };
 
   window.MG = MG;

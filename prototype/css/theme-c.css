@@ -1,0 +1,40 @@
+/* Look C, "Clean neutral" (owner review, D27). index.html?look=c
+ * Near-white and near-black neutrals; the photos carry the colour. The logo blue is used only for actions
+ * (buttons and the active state of controls). Thin lines, square-ish photo corners, lots of air.
+ * Contrast (WCAG formula, 2026-10-26):
+ *   light: ink 17.0, ink-2 7.0 (6.5 on surface-2), accent text 6.5, white on accent 7.0
+ *   dark:  ink 16.8, ink-2 8.0 (6.8 on surface-2), accent text 8.9, ink on accent 8.9, ink on light mark 15.6
+ *   borders that must show: 3.2 light, 4.0 dark.
+ */
+:root[data-look="c"] {
+  --paper:       light-dark(#F7F7F5, #0F0F0F);
+  --surface:     light-dark(#FFFFFF, #181818);
+  --surface-2:   light-dark(#EFEFEC, #212121);
+  --ink:         light-dark(#151515, #F0F0EE);
+  --ink-2:       light-dark(#555553, #A8A8A4);
+  --line:        light-dark(#E0E0DC, #2B2B2B);
+  --line-strong: light-dark(#8A8A86, #737370);
+
+  --act:         light-dark(#2557A8, #8EB2F0);
+  --act-hover:   light-dark(#1C447F, #B3CCF5);
+  --on-act:      light-dark(#FFFFFF, #0F0F0F);
+  --flyer:       light-dark(#151515, #E8E8E6);   /* date diamonds: plain ink */
+  --on-flyer:    light-dark(#FFFFFF, #0F0F0F);
+  --sign:        var(--ink);
+
+  --band:        light-dark(#151515, #000000);
+  --on-band:     #F2F2F0;
+  --on-band-2:   #ADADA9;
+
+  --hero-bg:     var(--paper);
+  --head-bg:     var(--paper);
+  --highlight:   #FFE27A;
+  --on-highlight:#151515;
+  --focus:       light-dark(#151515, #FFFFFF);
+  --plate-edge:  light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0));
+  --r-photo:     4px;
+  --r-card:      8px;
+  --lift: none;
+}
+:root[data-look="c"] .phero-in { --hero-cols: minmax(0, 1fr) minmax(0, 1fr); }
+:root[data-look="c"] { --hero-ratio: 1 / 1; }

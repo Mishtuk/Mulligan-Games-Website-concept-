@@ -33,6 +33,54 @@
     links.push('<a href="' + e(href({ now: null })) + '"' + (!cur ? ' aria-current="true"' : '') + '>Right now' +
       (MG.isDemoClock() ? ' (sample week)' : '') + '</a>');
     $('#demo-links').innerHTML = links.join(' ');
+    // the three palette directions from the owner review (D27); index.html's head script reads ?look=
+    var look = document.documentElement.getAttribute('data-look') || 'a', lk = $('#look-links');
+    if (lk) lk.innerHTML = [['a', 'A, Brick and sign'], ['b', 'B, Felt table'], ['c', 'C, Clean neutral']].map(function (x) {
+      return '<a href="' + e(href({ look: x[0] === 'a' ? null : x[0] })) + '"' + (look === x[0] ? ' aria-current="true"' : '') + '>' + e(x[1]) + '</a>';
+    }).join(' ');
+  }
+
+  /* ---------- light / dark switch: two labelled buttons, system default, choice remembered (MG.scheme) ---------- */
+  function wireScheme() {
+    var btns = document.querySelectorAll('.scheme [data-scheme]');
+    function show() {
+      var cur = MG.scheme.current();
+      Array.prototype.forEach.call(btns, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-scheme') === cur)); });
+    }
+    Array.prototype.forEach.call(btns, function (b) {
+      b.addEventListener('click', function () { MG.scheme.set(b.getAttribute('data-scheme')); show(); });
+    });
+    window.addEventListener('storage', function (ev) {
+      if (ev.key === 'mg-scheme') { document.querySelector('meta[name="color-scheme"]').content = ev.newValue || 'light dark'; show(); }
+    });
+    try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', show); } catch (err) { /* old browsers */ }
+    show();
+  }
+
+  /* ---------- hero video (DESIGN 6.1): poster first; the loop starts after load unless motion or data is limited ---------- */
+  function wireVideo() {
+    var v = $('#hero-video'), btn = $('#vid-btn'), box = $('#hero-media');
+    if (!v || !btn || !v.play) return;
+    var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null;
+    var hold = rm.matches || c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
+    try { pref = sessionStorage.getItem('mg-video'); } catch (err) { /* not stored */ }
+    function label(playing) {
+      $('#vid-label').textContent = playing ? 'Pause video' : 'Play video';
+      if (playing) btn.removeAttribute('data-paused'); else btn.setAttribute('data-paused', '');
+    }
+    function start() { v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
+    v.addEventListener('playing', function () { box.classList.add('is-on'); label(true); });
+    v.addEventListener('pause', function () { label(false); });
+    btn.addEventListener('click', function () {
+      var go = v.paused;
+      try { sessionStorage.setItem('mg-video', go ? 'play' : 'pause'); } catch (err) { /* not stored */ }
+      if (go) start(); else v.pause();
+    });
+    try { rm.addEventListener('change', function (ev) { if (ev.matches) v.pause(); }); } catch (err) { /* old browsers */ }
+    btn.classList.add('is-ready'); label(false);
+    if ((hold && pref !== 'play') || pref === 'pause') return;
+    var later = function () { setTimeout(start, 300); };
+    if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
   }
 
   /* ---------- 1. open-now strip ---------- */
@@ -299,12 +347,6 @@
         return '<li><strong>' + e(title) + '</strong>, ' + e(MG.fmtDate(MG.parseYmd(r.date))) + '<small>' + e(bits.join(' ')) + '</small></li>';
       }).join('');
   }
-  function photo() {
-    var fig = $('#photo'), img = fig && fig.querySelector('img');
-    if (!img) return;
-    var ok = function () { if (img.naturalWidth) fig.classList.add('has-img'); };
-    if (img.complete) ok(); else img.addEventListener('load', ok);
-  }
 
   /* ---------- chips: enhance links into in-place filters ---------- */
   function wireChips() {
@@ -324,12 +366,9 @@
     var st = MG.openStatus(now);
     renderDemo(); renderOpenbar(st); renderHero(st); renderDeck();
     renderChips(); renderDays(); renderLater();
-    renderCedh(); renderReleases(); renderHours(); renderCommunity(); photo(); wireChips();
-    $('#theme-btn').addEventListener('click', function () { MG.scheme.toggle(); });
-    window.addEventListener('storage', function (ev) {
-      if (ev.key === 'mg-scheme') document.querySelector('meta[name="color-scheme"]').content = ev.newValue || 'light dark';
-    });
+    renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips();
   }
+  try { wireScheme(); wireVideo(); } catch (err) { if (window.console) console.error(err); }
   try { init(); } catch (err) {
     // error state: say what failed and what to do (DESIGN.md "Loading, empty, error")
     var days = document.getElementById('days');
