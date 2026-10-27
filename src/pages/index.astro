@@ -83,14 +83,14 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           <ul class="clips" id="clips-list" role="list">
             {clips.map((c) => (
               <li class="clip">
-                <a class="clip-a" href={c.url} target="_blank" rel="noopener" data-tt={c.platform === 'tiktok' ? c.id : undefined} data-caption={c.caption}>
+                <a class="clip-a" href={c.url} target="_blank" rel="noopener" data-tt={c.platform === 'tiktok' && !c.file ? c.id : undefined} data-file={c.file} data-caption={c.caption}>
                   <span class="clip-ph">
                     <img src={`/${c.poster}`} width={c.pw} height={c.ph} alt="" loading="lazy" decoding="async" style={`object-position:${clipPos(c)}`} />
-                    <span class="clip-badge"><Icon name={c.platform} />{NAMES[c.platform]}</span>
+                    <span class="clip-badge"><Icon name={c.file ? 'play' : c.platform} />{c.file ? 'Video' : NAMES[c.platform]}</span>
                     <span class="clip-play" aria-hidden="true"><Icon name="play" /></span>
                   </span>
-                  <span class="clip-cap"><span class="vh">{c.platform === 'tiktok' ? 'Play video' : 'Watch on Instagram'}: </span>{c.caption}</span>
-                  {c.credit && <span class="clip-by">{c.credit}</span>}
+                  <span class="clip-cap"><span class="vh">{c.file || c.platform === 'tiktok' ? 'Play video' : 'Watch on Instagram'}: </span>{c.caption}</span>
+                  {(c.file || c.credit) && <span class="clip-by">{[c.file && `from ${NAMES[c.platform]}`, c.credit].filter(Boolean).join(' · ')}</span>}
                 </a>
               </li>
             ))}

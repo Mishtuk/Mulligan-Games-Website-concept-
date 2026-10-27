@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { photoFor, photosForDay, photoPos } from '../src/lib/photos.js';
-import { validClip, TIKTOK_ID } from '../src/lib/clips.js';
+import { validClip, TIKTOK_ID, FILE } from '../src/lib/clips.js';
 import { hero, week } from '../src/lib/render.js';
 import { etNow } from '../src/lib/clock.js';
 import clips from '../src/content/clips.json' with { type: 'json' };
@@ -91,6 +91,28 @@ test('client script: same id pattern, iframe only after showModal, official host
   assert.ok(sb && js.indexOf(sb[0]) < js.indexOf('f.src = src'), 'the player iframe is sandboxed before it gets its src');
   assert.deepEqual(sb[1].split(' ').sort(), ['allow-popups', 'allow-popups-to-escape-sandbox', 'allow-presentation', 'allow-same-origin', 'allow-scripts'], 'no top navigation, forms, modals or downloads');
   assert.equal((js.match(/createElement\('iframe'\)/g) ?? []).length, 1);
+});
+
+test('own clips: file regex, files exist, cards carry data-file and no player id, client makes a video not an iframe', { skip: !built }, () => {
+  for (const bad of ['/media/clips/../x.mp4', '../media/clips/a.mp4', 'http://evil.example/media/clips/a.mp4', '/media/clips/a.mp4?x=1', '/media/clips/A.mp4', '/media/clips/a.webm', '//evil.example/a.mp4']) assert.equal(FILE.test(bad), false, bad);
+  assert.equal(validClip({ ...clips[0], file: '/media/clips/a.mp4?x=1' }), false);
+  const own = clips.filter((c) => c.file);
+  assert.equal(own.length, 3);
+  for (const c of own) { assert.ok(validClip(c)); assert.ok(existsSync(new URL(`../public${c.file}`, import.meta.url)), c.file); }
+  const html = read('../dist/index.html');
+  const cards = [...html.matchAll(/<a class="clip-a"[^>]*data-file="(\/media\/clips\/[a-z0-9-]+\.mp4)"[^>]*>[\s\S]*?<\/a>/g)];
+  assert.equal(cards.length, 3);
+  for (const [card] of cards) {
+    assert.ok(!/data-tt=/.test(card) && /class="clip-badge">[\s\S]*?Video<\/span>/.test(card) && /from (?:TikTok|Instagram)/.test(card));
+    assert.ok(!/(?:src|href|poster)="https?:\/\/(?!www\.(?:tiktok|instagram)\.com\/)/.test(card), 'no third-party URL beyond the credit link');
+    assert.ok(/<img src="\/media\/clips\/[a-z0-9-]+-poster\.webp"/.test(card));
+  }
+  assert.equal([...html.matchAll(/data-tt="/g)].length, 5, 'the other TikTok cards are unchanged');
+  const js = read('../public/js/clips.js');
+  assert.ok(js.includes(`/${FILE.source}/`),'the client repeats the file pattern');
+  const vid = js.slice(js.indexOf('if (file) {'), js.indexOf('var f = document.createElement'));
+  assert.ok(vid.includes("createElement('video')") && !vid.includes("createElement('iframe')") && vid.includes('saveData') && vid.includes('prefers-reduced-motion'));
+  assert.ok(js.indexOf('d.showModal()') < js.indexOf("createElement('video')"));
 });
 
 test('front page build: clips as plain links, nothing third-party before a click, heading This week, welcome hero', { skip: !built }, () => {

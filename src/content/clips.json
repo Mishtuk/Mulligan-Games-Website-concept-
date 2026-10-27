@@ -5,7 +5,8 @@
     "url": "https://www.tiktok.com/@mulligangames/video/7456651666096704814",
     "caption": "A full room for the monthly cEDH",
     "credit": "",
-    "poster": "media/social/tt-7456651666096704814.webp",
+    "file": "/media/clips/cedh-full-room.mp4",
+    "poster": "media/clips/cedh-full-room-poster.webp",
     "pw": 240,
     "ph": 427,
     "pos": "50% 50%"
@@ -49,7 +50,8 @@
     "url": "https://www.tiktok.com/@mulligangames/video/7467024512442289451",
     "caption": "February’s cEDH night and its prizes",
     "credit": "",
-    "poster": "media/social/tt-7467024512442289451.webp",
+    "file": "/media/clips/cedh-february.mp4",
+    "poster": "media/clips/cedh-february-poster.webp",
     "pw": 240,
     "ph": 427,
     "pos": "50% 50%"
@@ -82,7 +84,8 @@
     "url": "https://www.instagram.com/reel/DPcDJ7riL3B/",
     "caption": "Custom Commander art and a PSA 10",
     "credit": "art by @perky_grn_fairy",
-    "poster": "img/social/event-cedh-tables-800.webp",
+    "file": "/media/clips/commander-art-psa10.mp4",
+    "poster": "media/clips/commander-art-psa10-poster.webp",
     "pw": 800,
     "ph": 600,
     "pos": "55% 60%"

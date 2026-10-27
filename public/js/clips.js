@@ -24,31 +24,45 @@
     return p.href;
   }
 
-  function openClip(a, id) {
-    var src = playerUrl(id, a.href);
+  // Our own copy of a clip: only a /media/clips/*.mp4 path (same pattern as src/lib/clips.js).
+  function fileUrl(f) { return /^\/media\/clips\/[a-z0-9-]+\.mp4$/.test(f || '') ? f : ''; }
+
+  function openClip(a, id, file) {
+    var src = file ? fileUrl(file) : playerUrl(id, a.href);
     if (!src || open || !window.HTMLDialogElement) return false;
-    var caption = a.getAttribute('data-caption') || 'TikTok video';
+    var caption = a.getAttribute('data-caption') || (file ? 'Video' : 'TikTok video');
     var d = mk('dialog', 'dlg dlg-clip'); d.setAttribute('aria-labelledby', 'clip-dlg-h');
     var top = mk('div', 'dlg-top'), h = mk('h2', 'dlg-h', caption); h.id = 'clip-dlg-h';
     var x = mk('button', 'dlg-x'); x.type = 'button'; x.setAttribute('aria-label', 'Close video'); x.appendChild(svg('M6 6l12 12M18 6 6 18'));
     top.appendChild(h); top.appendChild(x);
     var frame = mk('div', 'clip-frame');
     var fail = mk('p', 'clip-fail', 'The video didn’t load.'); fail.hidden = true; fail.setAttribute('role', 'status');
-    var foot = mk('p', 'clip-foot'), out = mk('a', null, 'Open on TikTok'); out.href = a.href; out.target = '_blank'; out.rel = 'noopener';
-    foot.appendChild(out); foot.appendChild(mk('span', null, 'Playing loads TikTok’s player.'));
+    var foot = mk('p', 'clip-foot'), out = mk('a', null, file ? 'See the original post' : 'Open on TikTok'); out.href = a.href; out.target = '_blank'; out.rel = 'noopener';
+    foot.appendChild(out); if (!file) foot.appendChild(mk('span', null, 'Playing loads TikTok’s player.'));
     d.appendChild(top); d.appendChild(frame); d.appendChild(fail); d.appendChild(foot);
     document.body.appendChild(d);
     open = d;
     var timer = 0;
     function done() { // Esc, the X and a click on the backdrop all end here: the iframe goes, so the sound stops
       clearTimeout(timer); open = null;
-      var f = frame.querySelector('iframe'); if (f) f.remove();
+      var f = frame.firstElementChild; if (f) f.remove(); // an iframe or our video: removed, so the sound stops
       d.remove(); a.focus();
     }
     d.addEventListener('close', done);
     x.addEventListener('click', function () { d.close(); });
     d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
-    d.showModal(); // the iframe is created only now, after the click
+    d.showModal(); // the iframe (or video) is created only now, after the click
+    if (file) { // our own file: no iframe, no third party. Reduced motion and Save-Data: no autoplay, controls only.
+      var v = document.createElement('video'), im = a.querySelector('img'), ps = im && im.getAttribute('src');
+      v.controls = true; v.muted = true; v.playsInline = true; v.preload = 'none';
+      v.setAttribute('aria-label', caption);
+      if (/^\/media\/clips\/[a-z0-9-]+\.webp$/.test(ps || '')) v.poster = ps;
+      var still = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) || (navigator.connection && navigator.connection.saveData);
+      v.autoplay = !still;
+      v.src = src;
+      frame.appendChild(v);
+      return true;
+    }
     var f = document.createElement('iframe');
     f.title = 'TikTok video: ' + caption;
     f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture'; f.allowFullscreen = true;
@@ -62,10 +76,10 @@
     return true;
   }
 
-  Array.prototype.forEach.call(list.querySelectorAll('.clip-a[data-tt]'), function (a) {
+  Array.prototype.forEach.call(list.querySelectorAll('.clip-a[data-tt], .clip-a[data-file]'), function (a) {
     a.addEventListener('click', function (e) {
       if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // modifier-click opens the post itself
-      if (openClip(a, a.getAttribute('data-tt'))) e.preventDefault();
+      if (openClip(a, a.getAttribute('data-tt'), a.getAttribute('data-file'))) e.preventDefault();
     });
   });
 
