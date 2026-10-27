@@ -38,7 +38,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** (1) round 4 formatting polish (designer review `docs/review/round-4-formatting.md`, plan `docs/review/round-4-plan.md`): `prototype/`, `DESIGN.md`, `docs/review/`. (2) Owner-asked research, TCGplayer + TopDeck: `docs/research/tcgplayer-topdeck.md`. The Laptop has Node 24 (no gh/python): tests run headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** self-hosted clips done. Next: counter follow-ups (Move-in undo, delete walk-in, server Run-it). Nothing claimed.
+- **Desktop:** counter follow-ups (Move-in Undo, delete a mistaken walk-in, Run-it decision saved on the server): `src/lib/registrations.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`, `test/registrations.test.js`.
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;
