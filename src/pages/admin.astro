@@ -594,7 +594,7 @@ import Icon from '../components/Icon.astro';
         if (b.signup === 'here') { state = 'open'; act = link('btn btn-act', 'Sign up'); if (cap) stat = e('p', 'ev-stat', ic('seat'), e('span', 'ev-stat-big', cap), e('span', 'ev-stat-unit', cap === 1 ? 'seat left' : 'seats left'), e('span', 'ev-stat-small', 'of ' + cap)); }
         else if (b.signup === 'counter') { state = 'counter'; act = [e('p', 'ev-how', ic('door'), 'Pre-register at the counter.'), link('btn btn-2', ic('phone'), 'Call the shop')]; }
         else if (b.signup === 'external') { state = 'external'; act = b.inviteOnly ? e('p', 'ev-how', ic('lock'), 'Invite only. Seats come from the Championship Series.') : tool.url ? link('btn btn-act', tool.name ? 'Sign up on ' + tool.name : 'Sign up online', e('span', 'vh', ` (opens ${tool.name || 'another site'})`), ic('external', 'ic-ext')) : e('p', 'ev-how', `Sign up ${tool.name ? 'on ' + tool.name : 'online'}.`); }
-        else if (b.signup === 'walkin') act = e('p', 'ev-how', ic('door'), 'Just show up. No sign-up needed.');
+        else if (b.signup === 'walkin') act = e('p', 'ev-how', ic('door'), 'Walk in. No sign-up needed.');
         const m = b.arriveByMins === null || b.arriveByMins === '' ? null : +b.arriveByMins;
         const arrive = m !== null && Number.isFinite(m) && isT(st) && ['here', 'counter'].includes(b.signup) ? e('p', 'ev-arrive', ic('clock'), `Arrive by ${T12(hmOf(mins(st) - m))} to keep your seat.`) : null;
         const more = b.prize ? e('p', 'ev-prize', b.prize) : b.description ? e('p', '', b.description) : null;

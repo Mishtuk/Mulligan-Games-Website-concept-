@@ -26,7 +26,7 @@ const compact = (ymd) => ymd.replaceAll('-', '');
 const hms = (t) => `${t.replace(':', '')}00`;
 const utcStamp = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 const fee = (f) => (f === 0 ? 'Free entry' : Number.isInteger(f) ? `Entry $${f}` : '');
-const SIGN = { walkin: 'Just show up. No sign-up needed.', here: 'Sign up on the event page to hold a seat.', counter: 'Pre-register at the counter.', external: 'Sign up online.' };
+const SIGN = { walkin: 'Walk in. No sign-up needed.', here: 'Sign up on the event page to hold a seat.', counter: 'Pre-register at the counter.', external: 'Sign up online.' };
 
 /** The page link of one occurrence, the same form copyText() uses. */
 export const eventUrl = (baseUrl, o) => `${baseUrl.replace(/\/+$/, '')}/events/${encodeURIComponent(o.seriesId)}?date=${encodeURIComponent(o.slot)}`;

@@ -28,15 +28,17 @@ export function cedhLive({ store }) {
   const circuit = link(store, 'topdeckCircuit') ?? link(store, 'topdeck');
   return h`${circuit ? h`<div><dt>Standings</dt><dd><a href="${circuit}" target="_blank" rel="noopener">Circuit points on TopDeck${out('TopDeck')}</a></dd></div>` : ''}${store.parking ? h`<div><dt>Parking</dt><dd>${store.parking}</dd></div>` : ''}`;
 }
-/** The whole Visit block: hours table, address, parking, good to know, and the room photo when one is chosen. */
+/** The whole Visit block (round 3): a heading line, then one card with hours, address and good to know; the room photo below it when one is chosen. */
 export function visit(ctx) {
   const { store } = ctx, a = addr(store), t = tel(store), photo = store.photo;
-  return h`<div class="wrap visit-in"><div class="visit-hours"><h2 id="visit-h">Visit</h2>${hours(ctx)}</div>
+  return h`<div class="wrap"><div class="sec-head"><h2 id="visit-h">Visit</h2><p class="sec-note">${a.street}, ${a.city}.${store.freePlay ? ` ${store.freePlay}.` : ''}</p></div>
+<div class="visit-in"><div class="visit-hours"><h3>Hours</h3>${hours(ctx)}</div>
 <div class="visit-where"><h3>Find us</h3><address>${a.street}<br>${a.city}, ${a.region} ${a.zip}</address>
 <p class="visit-acts"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>${t ? h`<a class="btn btn-2" href="${t}">${icon('phone')}${store.phone}</a>` : ''}</p>
-${store.parking ? h`<p><strong>Parking:</strong> ${store.parking}</p>` : ''}<h3>Good to know</h3>
-<dl class="faq"><dt>New here?</dt><dd><a href="/new-here/">Start here.</a> What to expect and which nights are good for a first visit.</dd>${store.kids ? h`<dt>Can kids come?</dt><dd>${store.kids}</dd>` : ''}${store.freePlay ? h`<dt>Can I just come and play?</dt><dd>${store.freePlay}.</dd>` : ''}<dt>How do preorders work?</dt><dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd></dl></div>
-${photo ? h`<figure class="photo has-img"><img src="${`/media/photos/${encodeURIComponent(photo)}`}" alt="${store.photoAlt ?? ''}" loading="lazy"></figure>` : h`<div class="visit-pics"><figure class="vp-front"><img src="/media/video/storefront-exterior-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="The Mulligan Games storefront: brick front, glass door and the sign on the roof"></figure><figure class="vp-sign"><img src="/img/social/storefront-sign-roof.webp" width="398" height="398" loading="lazy" decoding="async" alt="The Mulligan Games sign on the roof against a blue sky"></figure><p class="vp-note">Look for the sign on the roof. The door is right below it.</p></div>`}</div>`;
+<p class="visit-small">${store.parking ? h`<strong>Parking:</strong> ${store.parking} ` : ''}Look for the sign on the roof. The door is right below it.</p></div>
+<div class="visit-faq"><h3>Good to know</h3>
+<dl class="faq"><dt>New here?</dt><dd><a href="/new-here/">Start here.</a> What to expect and which nights are good for a first visit.</dd>${store.kids ? h`<dt>Can kids come?</dt><dd>${store.kids}</dd>` : ''}${store.freePlay ? h`<dt>Can I just come and play?</dt><dd>${store.freePlay}.</dd>` : ''}<dt>How do preorders work?</dt><dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd></dl></div></div>
+${photo ? h`<figure class="photo has-img"><img src="${`/media/photos/${encodeURIComponent(photo)}`}" alt="${store.photoAlt ?? ''}" loading="lazy"></figure>` : ''}</div>`;
 }
 /** "Between events": the Discord invite (or the follow line) and the social links. */
 export function discord({ store }) {
@@ -51,6 +53,8 @@ export function nhToc({ store }) {
     ['prerelease', 'Prereleases'], ['proxies', 'Proxies'], ['trade', 'Trade-ins'], ['here', 'Getting here'], ['ask', 'Still have a question?']].filter(Boolean);
   return toc.map(([id, label]) => h`<li><a href="${`#${id}`}">${label}</a></li>`);
 }
+/** The free-play line in the front page hero strip (round 3); nothing when the store has none. */
+export const freePlay = ({ store }) => (store.freePlay ? h`<p class="freeplay2">${store.freePlay}</p>` : '');
 export const nhFree = ({ store }) => (store.freePlay ? h`<section id="free" aria-labelledby="h-free"><h2 id="h-free"><span class="nh-dia" aria-hidden="true"></span>Free play</h2><p>${store.freePlay}. Bring a deck and find a table.</p></section>` : '');
 export const nhKids = ({ store }) => (store.kids ? h`<p>${store.kids}</p>` : '');
 export function nhHere({ store }) {

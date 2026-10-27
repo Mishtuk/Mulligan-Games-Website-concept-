@@ -14,7 +14,7 @@ const a = store.address;
 const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
 const tel = safeUrl(store.phoneHref);
 const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
-const nav = [['This week', '/#week', 'home'], ['The shop', '/#shop', ''], ['cEDH', '/#cedh', ''], ['New and preorders', '/#new', ''], ['Visit', '/#visit', ''], ['All events', '/events/', 'events'], ['New here?', '/new-here/', 'new-here']];
+const nav = [['All events', '/events/', 'events'], ['This week', '/#week', 'home'], ['cEDH', '/#cedh', ''], ['Preorders', '/#new', ''], ['Visit', '/#visit', '']];
 ---
 <!doctype html>
 <html lang="en">
@@ -97,5 +97,13 @@ const nav = [['This week', '/#week', 'home'], ['The shop', '/#shop', ''], ['cEDH
         </ul>
       </div>
     </footer>
+
+    <!-- Phone quick actions (D33): plain links, shown under 900px by global.css, hidden in print -->
+    <nav class="mobile-bar" aria-label="Quick actions">
+      <a href="/events/" aria-current={current === 'events' ? 'page' : undefined}>Events</a>
+      <a href="/#visit">Hours</a>
+      <a href={maps} target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a>
+      {tel && <a href={tel}>Call</a>}
+    </nav>
   </body>
 </html>

@@ -216,14 +216,16 @@ img { max-width: 100%; height: auto; display: block; }
 .plate img { width: 10.5rem; height: auto; }
 .plate:focus-visible { outline-offset: 4px; }
 .site-nav { order: 3; width: calc(100% + 2 * var(--gutter)); margin-inline: calc(-1 * var(--gutter)); overflow-x: auto; scrollbar-width: none; }
-.site-nav ul { display: flex; list-style: none; margin: 0; padding: 0 var(--gutter); gap: 0.15rem; }
+.site-nav ul { display: flex; list-style: none; margin: 0; padding: 0 2.5rem 0 var(--gutter); gap: 0.15rem; }
+/* D34: a static fade at the right edge shows that the row scrolls sideways (no motion) */
+.site-nav { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent); }
 .site-nav a { display: flex; align-items: center; min-height: var(--tap); padding: 0 0.7rem; color: var(--ink); font-weight: 700; text-decoration: none; white-space: nowrap; border-radius: var(--r-ctl); }
 .site-nav a:hover { background: color-mix(in oklab, var(--ink) 10%, transparent); text-decoration: underline; }
 .site-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 0.14em; text-underline-offset: 0.35em; }
 .site-nav li:first-child a { padding-left: 0; }
 @media (min-width: 900px) {
   .head-in { flex-wrap: nowrap; padding-block: var(--s3); }
-  .site-nav { order: 0; width: auto; margin: 0 0 0 auto; overflow: visible; }
+  .site-nav { order: 0; width: auto; margin: 0 0 0 auto; overflow: visible; -webkit-mask-image: none; mask-image: none; }
   .site-nav ul { padding: 0; }
   .site-nav li:first-child a { padding-left: 0.7rem; }
   .plate { margin-right: 0; }
@@ -242,7 +244,7 @@ img { max-width: 100%; height: auto; display: block; }
 .scheme button .ic { width: 1.05rem; height: 1.05rem; }
 .scheme button:hover { background: var(--surface-2); }
 .scheme button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-@media (scripting: none) { .scheme { display: none; } } /* the switch needs site.js; without it the page follows the system */
+@media (scripting: none) { .scheme, #print-btn { display: none; } } /* the switch needs site.js; without it the page follows the system */
 @media (max-width: 420px) { .scheme-k { display: none; } .scheme button { padding: 0 0.6rem; } .plate img { width: 8.25rem; } }
 
 /* the day card (front page week strip) */
@@ -449,11 +451,6 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 /* ---------- 6. visit ---------- */
-.visit { background: var(--surface); border-block: 1px solid var(--line); }
-.visit-in { display: grid; gap: var(--s6); }
-.visit h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s4); }
-.visit h3 { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; margin: var(--s5) 0 var(--s3); }
-.visit h3:first-child { margin-top: 0; }
 .hours { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .hours th, .hours td { padding: 0.65rem 0.5rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 .hours th { font-weight: 750; }
@@ -468,8 +465,6 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .faq { margin: 0; }
 .faq dt { font-weight: 800; }
 .faq dd { margin: 0 0 var(--s3); color: var(--ink-2); }
-@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 1024px) { .visit-in { grid-template-columns: 0.9fr 1fr 1.1fr; column-gap: var(--s7); } }
 
 /* ---------- 7. community ---------- */
 .comm-in { display: grid; gap: var(--s6); }
@@ -622,6 +617,25 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 2px solid var(--line); }
 .ep .chips { margin-bottom: var(--s3); }
 
+/* print button sits with the format filter */
+.ep-format { flex-wrap: wrap; }
+@media (min-width: 640px) { .ep-format #print-btn { margin-left: auto; } }
+
+/* ---------- round 3 (D36): calmer wide layout ----------
+ * Tonight: the cards flow into one two-column grid in time order (each card shows its own time; no time column).
+ * Special events: two dates side by side, each a narrow date column + its card(s), so no row leaves half the page empty. */
+@media (min-width: 1024px) {
+  .ep .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
+  .ep .slot, .ep .slot-cards { display: contents; }
+  .ep .slot-t { display: none; }
+  #special { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s6); align-items: start; }
+  #special .day { grid-template-columns: 6.5rem minmax(0, 1fr); column-gap: var(--s4); }
+  #special .day:nth-child(2) { border-top: 0; }
+  #special .day-h { position: static; }
+  #special .day-name { font-size: var(--t-lg); }
+  #special .slots { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* add to calendar */
 .cal-menu { position: relative; }
 .cal-menu summary { list-style: none; cursor: pointer; }
@@ -655,87 +669,112 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
  * colours come only from tokens. The header, the Light | Dark switch and the event card live in site.css.
  */
 
-/* ---------- hero: the room, then what's on ---------- */
-.phero { background: var(--paper); color: var(--ink); }
-.phero-in {
-  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "media" "copy" "deck";
-  gap: var(--s5); padding-block: 0 var(--s6);
+/* ---------- hero (round 3, D36): full-bleed photo / video, the copy on a dark scrim, a strip along the bottom ----------
+ * Dark in both themes (like the open-now strip and the cEDH band), so the white headline always reads. */
+.phero {
+  position: relative; isolation: isolate; overflow: hidden; color-scheme: dark;
+  display: grid; grid-template-rows: 1fr auto; min-height: clamp(30rem, 72svh, 48rem);
+  background: #17110E; color: #FFFFFF;
 }
 .phero-media {
-  grid-area: media; position: relative; overflow: hidden; margin: 0 calc(-1 * var(--gutter));
-  aspect-ratio: 4 / 3;
+  position: absolute; inset: 0; z-index: -2;
   /* the poster is also the box background, so the frame is never empty or black while the image decodes */
-  background: var(--surface-2) url("../media/video/cedh-players-tables-loop-poster.webp") 50% 28% / cover no-repeat;
+  background: #17110E url("/media/video/cedh-players-tables-loop-poster.webp") 50% 38% / cover no-repeat;
 }
-.phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
+.phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
 .phero-media video { opacity: 0; transition: opacity 600ms; }
 .phero-media.is-on video { opacity: 1; }
-.media-cap, .vid-btn {
-  position: absolute; z-index: 1; margin: 0; display: inline-flex; align-items: center; gap: 0.4rem;
-  background: var(--scrim); color: #FFFFFF; border-radius: var(--r-pill); font-size: var(--t-sm); font-weight: 700; line-height: 1.2;
+/* phone: darkest at the bottom where the copy sits */
+.phero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to top, rgb(18 12 9 / 0.94) 0%, rgb(18 12 9 / 0.8) 42%, rgb(18 12 9 / 0.38) 78%, rgb(18 12 9 / 0.3) 100%);
 }
-.media-cap { left: var(--s3); bottom: var(--s3); padding: 0.4rem 0.8rem; max-width: calc(100% - 10rem); }
-.vid-btn { right: var(--s3); bottom: var(--s3); min-height: var(--tap); padding: 0 1rem; border: 0; font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; visibility: hidden; }
+.phero-in { align-self: end; width: 100%; padding-block: var(--s8) var(--s6); }
+.phero-copy { max-width: 40rem; }
+.phero-date { margin: 0 0 var(--s3); font-size: var(--t-sm); font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(255 255 255 / 0.85); }
+.phero-h {
+  font-size: clamp(2.5rem, 1.3rem + 4.8vw, 5.25rem); font-stretch: var(--wdth-display); font-weight: 900; line-height: 0.96; letter-spacing: -0.01em;
+  max-width: 14ch; color: #FFFFFF; text-shadow: 0 2px 24px rgb(0 0 0 / 0.45);
+}
+.phero-sub { margin: var(--s4) 0 var(--s5); font-size: 1.125rem; line-height: 1.5; max-width: 42ch; color: rgb(255 255 255 / 0.92); }
+.phero-acts { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--s3); }
+.next {
+  flex: 1 1 15rem; max-width: 24rem; display: flex; align-items: center; gap: var(--s4); padding: var(--s3) var(--s4);
+  background: rgb(255 255 255 / 0.1); color: #FFFFFF; border: 1px solid rgb(255 255 255 / 0.28); border-left: 4px solid var(--act);
+  border-radius: var(--r-card); text-decoration: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.next:hover { background: rgb(255 255 255 / 0.16); }
+.next-time { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.25rem; line-height: 1; white-space: nowrap; }
+.next-in { display: grid; min-width: 0; }
+.next-k { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: rgb(255 255 255 / 0.8); }
+.next-what { font-weight: 700; line-height: 1.3; }
+.next:hover .next-what { text-decoration: underline; }
+.phero-acts .btn { min-height: 3.25rem; }
+
+/* the strip along the bottom of the photo */
+.phero-strip { background: rgb(12 9 7 / 0.72); border-top: 1px solid rgb(255 255 255 / 0.14); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.phero-strip-in { display: flex; align-items: center; gap: var(--s2) var(--s5); min-height: 3.5rem; padding-block: var(--s1); font-size: var(--t-sm); }
+.phero-strip p { margin: 0; }
+.freeplay2 { display: flex; align-items: center; gap: var(--s2); font-weight: 650; color: #FFFFFF; }
+.freeplay2::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #6FD49A; flex: none; }
+.media-cap { display: none; margin-left: auto !important; color: rgb(255 255 255 / 0.75); }
+.vid-btn {
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--tap); padding: 0 1rem;
+  border: 1px solid rgb(255 255 255 / 0.4); border-radius: var(--r-pill); background: transparent; color: #FFFFFF;
+  font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; visibility: hidden;
+}
 .vid-btn.is-ready { visibility: visible; }
-.vid-btn:hover { background: rgb(0 0 0 / 0.92); }
+.vid-btn:hover { background: rgb(255 255 255 / 0.12); }
 .vid-btn:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
 .vid-btn .i-play { display: none; }
 .vid-btn[data-paused] .i-play { display: block; }
 .vid-btn[data-paused] .i-pause { display: none; }
+@media (max-width: 420px) { .vid-btn #vid-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .vid-btn { padding: 0 0.8rem; } }
 
-.phero-copy { grid-area: copy; }
-.phero-date { margin: 0 0 var(--s2); font-size: var(--t-sm); font-weight: 750; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); }
-.phero-h { font-size: clamp(2.3rem, 1.5rem + 3.2vw, 4.25rem); font-stretch: var(--wdth-display); font-weight: 900; line-height: 0.98; letter-spacing: -0.01em; max-width: 16ch; }
-.phero-sub { margin: var(--s4) 0 var(--s5); font-size: 1.125rem; max-width: 44ch; color: var(--ink-2); }
-.phero-acts { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--s3); }
-.next {
-  flex: 1 1 16rem; display: flex; align-items: center; gap: var(--s4); padding: var(--s3) var(--s4);
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--act); border-radius: var(--r-card);
-  text-decoration: none; box-shadow: var(--lift);
+@media (min-width: 768px) {
+  .media-cap { display: block; }
+  .media-cap + .vid-btn { margin-left: 0; }
 }
-.next-time { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.25rem; line-height: 1; white-space: nowrap; }
-.next-in { display: grid; min-width: 0; }
-.next-k { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-2); }
-.next-what { font-weight: 700; line-height: 1.3; }
-.next:hover .next-what { text-decoration: underline; }
-.phero-acts .btn { min-height: 3.25rem; }
-.freeplay2 { display: flex; align-items: center; gap: var(--s2); margin: var(--s4) 0 0; font-size: var(--t-sm); font-weight: 650; color: var(--ink-2); }
-.freeplay2::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--ok); flex: none; }
+@media (min-width: 900px) {
+  /* wide: the copy on the left, the photo shows through on the right */
+  .phero { min-height: clamp(34rem, 78svh, 50rem); }
+  .phero::before {
+    background:
+      linear-gradient(90deg, rgb(18 12 9 / 0.9) 0%, rgb(18 12 9 / 0.74) 36%, rgb(18 12 9 / 0.22) 68%, rgb(18 12 9 / 0.08) 100%),
+      linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
+  }
+  .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
+  .phero-media img, .phero-media video { object-position: 50% 42%; }
+}
 
-/* the week, seven cards */
-.wdeck { grid-area: deck; min-width: 0; }
-.wdeck-k { margin: 0 0 var(--s2); font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-2); }
+/* the week, seven cards (first thing in "This week") */
+.wdeck { min-width: 0; margin-bottom: var(--s5); }
 .wdeck ol { position: relative; list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: var(--s1) var(--gutter) var(--s2); display: flex; gap: var(--s2); overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter); }
 .wdeck li { flex: 1 0 4.4rem; display: grid; justify-items: stretch; gap: var(--s1); scroll-snap-align: start; }
 .wdeck .daycard {
-  color-scheme: inherit; width: auto; height: 5.6rem; padding: 0.45rem 0.25rem; border-radius: 10px;
+  color-scheme: inherit; width: auto; height: 5.25rem; padding: 0.45rem 0.25rem; border-radius: 10px;
   background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: none; animation: none;
 }
 .wdeck .daycard:hover { border-color: var(--ink); }
 .wdeck .dc-dow { font-size: var(--t-xs); color: var(--ink-2); }
-.wdeck .dc-num { font-size: 1.9rem; }
+.wdeck .dc-num { font-size: 1.8rem; }
 .wdeck .dc-pips i { width: 0.4rem; height: 0.4rem; border-radius: 50%; transform: none; }
 .wdeck .dc-cap { text-align: center; color: var(--ink-2); font-weight: 650; }
 .wdeck li[data-today] .daycard { border: 2px solid var(--act); }
 .wdeck li[data-today] .dc-dow { color: var(--ink); }
 .wdeck li[data-today] .dc-cap { color: var(--ink); font-weight: 800; background: none; padding: 0; }
 .wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); transform: none; animation: none; }
+@media (min-width: 768px) { .wdeck ol { margin-inline: 0; padding-inline: 0; overflow: visible; } }
 
-@media (min-width: 768px) {
-  .phero-media { margin: var(--s5) 0 0; border-radius: var(--r-photo); aspect-ratio: 16 / 9; }
-  .phero-in { padding-block: 0 var(--s7); }
-  .wdeck ol { margin-inline: 0; padding-inline: 0; overflow: visible; }
-}
+/* ---------- this week: a calmer layout on wide screens (round 3) ----------
+ * The day stays on the left; the start time sits above its cards instead of in a third column, so cards get the width. */
 @media (min-width: 1024px) {
-  .phero-in {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-    grid-template-areas: "copy media" "deck media"; grid-template-rows: auto 1fr;
-    column-gap: var(--s7); row-gap: var(--s6); padding-block: var(--s7) var(--s8); align-items: start;
-  }
-  .phero-media { margin: 0; aspect-ratio: 4 / 5; }
-  .phero-media img, .phero-media video { object-position: 50% 40%; }
-  .phero-copy { padding-top: var(--s4); }
-  .wdeck { align-self: end; }
+  #days .day { grid-template-columns: 12rem minmax(0, 1fr); column-gap: var(--s6); }
+  #days .day-name { font-size: 2rem; }
+  /* a day's cards flow into one two-column grid in time order (each card shows its own time), so no slot leaves half a row empty */
+  #days .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
+  #days .slot, #days .slot-cards { display: contents; }
+  #days .slot-t { display: none; }
 }
 
 /* ---------- inside the shop: photo gallery ---------- */
@@ -765,20 +804,69 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .cedh-photo { margin: 0 0 var(--s5); aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--r-photo); background: #000; }
 .cedh-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
 
-/* ---------- visit: the storefront ---------- */
-.visit-pics { display: grid; gap: var(--s3); grid-template-columns: 1.4fr 1fr; align-self: start; margin: 0; }
-.visit-pics figure { position: relative; margin: 0; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
-.visit-pics img { width: 100%; height: 100%; object-fit: cover; }
-.vp-front { grid-row: span 2; aspect-ratio: 3 / 4; }
-.vp-front img { object-position: 50% 8%; }
-.vp-sign { aspect-ratio: 1; }
-.vp-sign img { object-position: 50% 45%; }
-.vp-cap { grid-column: 1 / -1; margin: 0; font-size: var(--t-sm); color: var(--ink-2); }
-.vp-note { align-self: end; margin: 0; font-size: var(--t-sm); font-weight: 650; color: var(--ink-2); }
-@media (min-width: 768px) { .visit-pics { grid-column: 1 / -1; } .vp-front { aspect-ratio: 4 / 3; } }
-@media (min-width: 1024px) { .visit-pics { grid-column: auto; } .vp-front { aspect-ratio: 3 / 4; } }
+/* ---------- visit: one card, three columns (round 3; like the owner's VFW "New here?" block) ---------- */
+.visit { background: var(--paper); border-block: 0; }
+.visit .sec-head h2 { margin-bottom: 0; }
+.visit-in {
+  display: grid; gap: var(--s6); padding: var(--s5) var(--s4);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--lift);
+}
+.visit .visit-in h3 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 850; margin: 0 0 var(--s3); }
+.visit address { font-size: 1.2rem; }
+.visit-small { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
+.visit-small strong { color: var(--ink); }
+.visit .faq dd:last-child { margin-bottom: 0; }
+@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; padding: var(--s6); } .visit-faq { grid-column: 1 / -1; } }
+@media (min-width: 1024px) {
+  .visit-in { grid-template-columns: 1fr 1fr 1.15fr; column-gap: var(--s7); }
+  .visit-faq { grid-column: auto; }
+  .visit-in > div + div { border-left: 1px solid var(--line); margin-left: calc(-1 * var(--s7) / 2); padding-left: calc(var(--s7) / 2); }
+}
+
+.visit .photo { margin: var(--s5) 0 0; overflow: hidden; border-radius: var(--r-photo); } .visit .photo img { width: 100%; max-height: 24rem; object-fit: cover; }
 
 @media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } }
+/* ---------- compact week (R5): later days are one line per event ---------- */
+.day-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.day-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.6rem; padding-block: 0.55rem; border-top: 1px solid var(--line); min-height: var(--tap); }
+.day-line:first-child { border-top: 0; }
+.dl-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--gc, var(--g-other)); flex: none; align-self: center; }
+.dl-time { font-weight: 800; white-space: nowrap; }
+.dl-title { font-weight: 750; }
+.dl-title a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.dl-bits { color: var(--ink-2); font-size: var(--t-sm); font-weight: 600; }
+.day-line[data-state="cancelled"] .dl-title a { text-decoration: line-through; color: var(--ink-2); }
+.day-more { margin: var(--s4) 0 0; font-weight: 750; }
+.day-more a { display: inline-flex; align-items: center; min-height: var(--tap); }
+/* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
+@media (max-width: 1023px) {
+  .dl-bits { flex-basis: 100%; padding-left: 1.25rem; }
+  #days .day-closed, #days .day[data-quiet], #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
+  #days .day-closed .day-dia, #days .day[data-quiet] .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+  #days .day-closed .day-name, #days .day[data-quiet] .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
+  #days .day-closed .day-meta, #days .day[data-quiet] .day-meta, #days .day:has(> .day-lines) .day-meta { padding-left: 3rem; margin-top: -0.4rem; }
+  #days .day-closed .day-skip { display: none; } /* the header already says "closed" */
+}
+
+
+/* ---------- round 3: calmer week on wide screens ----------
+ * days that are only one-line rows get the same light header as closed days; "Further out" rows are one line high */
+@media (min-width: 1024px) {
+  #days .day[data-quiet], #days .day:has(> .day-lines) { padding-block: var(--s4) var(--s5); }
+  #days .day[data-quiet] .day-h, #days .day:has(> .day-lines) .day-h { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); }
+  #days .day[data-quiet] .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.6rem; height: 2.6rem; font-size: 1.15rem; }
+  #days .day[data-quiet] .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-xl); }
+  #days .day[data-quiet] .day-meta, #days .day:has(> .day-lines) .day-meta { flex-basis: 100%; font-size: var(--t-xs); }
+}
+.week .later { padding: var(--s5); }
+.week .later-list li { padding-block: var(--s2); }
+.week .later-date { display: flex; flex-direction: column; align-items: center; }
+@media (min-width: 768px) {
+  .week .later-list li { grid-template-columns: 6.5rem minmax(0, 1fr) auto; min-height: 3.25rem; }
+  .week .later-date { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 0.3rem; text-align: left; }
+  .week .later-date b { display: inline; font-size: 1.35rem; }
+}
+
 /* ======================================================================================================
  * P2.3a additions (built pages): event date page, New here?, arrive-by line, no-photo visit grid.
  * Same tokens and components as above; no new colours (DESIGN.md 15).
@@ -787,8 +875,6 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .ev-arrive .ic { flex: none; }
 .foot-links { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); list-style: none; margin: 0; padding: 0; }
 .foot-links a { display: inline-flex; align-items: center; min-height: var(--tap); }
-@media (min-width: 1024px) { .visit-in.no-photo { grid-template-columns: 1fr 1fr; column-gap: var(--s7); } }
-.visit-in.no-photo .visit-hours p:first-of-type { margin-top: 0; }
 
 /* event date page (15.4) */
 .dp-wrap { padding-block: var(--s4) var(--s7); }
@@ -866,11 +952,42 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   html { scroll-behavior: auto !important; }
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
-/* print: the schedule on plain paper, no chrome, no media */
+
+/* ---------- D33: phone quick-action bar (public pages, static: no slide, no transition) ---------- */
+.mobile-bar { display: none; }
+@media (max-width: 899px) {
+  .mobile-bar {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom); background: var(--charcoal); color: var(--on-band); color-scheme: dark;
+    border-top: 1px solid #FFFFFF22;
+  }
+  .mobile-bar a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; min-width: 48px;
+    color: var(--on-band); font-size: var(--t-xs); font-weight: 750; text-decoration: none;
+  }
+  .mobile-bar a:hover { background: #FFFFFF14; }
+  .mobile-bar a[aria-current="page"] { background: color-mix(in oklab, var(--act) 30%, transparent); box-shadow: inset 0 3px 0 var(--act); }
+  .mobile-bar a:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+  body:has(.mobile-bar) { padding-bottom: calc(56px + env(safe-area-inset-bottom)); --toast-bottom: calc(56px + 1rem); }
+  html:has(.mobile-bar) { scroll-padding-bottom: calc(56px + env(safe-area-inset-bottom)); } /* focused links never hide under the bar */
+}
+
+/* ---------- print: the schedule on the counter window (black on white, no controls) ---------- */
+.print-only { display: none; }
 @media print {
-  :root { color-scheme: light; }
-  body { background: #fff; color: #000; }
-  .openbar, .site-head, .site-foot, .skip, .vid-btn, .media-cap, .phero-media, .shots, .visit-pics, .cedh-photo, .ep-photo, .cal-menu, .chips, .scheme { display: none !important; }
-  .ev, .slot, .day { break-inside: avoid; box-shadow: none; }
-  a { color: #000; }
+  :root, header, footer, .openbar, .site-head, .site-foot, [class*="band"] { color-scheme: light !important; }
+  html, body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+  body { padding-bottom: 0 !important; }
+  *, *::before, *::after { color: #000 !important; background-color: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+  .skip, .phero-strip, .wdeck, .site-nav, .scheme, .chips, .btn, .no-print, .mobile-bar, .toast, video, .phero-media, .media-cap, .empty-photo > img, .site-foot img:not(.keep) { display: none !important; }
+  /* boss D35: the events page photo, the filter controls, the live open-now status and the Tonight repeat stay off paper */
+  .ep-photo, .ep-format, .cal-menu, .ob-status, #today-wrap, .site-foot .foot-plate { display: none !important; }
+  .site-head, .openbar, [class*="band"] { background-image: none !important; }
+  .plate, .foot-plate { background: #fff !important; box-shadow: none !important; border: 1px solid #000; }
+  .plate img, .foot-plate img { display: block !important; }
+  .phero { min-height: 0; } .phero::before { display: none !important; }
+  .print-only { display: block !important; margin-top: 1rem; }
+  .day, .daycard, .ev, article, li { break-inside: avoid; }
+  .ev, .daycard { border: 1px solid #000 !important; }
+  a { text-decoration: underline; }
 }

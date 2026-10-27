@@ -59,6 +59,10 @@
     var show = fmt.form.querySelector('button[type="submit"]'); if (show) show.hidden = true; /* no-JS fallback only */
   }
 
+  /* events page: Print the schedule */
+  var pb = document.getElementById('print-btn');
+  if (pb) pb.addEventListener('click', function () { window.print(); });
+
   /* front page: game chips filter in place. Only from "All games": a page the server already filtered doesn't have the other cards. */
   var chips = document.getElementById('chips'), days = document.getElementById('days');
   if (!chips || !days) return;
@@ -74,9 +78,9 @@
     });
     days.querySelectorAll('.slot').forEach(function (s) { s.hidden = !s.querySelector('.ev:not([hidden])'); });
     days.querySelectorAll('.day').forEach(function (d) {
-      d.hidden = d.hasAttribute('data-quiet') ? id !== 'all' : !d.querySelector('.slot:not([hidden])');
+      d.hidden = d.hasAttribute('data-quiet') ? id !== 'all' : !d.querySelector('.slot:not([hidden]), .day-line:not([hidden])');
     });
-    var shown = days.querySelectorAll('.ev:not([hidden]):not([data-state="cancelled"])').length, any = days.querySelectorAll('.ev:not([hidden])').length;
+    var shown = days.querySelectorAll('.ev:not([hidden]):not([data-state="cancelled"]), .day-line:not([hidden]):not([data-state="cancelled"])').length, any = days.querySelectorAll('.ev:not([hidden]), .day-line:not([hidden])').length;
     if (empty) empty.hidden = id === 'all' || any > 0;
     if (status) status.textContent = (id === 'all' ? 'Showing all games: ' : 'Showing ' + link.querySelector('span').textContent + ': ') + shown + (shown === 1 ? ' event' : ' events') + ' this week.';
     var p = new URLSearchParams(location.search);

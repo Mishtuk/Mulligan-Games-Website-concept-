@@ -96,7 +96,7 @@ test('clean: tags stripped, javascript: link dropped, unknown fields gone', () =
 test('copyText: the 15.3 template, examples from the seed, missing values left out', () => {
   const seed = JSON.parse(readFileSync(new URL('../src/content/series.json', import.meta.url), 'utf8'));
   const by = (id) => seed.find((x) => x.id === id), site = 'https://site.example';
-  assert.equal(copyText(by('fnm-draft'), '2026-10-30', site), 'Draft FNM\nFriday, October 30, starts 7 PM\nEntry $20\nJust show up. No sign-up needed.\nDetails: https://site.example/events/fnm-draft?date=2026-10-30');
+  assert.equal(copyText(by('fnm-draft'), '2026-10-30', site), 'Draft FNM\nFriday, October 30, starts 7 PM\nEntry $20\nWalk in. No sign-up needed.\nDetails: https://site.example/events/fnm-draft?date=2026-10-30');
   assert.equal(copyText(by('rb-skirmish'), '2026-11-14', site), 'Riftbound Second Saturday Summoner Skirmish\nSaturday, November 14, doors 11 AM, starts noon\nEntry $10\nSign up online: https://tinyurl.com/RBMulliganGames\nDetails: https://site.example/events/rb-skirmish?date=2026-11-14');
   assert.ok(!copyText(by('tabletop-wed'), '2026-10-28', site).includes('Entry')); // null fee
   const base = 'https://mulligan.example/';

@@ -205,7 +205,7 @@ export function cleanException(seriesId, x, updated) {
 const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const T12 = (t) => (t === '12:00' ? 'noon' : t === '00:00' ? 'midnight' : `${+t.slice(0, 2) % 12 || 12}${t.slice(3) === '00' ? '' : ':' + t.slice(3)} ${+t.slice(0, 2) < 12 ? 'AM' : 'PM'}`);
 const dayWords = (ymd) => { const d = parseDay(ymd); return `${DAYS[d.getUTCDay()]}, ${MONTHS_LONG[d.getUTCMonth()]} ${d.getUTCDate()}`; };
-const SIGNUP_WORDS = { walkin: 'Just show up. No sign-up needed.', here: 'Sign up on our website to hold a seat.', counter: 'Pre-register at the counter.' };
+const SIGNUP_WORDS = { walkin: 'Walk in. No sign-up needed.', here: 'Sign up on our website to hold a seat.', counter: 'Pre-register at the counter.' };
 
 /** Plain-text post for one date (the 15.3 template), ready to paste into Facebook, Discord, Google Business Profile or the Wizards locator.
  *  Never HTML; a missing value leaves its line out. null when the series has no event on that date. exceptions: the stored one-date exceptions. */

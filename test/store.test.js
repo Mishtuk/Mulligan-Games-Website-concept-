@@ -77,7 +77,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'mg-store-'));
 const dist = join(tmp, 'dist'), data = join(tmp, 'data');
 const put = (path, body) => { mkdirSync(join(dist, path), { recursive: true }); writeFileSync(join(dist, path, 'index.html'), body); };
 const frame = (inner) => `<!doctype html><html><head><!--mg:head--><title>t</title><meta property="og:image" content="<!--mg:origin-->http://baked.example<!--/mg:origin-->/i.jpg"><!--mg:shop-ld--></head><body><!--mg:strip--><p>baked</p><!--/mg:strip--><div class="openbar"><!--mg:bar--><p>baked bar</p><!--/mg:bar--></div>${inner}<footer><!--mg:foot-addr--><p>baked foot</p><!--/mg:foot-addr--><ul><!--mg:socials--><!--/mg:socials--></ul></footer></body></html>`;
-put('', frame('<main><!--mg:hero--><!--/mg:hero--><dl><!--mg:cedh-live--><!--/mg:cedh-live--></dl><section><!--mg:visit--><div>baked visit</div><!--/mg:visit--></section><div><!--mg:discord--><!--/mg:discord--></div></main>'));
+put('', frame('<main><!--mg:hero--><!--/mg:hero--><div><!--mg:free-play--><p class="freeplay2">baked free</p><!--/mg:free-play--></div><dl><!--mg:cedh-live--><!--/mg:cedh-live--></dl><section><!--mg:visit--><div>baked visit</div><!--/mg:visit--></section><div><!--mg:discord--><!--/mg:discord--></div></main>'));
 put('events', frame('<main><!--mg:events-->PLACEHOLDER<!--/mg:events--></main>'));
 put('new-here', frame('<main><ul><!--mg:nh-toc--><!--/mg:nh-toc--></ul><!--mg:nh-free--><!--/mg:nh-free--><!--mg:nh-kids--><!--/mg:nh-kids--><!--mg:nh-here--><!--/mg:nh-here--><!--mg:nh-directions--><a href="old">baked old directions</a><!--/mg:nh-directions--><!--mg:nh-ask--><!--/mg:nh-ask--></main>'));
 put('event-page', frame('<main><!--mg:event--><!--/mg:event--></main>'));
@@ -190,7 +190,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
     links: { facebook: 'https://www.facebook.com/shop', discord: 'https://discord.gg/abc' }, photo: 'room-a.webp', photoAlt: 'Tables set for draft' });
   assert.equal(r.status, 200);
   const home = await text(`/?now=${NOW}`);
-  for (const t of ['9 Test Ln, Hatboro', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln, Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
+  for (const t of ['9 Test Ln, Hatboro', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln, Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', '<p class="freeplay2">Free play after 3</p>', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
   assert.ok(!home.includes('445 York') && !home.includes('baked bar') && !home.includes('baked foot') && !home.includes('baked visit'));
   assert.ok(home.includes('<figure class="photo has-img"><img src="/media/photos/room-a.webp" alt="Tables set for draft"') && !home.includes('no-photo'));
   const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(home)[1]);
@@ -203,7 +203,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
   assert.ok((await text('/events/fnm?date=2026-10-30&now=' + NOW)).includes('9 Test Ln, Hatboro, PA 19040'));
   await save({ freePlay: '', photo: null, photoAlt: '', links: { facebook: '' } }); // fields can be cleared: the sections go away
   const after = await text(`/?now=${NOW}`), nh2 = await text(`/new-here/?now=${NOW}`);
-  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('Can I just come and play?') && !after.includes('facebook.com'));
+  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('Can I just come and play?') && !after.includes('freeplay2') && !after.includes('facebook.com'));
   assert.ok(!nh2.includes('id="free"') && !nh2.includes('href="#free"'));
   assert.equal((await api('DELETE', 'photos/room-a.webp')).status, 404); // not an upload, never touched
 });
@@ -262,7 +262,7 @@ test('B6: the admin preview says what the public card says (fixed phrases, and "
     beginnerFriendly: true, kidsWelcome: true, playStyle: 'casual', arriveBy: '18:45' };
   const shown = [{ signup: 'here' }, { signup: 'here', capacity: 1 }, { signup: 'counter' }, { signup: 'walkin' }, { signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/e' } }, { signup: 'external' }, { signup: 'external', inviteOnly: true }, { signup: 'walkin', playStyle: 'competitive' }]
     .map((o) => String(card(ctx, { ...base, ...o })).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).join(' ');
-  for (const p of ['Just show up. No sign-up needed.', 'Pre-register at the counter.', 'Call the shop', 'Invite only. Seats come from the Championship Series.', 'to keep your seat.', 'Beginner friendly', 'Kids welcome', 'Casual', 'Competitive',
+  for (const p of ['Walk in. No sign-up needed.', 'Pre-register at the counter.', 'Call the shop', 'Invite only. Seats come from the Championship Series.', 'to keep your seat.', 'Beginner friendly', 'Kids welcome', 'Casual', 'Competitive',
     'Sign up online', 'Sign up on ', ' seats left', ' seat left']) {
     assert.ok(shown.includes(p), `render.js still says "${p}"`);
     assert.ok(pv.includes(p.trim()), `the preview says "${p.trim()}" too`);

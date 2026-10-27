@@ -181,3 +181,10 @@ test('editing the store hours in admin changes the open-now strip without a rest
   assert.equal((await admin('PUT', 'store', { ...cur, hours: null })).status, 200);
   assert.ok((await text(`/?now=${NOW}`)).includes('Hours coming soon.'));
 });
+
+test('round 3: week strip sits in This week, events page has Print and Subscribe, no "?" fee', async () => {
+  const home = await text(`/?now=${NOW}`), ev = await text(`/events/?now=${NOW}`);
+  assert.ok(/<\/ol><\/nav><nav class="chips"/.test(home), 'the seven-day strip opens This week, right above the game chips');
+  assert.ok(ev.includes('id="print-btn"') && ev.includes(`webcal://${new URL(SITE).host}/events.ics`));
+  assert.ok(!/class="ev-cost">(?:<span[^>]*>[^<]*<\/span>)?\?/.test(home + ev));
+});
