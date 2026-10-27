@@ -165,6 +165,101 @@ test('walk-ins: checked in and paid at the door; full offers waitlist or seat-an
   assert.equal(R.counts(db, 'fnm', FRI).in, 3);
   assert.equal(R.walkIn(db, o, { name: 'Z', mode: 'weird' }).error, 'bad_input');
 });
+test('G6 cancel Undo: waitlist place, seat with the promoted person bumped back, checked-in promoted person keeps seat, window, dup', () => {
+  const { db, join } = setup(), o = occ(), T = 1e6;
+  const [a, b, c, d] = ['A', 'B', 'C', 'D', 'E'].map((n) => join(o, n));
+  R.cancel(db, o, d.id, { now: T }); // waitlisted D (#2) cancels
+  assert.deepEqual(names(db, o, 'waitlist'), ['C', 'E']);
+  assert.deepEqual(R.undoCancel(db, o, d.id, { now: T + 1 }), { ok: true, bumped: null, promoted: [], status: 'waitlist', over: false });
+  const wl = () => R.roster(db, 'fnm', FRI).filter((r) => r.status === 'waitlist').map((r) => [r.name, r.waitlistPos]);
+  assert.deepEqual(wl(), [['C', 1], ['D', 2], ['E', 3]]);
+  assert.equal(R.undoCancel(db, o, d.id).error, 'state', 'second Undo does nothing');
+  // seated A cancels, C moves in; Undo: A back as they were, C back to #1, D and E keep their places behind C
+  R.checkIn(db, o, a.id); R.setPayment(db, o, a.id, 'door');
+  R.cancel(db, o, a.id, { now: T });
+  assert.deepEqual([names(db, o, 'in'), names(db, o, 'waitlist')], [['B', 'C'], ['D', 'E']]);
+  const u = R.undoCancel(db, o, a.id, { now: T + 1000 });
+  assert.deepEqual([u.ok, u.bumped, u.over], [true, c.id, false]);
+  assert.deepEqual([names(db, o, 'in'), wl()], [['A', 'B'], [['C', 1], ['D', 2], ['E', 3]]]);
+  const ra = R.roster(db, 'fnm', FRI).find((r) => r.id === a.id);
+  assert.deepEqual([ra.checkedIn, ra.payment, ra.promotedAt], [true, 'door', null]);
+  // promoted person already checked in: both keep seats, 3 of 2
+  R.cancel(db, o, b.id, { now: T }); R.checkIn(db, o, c.id);
+  const u2 = R.undoCancel(db, o, b.id, { now: T + 1 });
+  assert.deepEqual([u2.ok, u2.bumped, u2.over, R.counts(db, 'fnm', FRI).in], [true, null, true, 3]);
+  // auto-promotion stays paused over the cap; Undo is refused after the window or when the same name signed up again
+  R.cancel(db, o, a.id, { now: T });
+  assert.equal(R.undoCancel(db, o, a.id, { now: T + R.UNDO_MS + 1 }).error, 'expired');
+  assert.equal(join(o, 'A').status, 'waitlist');
+  assert.equal(R.undoCancel(db, o, a.id, { now: T + 1 }).error, 'dup');
+});
+test('G6 cancel Undo after other changes: no free seat while someone waits, nobody behind in line keeps a seat, a namesake does not block', () => {
+  const st = (db, o) => R.roster(db, o.seriesId, o.slot).filter((r) => ['in', 'waitlist'].includes(r.status)).map((r) => `${r.name}:${r.status}${r.waitlistPos ?? ''}`);
+  for (const free of [true, false]) {
+    const { db, join } = setup(), o = occ(), T = 1e6, [a, b, , d] = ['A', 'B', 'C', 'D'].map((n) => join(o, n));
+    R.cancel(db, o, a.id, { now: T }); // C moves in
+    if (free) { R.cancel(db, o, d.id, { now: T }); R.cancel(db, o, b.id, { now: T }); } // a seat frees up, nobody waiting
+    else R.cancel(db, o, b.id, { now: T + 1 }); // D moves in for B
+    R.undoCancel(db, o, a.id, { now: T + 10 });
+    assert.deepEqual(st(db, o), free ? ['A:in', 'C:in'] : ['A:in', 'C:in', 'D:waitlist1'], free ? 'C keeps the free seat' : 'D (behind C) goes back, not C');
+  }
+  const { db, join } = setup(), o = occ(), a = join(o, 'Chris'); join(o, 'B');
+  R.cancel(db, o, a.id, { now: 1e6 }); join(o, 'Chris', { email: 'other@x.com' }); // a different Chris takes the seat
+  assert.deepEqual([R.undoCancel(db, o, a.id, { now: 1e6 + 1 }).over, R.counts(db, 'fnm', FRI).in], [true, 3]);
+});
+test('migration: a database made before cancel Undo gets the undo column, keeps its rows, and opening it again is harmless', () => {
+  const dir = mkdtempSync(joinPath(tmpdir(), 'mg-mig-')), old = openDb(dir);
+  old.exec('ALTER TABLE registrations DROP COLUMN undo; DROP TABLE headcount');
+  old.prepare("INSERT INTO registrations (series, slot, event_day, name, status, created_at) VALUES ('fnm', ?, ?, 'Old', 'in', 1)").run(FRI, FRI);
+  old.close();
+  for (let i = 0; i < 2; i++) { const db = openDb(dir); assert.ok(db.prepare('PRAGMA table_info(registrations)').all().some((c) => c.name === 'undo')); assert.equal(R.roster(db, 'fnm', FRI)[0].name, 'Old'); assert.equal(R.getHeadcount(db, 'fnm', FRI), 0); db.close(); }
+  rmSync(dir, { recursive: true, force: true });
+});
+test('G1 pre-registration: not checked in, contact optional, capacity and waitlist rules, only counter / here events, hostile input inert', () => {
+  const { db } = setup(), o = occ({ signup: 'counter', capacity: 1 });
+  const p = R.addPreReg(db, o, { name: ' Pat  Lee ', payment: 'online' });
+  assert.deepEqual([p.ok, p.status], [true, 'in']);
+  const row = R.roster(db, 'fnm', FRI)[0];
+  assert.deepEqual([row.name, row.checkedIn, row.payment, row.walkIn, row.email], ['Pat Lee', false, 'online', false, '']);
+  const w = R.addPreReg(db, o, { name: 'Quinn', email: 'q@x.com', payment: 'online' });
+  assert.deepEqual([w.status, w.position, R.roster(db, 'fnm', FRI).find((r) => r.id === w.id).payment], ['waitlist', 1, 'unpaid']);
+  assert.equal(R.addPreReg(db, o, { name: 'pat lee' }).error, 'dup');
+  assert.equal(R.addPreReg(db, o, { name: 'pat lee', anyway: true }).status, 'waitlist');
+  assert.equal(R.addPreReg(db, { ...o, waitlist: false }, { name: 'Z' }).error, 'full');
+  assert.equal(R.addPreReg(db, o, { name: '' }).errors.name, 'Type a name first.');
+  assert.ok(R.addPreReg(db, o, { name: 'Z', email: 'nope' }).errors.email && R.addPreReg(db, o, { name: 'Z', phone: '12' }).errors.phone && R.addPreReg(db, o, { name: 'Z', payment: 'wire' }).errors.payment);
+  assert.equal(R.addPreReg(db, occ({ signup: 'walkin' }), { name: 'Z' }).error, 'nosignup');
+  assert.equal(R.addPreReg(db, { ...o, cancelled: true }, { name: 'Z' }).error, 'nosignup');
+  R.cancel(db, o, p.id); assert.equal(names(db, o, 'in')[0], 'Quinn', 'a pre-registration promotes like any other');
+  const big = occ({ signup: 'counter', capacity: 9, slot: 'x' });
+  assert.equal(R.addPreReg(db, big, { name: 'Z', email: "' OR 1=1 --@x.co" }).ok, false);
+  assert.equal(R.addPreReg(db, big, { name: "<script>' OR 1=1 --" }).ok, true);
+  assert.equal(R.roster(db, 'fnm', 'x')[0].name, "<script>' OR 1=1 --");
+  assert.ok(db.prepare('SELECT COUNT(*) n FROM registrations').get().n >= 4, 'tables intact');
+});
+test('G10 headcount: per slot, +/- and set, never below 0 or above the max, walk-in-only events only', () => {
+  const db = openDb(':memory:'), o = occ({ signup: 'walkin' }), o2 = occ({ signup: 'walkin', slot: 'late' });
+  assert.equal(R.getHeadcount(db, 'fnm', FRI), 0);
+  assert.equal(R.setHeadcount(db, o, { delta: 1 }).n, 1); R.setHeadcount(db, o, { delta: 1 });
+  assert.equal(R.setHeadcount(db, o, { delta: -5 }).n, 0);
+  assert.equal(R.setHeadcount(db, o, { n: 17 }).n, 17);
+  assert.equal(R.setHeadcount(db, o2, { delta: 1 }).n, 1);
+  assert.deepEqual([R.getHeadcount(db, 'fnm', FRI), R.getHeadcount(db, 'fnm', 'late')], [17, 1], 'one number per slot');
+  for (const bad of [{}, { delta: 1.5 }, { delta: '1' }, { n: -1 }, { delta: 99999 }, { n: '1; DROP TABLE headcount' }]) assert.equal(R.setHeadcount(db, o, bad).error, 'bad_input');
+  assert.equal(R.setHeadcount(db, occ({ signup: 'here' }), { delta: 1 }).error, 'nosignup');
+  assert.equal(R.getHeadcount(db, 'fnm', FRI), 17);
+});
+test('walk-in Seat anyway: over the cap pauses promotion until under cap again; a name match can be seated anyway', () => {
+  const { db, join } = setup(), o = occ(); join(o, 'A'); join(o, 'B'); join(o, 'W');
+  const over = R.walkIn(db, o, { name: 'Pushy', mode: 'over' });
+  assert.deepEqual([over.over, R.counts(db, 'fnm', FRI).in], [true, 3]);
+  R.cancel(db, o, R.roster(db, 'fnm', FRI)[0].id);
+  assert.deepEqual([names(db, o, 'waitlist'), R.counts(db, 'fnm', FRI).in], [['W'], 2], '3 of 2 -> 2 of 2: still no promotion');
+  R.cancel(db, o, R.roster(db, 'fnm', FRI)[0].id);
+  assert.deepEqual([names(db, o, 'waitlist'), names(db, o, 'in').includes('W')], [[], true], 'under cap: W moves in');
+  assert.equal(R.walkIn(db, o, { name: 'pushy', mode: 'over' }).error, 'dup');
+  assert.equal(R.walkIn(db, o, { name: 'pushy', mode: 'over', anyway: true }).ok, true);
+});
 test('no-show: frees the seat and promotes #1; not for a checked-in person; Undo', () => {
   const { db, join } = setup(), o = occ(), a = join(o, 'A'), b = join(o, 'B'), c = join(o, 'C');
   R.checkIn(db, o, b.id);
@@ -281,7 +376,7 @@ before(async () => {
   const db = openDb(data);
   db.prepare("INSERT INTO kv (key, value) VALUES ('series_seeded', '1')").run();
   for (const s of [WK('fnm', 'Draft FNM'), WK('duo', 'Duo Night', { capacity: 1 }), WK('adm', 'Admin Night'), WK('nowl', 'No Waitlist', { capacity: 1, waitlist: false }), WK('hostile', 'Hostile Night', { capacity: 9 }),
-    WK('late', 'Late Night', { cutoff: 'before', cutoffHours: 2 })]) putSeries(db, s);
+    WK('late', 'Late Night', { cutoff: 'before', cutoffHours: 2 }), WK('ctr', 'Prerelease', { signup: 'counter' }), WK('wlk', 'Casual Night', { signup: 'walkin', capacity: undefined })]) putSeries(db, s);
   db.close();
   proc = spawn(process.execPath, ['server.js'], { cwd: join(import.meta.dirname, '..'), env: { ...process.env, PORT: '0', DATA_DIR: data, DIST_DIR: dist, ALLOW_DEFAULT_ADMIN: '1', NODE_ENV: 'test', PUBLIC_URL: 'https://mg.example' } });
   proc.stderr.on('data', (d) => process.stderr.write(d));
@@ -443,6 +538,11 @@ test('HTTP: roster API: session, origin check, list, check in, payment, move, no
   v = await view();
   assert.deepEqual([v.counts.in, v.counts.waitlist, v.counts.cancelled], [2, 1, 1]);
   assert.equal(v.regs[0].status, 'in');
+  // G6 over HTTP: Undo of the removal above (r1 was cancelled)
+  v = await (await act(r1.id, 'cancel', { undo: true })).json();
+  assert.deepEqual([v.result.ok, v.regs.find((x) => x.id === r1.id).status], [true, 'in']);
+  assert.equal((await act(r1.id, 'cancel', { undo: true })).status, 409);
+  await act(r1.id, 'cancel');
   // walk-ins
   const full = await adm('POST', `adm/${FRI}/walkin`, { name: 'Walker' });
   assert.deepEqual([full.status, (await full.json()).error], [409, 'full']);
@@ -460,6 +560,38 @@ test('HTTP: roster API: session, origin check, list, check in, payment, move, no
   assert.equal((await act(99999, 'cancel')).status, 409);
   assert.equal((await act(r2.id, 'bogus')).status, 404);
   assert.equal((await adm('POST', `adm/${FRI}/${r2.id}/payment`, { payment: 'x'.repeat(20000) })).status, 413, 'body cap');
+});
+test('HTTP: pre-registration, headcount, seat anyway and the player own Undo: session, CSRF, validation', async () => {
+  const P = (path, body, h) => adm('POST', path, body, h);
+  assert.equal((await P(`ctr/${FRI}/prereg`, { name: 'x' }, { Cookie: cookie })).status, 403, 'no Origin');
+  assert.equal((await P(`ctr/${FRI}/prereg`, { name: 'x' }, { Origin: origin })).status, 401, 'no session');
+  assert.equal((await P(`wlk/${FRI}/headcount`, { delta: 1 }, { Origin: origin })).status, 401);
+  assert.equal((await P(`wlk/${FRI}/headcount`, { delta: 1 }, { Cookie: cookie, Origin: 'http://evil.example' })).status, 403);
+  let v = await (await P(`ctr/${FRI}/prereg`, { name: '<b>Pre</b>', email: "' OR 1=1 --@x.co", payment: 'online' })).json();
+  assert.equal(v.error, 'invalid');
+  v = await (await P(`ctr/${FRI}/prereg`, { name: '<script>alert(1)</script>', phone: '215-555-0100', payment: 'online' })).json();
+  assert.deepEqual([v.result.ok, v.regs[0].name, v.regs[0].checkedIn, v.regs[0].payment, v.counts.in], [true, '<script>alert(1)</script>', false, 'online', 1]);
+  assert.equal((await P(`ctr/${FRI}/prereg`, { name: '<script>alert(1)</script>' })).status, 409, 'dup');
+  assert.equal((await P(`wlk/${FRI}/prereg`, { name: 'Nope' })).status, 409, 'walk-in-only: no pre-registration');
+  v = await (await P(`wlk/${FRI}/headcount`, { delta: 1 })).json();
+  assert.equal(v.headcount, 1); await P(`wlk/${FRI}/headcount`, { delta: 1 });
+  assert.equal((await (await adm('GET', `wlk/${FRI}`)).json()).headcount, 2);
+  assert.equal((await P(`wlk/${FRI}/headcount`, { delta: -50 })).status, 200);
+  assert.equal((await (await adm('GET', `wlk/${FRI}`)).json()).headcount, 0);
+  assert.equal((await P(`wlk/${FRI}/headcount`, { delta: "1' OR 1=1 --" })).status, 422);
+  assert.equal((await P(`ctr/${FRI}/headcount`, { delta: 1 })).status, 409, 'not a walk-in-only event');
+  assert.equal((await (await adm('GET', `ctr/${FRI}`)).json()).headcount, null);
+  assert.equal((await (await P(`ctr/${FRI}/walkin`, { name: 'Twin' })).json()).result.ok, true);
+  assert.equal((await P(`ctr/${FRI}/walkin`, { name: 'twin' })).status, 409);
+  assert.equal((await P(`ctr/${FRI}/walkin`, { name: 'twin', mode: 'over', anyway: true })).status, 200);
+  // the player's own cancel and Undo
+  const t = tokenOf(await form('hostile', jn('Rob')));
+  const tokPost = (path, origin2 = origin) => fetch(`${origin}/api/signup/${path}?now=${NOW}`, { method: 'POST', redirect: 'manual', headers: { Origin: origin2 }, body: new URLSearchParams({ token: t }) });
+  assert.equal((await tokPost('cancel')).status, 303);
+  assert.equal((await mine(t)).t.includes('Cancel my seat'), false);
+  assert.equal((await tokPost('undo-cancel', 'http://evil.example')).status, 403);
+  await tokPost('undo-cancel');
+  assert.ok((await mine(t)).t.includes('Cancel my seat'), 'back in');
 });
 test('HTTP: hostile names are inert on the reply page, the date page and the roster API', async () => {
   const evil = '<img src=x onerror=alert(1)>', sql = "'; DROP TABLE registrations; --";

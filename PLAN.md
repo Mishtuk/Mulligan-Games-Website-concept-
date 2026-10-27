@@ -243,9 +243,10 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] Roster header "Copy post text" (15.3) and the 9.1 admin shell replacing the provisional sidebar (moved from
         P2.2b, D23).
   - [x] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, no-show, retention purge.
-  - [ ] (P2.4b, D30 (6)) Cancel Undo as an inverse with a precondition (G6, designer spec first); "Add a
+  - [x] (P2.4b, D30 (6)) Cancel Undo as an inverse with a precondition (G6, designer spec first); "Add a
         pre-registration" for counter events (G1, designer spec first); a per-slot `headcount` row that P2.6 reads and
-        edits (G10); walk-in "Seat anyway" on a name match.
+        edits (G10); walk-in "Seat anyway" on a name match. (Server and API done, D31; their buttons, and Undo on the
+        player's `/signup/<token>` page, come with the Today / roster screens above.)
   - [ ] (Later, needs mail set up and Mish's OK) Email the private link when the player gave an email (D26).
 
 ### P2.5 Inventory

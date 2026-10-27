@@ -340,3 +340,29 @@ Seats left, cards and JSON-LD availability read the real counts.
 per-slot headcount row, walk-in "Seat anyway" on a name match, and emailing the link (needs mail set up and the owner's OK).
 **Why:** the smallest changes that keep the privacy page true and stop a routine edit from silently losing seats.
 Boss overrule: G3 changed from the coder's name OR contact rule.
+
+### D31. P2.4b server review calls: cancel Undo, pre-registration, headcount, seat anyway (2026-10-27)
+(1) **G6 cancel Undo: an inverse with a precondition, 5 minutes** (staff toast and the player's page). A waitlisted
+person gets their old place back (just ahead of whoever holds it now). A seated person gets the seat back; if that
+makes the event full, the **last** person auto-promoted since the cancel who has not checked in goes back to waitlist
+#1, exactly as No-show Undo (15.7). Nobody like that (checked in, walk-in took the seat): both keep seats, "29 of 28".
+Undo ends with the normal promote, so a seat freed meanwhile never sits empty while someone waits. Refused: after 5
+minutes (`expired`), already undone or not cancelled (`state`), or the same person signed up again (`dup`, G3 rule).
+Boss fixes (tested): the coder's version bumped the specific people the cancel promoted, so after a second cancel the
+person ahead in line lost the seat to the one behind, and a person was sent back to the waitlist even with a seat
+free. The `dup` check was name-only, so a different "Chris Smith" blocked the player's own Undo; it now uses the D30
+(2) rule (name alone only for rows with no contact, i.e. walk-ins). Accepted: two cancels undone in a row can end "29 of
+28" (the precondition fails for the second; nobody loses a seat unfairly).
+(2) **The public `POST /api/signup/undo-cancel {token}` stays.** The player page cancels in one tap with no confirm,
+so a mistaken tap needs a way back; it is the same guard as `/api/signup/cancel` (hashed token lookup, origin check,
+120 per hour per address, 8 KB body, 404 after the event ends, dead after the purge or a counter erase) and touches
+only that one row plus, at most, the one person promoted into their seat in the last 5 minutes and not yet checked in.
+Cancel and Undo again in a loop only moves that same person back and forth, within the rate limit. Its button on the
+`/signup/<token>` page goes with the P2.4b screens.
+(3) Accepted as built: G1 `addPreReg` (counter and sign-up-here events, not checked in, contact optional, same seat and
+waitlist rules, no cutoff, name match refused unless `anyway`; a waitlisted pre-registration is stored unpaid like a
+walk-in), G10 `headcount` table (one integer per slot, walk-in-only events, 0-9999, +/- or set), walk-in `anyway`, the
+`undo` column added by `ALTER TABLE` only when missing (tested on an old database, opened twice). Every new admin route
+sits behind session + origin + 1200/hour; JSON fields are type-checked; SQL `?` only; names stay text.
+**Why:** the No-show rule already decides who goes back, so cancel Undo reuses it; the old way could give a seat to
+the wrong person. Boss overrule: G6 bump rule changed from "the people this cancel promoted".

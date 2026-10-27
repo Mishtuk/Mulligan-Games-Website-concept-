@@ -11,6 +11,8 @@ export const RETENTION_DAYS = 30;
 export const PAYMENTS = ['unpaid', 'door', 'online', 'comped', 'credit'];
 export const PAYMENT_LABEL = { unpaid: 'Not paid', door: 'At the door', online: 'Paid online elsewhere', comped: 'Comped', credit: 'Store credit' };
 const REFUNDABLE = ['door', 'online', 'credit'];
+/** G6: a cancel can be undone this long (staff toast or the player's page); after that the seat stays free. */
+export const UNDO_MS = 5 * 60 * 1000;
 export const MAX = { name: 80, email: 120, phone: 30, playerId: 24 };
 
 // ---------- small helpers (no database) ----------
@@ -69,6 +71,13 @@ function promote(db, k, now) {
   renumber(db, k);
   return moved;
 }
+/** G3 (D30): someone holding a seat or a waitlist place under this name AND this email or phone (exact, not a piece of one). Two different
+ *  "Chris Smith"s, or a parent signing up two kids with one email, are not duplicates. A row with no contact (walk-in) matches on name alone. */
+function dupOf(db, k, name, email = '', phone = '') {
+  const nm = name.toLowerCase(), em = email.toLowerCase(), ph = digits(phone), nameOnly = !em && ph.length < 7;
+  return db.prepare("SELECT name, email, phone FROM registrations WHERE series = ? AND slot = ? AND status IN ('in', 'waitlist')").all(k.series, k.slot)
+    .find((r) => r.name.toLowerCase() === nm && (nameOnly || (em && r.email.toLowerCase() === em) || (ph.length >= 7 && digits(r.phone) === ph)));
+}
 const view = (r) => r && ({ id: r.id, name: r.name, email: r.email, phone: r.phone, playerId: r.player_id, status: r.status, waitlistPos: r.wait_pos, checkedIn: !!r.checked_in, payment: r.payment, walkIn: !!r.walk_in, createdAt: r.created_at, promotedAt: r.promoted_at });
 const fresh = (db, k, id) => view(getReg(db, k, id));
 
@@ -108,11 +117,7 @@ export function register(db, o, form, { nowM, now = Date.now() } = {}) {
   if (Object.keys(errors).length) return { ok: false, error: 'invalid', errors };
   const k = keyOf(o);
   return tx(db, () => {
-    const em = clean.email.toLowerCase(), ph = digits(clean.phone), nm = clean.name.toLowerCase();
-    // G3 (D30): the same name AND the same email or phone (exact, not a piece of one) among people who hold a seat or a waitlist place.
-    // Two different "Chris Smith"s, or a parent signing up two kids with one email, are not duplicates.
-    const dup = db.prepare("SELECT name, email, phone FROM registrations WHERE series = ? AND slot = ? AND status IN ('in', 'waitlist')").all(k.series, k.slot)
-      .find((r) => r.name.toLowerCase() === nm && ((em && r.email.toLowerCase() === em) || (ph.length >= 7 && digits(r.phone) === ph)));
+    const dup = dupOf(db, k, clean.name, clean.email, clean.phone); // validateSignup guarantees an email or a 7+ digit phone, so never name alone
     if (dup) return { ok: false, error: 'dup', existing: shortName(dup.name) };
     const full = !!k.cap && inCount(db, k) >= k.cap;
     if (full && !o.waitlist) return { ok: false, error: 'full' };
@@ -139,7 +144,9 @@ export function cancel(db, o, id, { now = Date.now() } = {}) {
   return tx(db, () => {
     const r = getReg(db, k, id);
     if (!r || !['in', 'waitlist'].includes(r.status)) return { ok: false, error: 'state' };
-    db.prepare("UPDATE registrations SET status = 'cancelled', checked_in = 0, wait_pos = NULL, promoted_at = NULL WHERE id = ?").run(r.id);
+    // what Undo needs (G6): where they were and when; who moved in since is read from promoted_at
+    db.prepare("UPDATE registrations SET status = 'cancelled', checked_in = 0, wait_pos = NULL, promoted_at = NULL, undo = ? WHERE id = ?")
+      .run(JSON.stringify({ from: r.status, pos: r.wait_pos, checked: r.checked_in, at: now }), r.id);
     const promoted = r.status === 'in' ? promote(db, k, now) : (renumber(db, k), []);
     return { ok: true, promoted, refundDue: r.status === 'in' && REFUNDABLE.includes(r.payment) };
   });
@@ -169,6 +176,28 @@ export function undoNoShow(db, o, id) {
     db.prepare("UPDATE registrations SET status = 'in' WHERE id = ?").run(r.id);
     renumber(db, k);
     return { ok: true, bumped, over: !!k.cap && inCount(db, k) > k.cap };
+  });
+}
+/** Undo a cancel (staff or the player's own) within UNDO_MS. A waitlisted person gets their old place back. A seated one gets the seat back;
+ *  when that makes the event full, the LAST person auto-promoted since the cancel who has not checked in goes back to waitlist #1 (as No-show
+ *  undo, so nobody behind them in line keeps a seat they lose). Nobody like that (checked in, walk-in took the seat): "29 of 28".
+ *  Ends with promote(), so a seat freed meanwhile never sits empty while someone waits. */
+export function undoCancel(db, o, id, { now = Date.now() } = {}) {
+  const k = keyOf(o);
+  return tx(db, () => {
+    const r = getReg(db, k, id), u = r?.status === 'cancelled' && r.undo ? JSON.parse(r.undo) : null;
+    if (!u) return { ok: false, error: 'state' };
+    if (now - u.at > UNDO_MS) return { ok: false, error: 'expired' };
+    if (dupOf(db, k, r.name, r.email, r.phone)) return { ok: false, error: 'dup' }; // they signed up again meanwhile
+    let bumped = null;
+    if (u.from === 'in' && k.cap && inCount(db, k) >= k.cap) {
+      bumped = db.prepare("SELECT id FROM registrations WHERE series = ? AND slot = ? AND status = 'in' AND checked_in = 0 AND promoted_at >= ? ORDER BY promoted_at DESC, id DESC LIMIT 1").get(k.series, k.slot, u.at)?.id ?? null;
+      if (bumped) db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = 0, promoted_at = NULL WHERE id = ?").run(bumped); // 0 sorts before #1
+    }
+    if (u.from === 'in') db.prepare("UPDATE registrations SET status = 'in', checked_in = ?, wait_pos = NULL, undo = NULL WHERE id = ?").run(u.checked ? 1 : 0, r.id);
+    else db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = ?, undo = NULL WHERE id = ?").run((u.pos ?? 1) - 0.5, r.id); // just ahead of whoever has that place now
+    const promoted = promote(db, k, now);
+    return { ok: true, bumped, promoted, status: getReg(db, k, r.id).status, over: !!k.cap && inCount(db, k) > k.cap };
   });
 }
 export function checkIn(db, o, id, on = true) {
@@ -207,16 +236,54 @@ export function moveWaitlist(db, o, id, dir) {
     return { ok: true, position: j + 1 };
   });
 }
+/** G1: staff put a name on a `counter` (or `here`) event ahead of time: not checked in, payment as given (often paid in advance), contact optional.
+ *  Same capacity / waitlist rules as a sign-up (no cutoff: staff). Same-name duplicates are refused unless `anyway`. */
+export function addPreReg(db, o, { name, email, phone, payment = 'unpaid', anyway = false }, { now = Date.now() } = {}) {
+  if (!['counter', 'here'].includes(o.signup) || o.cancelled) return { ok: false, error: 'nosignup' };
+  const c = { name: line(name, MAX.name + 1), email: line(email, MAX.email + 1), phone: line(phone, MAX.phone + 1) }, errors = {};
+  if (!c.name) errors.name = 'Type a name first.'; else if (c.name.length > MAX.name) errors.name = 'That name is too long.';
+  if (c.email && (c.email.length > MAX.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c.email))) errors.email = 'That email doesn’t look right.';
+  if (c.phone && (c.phone.length > MAX.phone || digits(c.phone).length < 7 || digits(c.phone).length > 15)) errors.phone = 'That phone number looks short.';
+  if (!PAYMENTS.includes(payment)) errors.payment = 'Pick a payment option.';
+  if (Object.keys(errors).length) return { ok: false, error: 'invalid', errors };
+  const k = keyOf(o);
+  return tx(db, () => {
+    if (!anyway && db.prepare("SELECT 1 FROM registrations WHERE series = ? AND slot = ? AND status IN ('in', 'waitlist') AND lower(name) = ?").get(k.series, k.slot, c.name.toLowerCase())) return { ok: false, error: 'dup' };
+    const full = !!k.cap && inCount(db, k) >= k.cap;
+    if (full && !o.waitlist) return { ok: false, error: 'full' };
+    const status = full ? 'waitlist' : 'in';
+    const id = Number(db.prepare('INSERT INTO registrations (series, slot, event_day, name, email, phone, status, payment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(k.series, k.slot, k.day, c.name, c.email, c.phone, status, full ? 'unpaid' : payment, now).lastInsertRowid);
+    renumber(db, k);
+    return { ok: true, id, status, position: getReg(db, k, id).wait_pos };
+  });
+}
+
+/** G10: walk-in-only nights keep one number per slot (D23 key); P2.6 results read and edit it. */
+export const getHeadcount = (db, series, slot) => db.prepare('SELECT n FROM headcount WHERE series = ? AND slot = ?').get(series, slot)?.n ?? 0;
+export const MAX_HEADCOUNT = 9999;
+/** { delta } adds (never below 0, never above MAX_HEADCOUNT); { n } sets it. Returns { ok, n }. */
+export function setHeadcount(db, o, { delta, n } = {}) {
+  if (o.signup !== 'walkin' || o.cancelled) return { ok: false, error: 'nosignup' };
+  const isInt = (x) => Number.isInteger(x) && Math.abs(x) <= MAX_HEADCOUNT;
+  if (!(n === undefined ? isInt(delta) : isInt(n) && n >= 0)) return { ok: false, error: 'bad_input' };
+  return tx(db, () => {
+    const next = Math.min(MAX_HEADCOUNT, Math.max(0, n === undefined ? getHeadcount(db, o.seriesId, o.slot) + delta : n));
+    db.prepare('INSERT INTO headcount (series, slot, n) VALUES (?, ?, ?) ON CONFLICT(series, slot) DO UPDATE SET n = excluded.n').run(o.seriesId, o.slot, next);
+    return { ok: true, n: next };
+  });
+}
+
 /** Counter walk-in. mode 'auto' refuses when full (so the screen can offer both buttons), 'waitlist' queues them unpaid, 'over' seats them
  *  anyway. A seated walk-in is checked in and paid with `payment` (default at the door). Duplicate = same name. */
-export function walkIn(db, o, { name, mode = 'auto', payment = 'door' }, { now = Date.now() } = {}) {
+export function walkIn(db, o, { name, mode = 'auto', payment = 'door', anyway = false }, { now = Date.now() } = {}) {
   const nm = line(name, MAX.name + 1);
   if (!nm) return { ok: false, error: 'name' };
   if (nm.length > MAX.name) return { ok: false, error: 'name_long' };
   if (!['auto', 'waitlist', 'over'].includes(mode) || !PAYMENTS.includes(payment)) return { ok: false, error: 'bad_input' };
   const k = keyOf(o);
   return tx(db, () => {
-    if (db.prepare("SELECT 1 FROM registrations WHERE series = ? AND slot = ? AND status IN ('in', 'waitlist') AND lower(name) = ?").get(k.series, k.slot, nm.toLowerCase())) return { ok: false, error: 'dup' };
+    if (!anyway && db.prepare("SELECT 1 FROM registrations WHERE series = ? AND slot = ? AND status IN ('in', 'waitlist') AND lower(name) = ?").get(k.series, k.slot, nm.toLowerCase())) return { ok: false, error: 'dup' }; // anyway: two real people with one name
     const full = !!k.cap && inCount(db, k) >= k.cap;
     if (full && mode === 'auto') return { ok: false, error: 'full', full: true };
     const wait = full && mode === 'waitlist';

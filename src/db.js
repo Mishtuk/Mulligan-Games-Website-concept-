@@ -23,8 +23,10 @@ export function openDb(dir) {
       email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', player_id TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL CHECK (status IN ('in', 'waitlist', 'cancelled', 'noshow')), wait_pos INTEGER, checked_in INTEGER NOT NULL DEFAULT 0,
       payment TEXT NOT NULL DEFAULT 'unpaid' CHECK (payment IN ('unpaid', 'door', 'online', 'comped', 'credit')), walk_in INTEGER NOT NULL DEFAULT 0,
-      token_hash TEXT UNIQUE, created_at INTEGER NOT NULL, promoted_at INTEGER, purged INTEGER NOT NULL DEFAULT 0);
-    CREATE INDEX IF NOT EXISTS registrations_slot ON registrations (series, slot);`);
+      token_hash TEXT UNIQUE, created_at INTEGER NOT NULL, promoted_at INTEGER, purged INTEGER NOT NULL DEFAULT 0, undo TEXT);
+    CREATE INDEX IF NOT EXISTS registrations_slot ON registrations (series, slot);
+    CREATE TABLE IF NOT EXISTS headcount (series TEXT NOT NULL, slot TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (series, slot)) WITHOUT ROWID;`);
+  if (!db.prepare('PRAGMA table_info(registrations)').all().some((c) => c.name === 'undo')) db.exec('ALTER TABLE registrations ADD COLUMN undo TEXT'); // P2.4b: databases made before cancel Undo
   return db;
 }
 

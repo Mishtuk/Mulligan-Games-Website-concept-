@@ -305,12 +305,12 @@ async function signupApi(req, url) {
   return Object.assign(res, { tpl });
 }
 /** POST /api/signup/cancel {token}: the player frees their own seat; the next on the waitlist moves in. Only the one registration behind the token is touched. */
-function signupCancelApi(req, url) {
+function signupCancelApi(req, url, undo = false) { // undo: POST /api/signup/undo-cancel {token}, G6: the player takes their own cancel back (regs.UNDO_MS)
   return publicForm(req, { origins: origins(url), pages: SIGNUP_PAGES, handle: (f, ip) => {
     if (!allow(`tok:${ip}`, 120)) return { status: 429, body: { error: 'rate' } };
     const token = String(f.token ?? ''), reg = regs.byToken(db, token), ctx = publicCtx(url), o = reg && occurrenceOf(ctx, reg.series, reg.slot);
     if (!o || endM(o) <= ctx.now.m) return { status: 404, body: { error: 'not_found' } };
-    const r = regs.cancel(db, o, reg.id);
+    const r = undo ? regs.undoCancel(db, o, reg.id) : regs.cancel(db, o, reg.id);
     return { status: r.ok ? 200 : 409, body: r.ok ? { ok: true } : { error: r.error }, location: `/signup/${token}${ctx.keepNow ? `?now=${encodeURIComponent(ctx.keepNow)}` : ''}` };
   } });
 }
@@ -388,6 +388,7 @@ async function route(req, url) {
   if (p === '/api/login' && req.method === 'POST') return login(req, url);
   if (p === '/api/signup' && req.method === 'POST') return signupApi(req, url);
   if (p === '/api/signup/cancel' && req.method === 'POST') return signupCancelApi(req, url);
+  if (p === '/api/signup/undo-cancel' && req.method === 'POST') return signupCancelApi(req, url, true);
   if (p === '/api/logout' && req.method === 'POST') {
     if (!sameOrigin(req, ...origins(url))) return bad('origin', 403);
     const who = signedIn(req, url);
@@ -578,20 +579,34 @@ function templatesApi(req, body, [id], ip, note) {
 }
 
 // ---------- roster (admin): GET roster/:series/:slot | POST roster/:series/:slot/walkin | POST roster/:series/:slot/:id/<action> ----------
-// actions: checkin {on}, payment {payment}, erase, cancel, noshow {on}, movein, move {dir: -1|1}. Session + origin check come from route(). Every reply is the whole roster again.
+// also POST .../prereg {name, email?, phone?, payment?, anyway?} (G1), .../headcount {delta | n} (G10, walk-in-only events), walkin {anyway} (seat anyway on a name match),
+// and .../:id/cancel {undo: true} (G6). actions: checkin {on}, payment {payment}, erase, cancel, noshow {on}, movein, move {dir: -1|1}. Session + origin check come from route(). Every reply is the whole roster again.
 function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
   const m = req.method;
   if (m !== 'GET' && !allow(`ro:${ip}`, 1200)) { note('roster_blocked', 'rate limit'); return bad('rate', 429); }
   const o = occurrenceOf(publicCtx(url), series ?? '', slot ?? '');
   if (!o) return bad('not_found', 404);
   const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null },
-    counts: regs.counts(db, o.seriesId, o.slot), regs: regs.roster(db, o.seriesId, o.slot) });
+    counts: regs.counts(db, o.seriesId, o.slot), headcount: o.signup === 'walkin' ? regs.getHeadcount(db, o.seriesId, o.slot) : null, regs: regs.roster(db, o.seriesId, o.slot) });
   if (m === 'GET' && !id) return full();
   if (m !== 'POST') return bad('not_found', 404);
   const b = body && typeof body === 'object' && !Array.isArray(body) ? body : {};
   const done = (r, what) => { if (!r.ok) return json({ error: r.error ?? 'state', result: r }, 409); note(what, `${o.seriesId} ${o.slot} #${id}`); return full(r); };
+  if (id === 'prereg') {
+    const r = regs.addPreReg(db, o, { name: b.name, email: b.email, phone: b.phone, payment: b.payment, anyway: b.anyway === true });
+    if (r.error === 'invalid') return json({ error: 'invalid', errors: r.errors }, 422);
+    if (!r.ok) return json({ error: r.error, result: r }, 409);
+    note('roster_prereg', `${o.seriesId} ${o.slot} ${r.status}`);
+    return full(r);
+  }
+  if (id === 'headcount') {
+    const r = regs.setHeadcount(db, o, { delta: b.delta, n: b.n });
+    if (!r.ok) return json({ error: r.error, result: r }, r.error === 'bad_input' ? 422 : 409);
+    note('roster_headcount', `${o.seriesId} ${o.slot} ${r.n}`);
+    return full(r);
+  }
   if (id === 'walkin') {
-    const r = regs.walkIn(db, o, { name: b.name, mode: b.mode, payment: b.payment });
+    const r = regs.walkIn(db, o, { name: b.name, mode: b.mode, payment: b.payment, anyway: b.anyway === true });
     if (!r.ok && ['name', 'name_long', 'bad_input'].includes(r.error)) return json({ error: 'invalid', errors: { name: r.error === 'name' ? 'Type a name first.' : 'Check the name and options.' } }, 422);
     if (!r.ok) return json({ error: r.error, result: r }, 409);
     note('roster_walkin', `${o.seriesId} ${o.slot} ${r.status}`);
@@ -601,7 +616,7 @@ function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
   if (rid === null) return bad('not_found', 404);
   if (action === 'checkin') return done(regs.checkIn(db, o, rid, b.on !== false), b.on === false ? 'roster_uncheck' : 'roster_checkin');
   if (action === 'payment') return done(regs.setPayment(db, o, rid, b.payment), 'roster_payment');
-  if (action === 'cancel') return done(regs.cancel(db, o, rid), 'roster_cancel');
+  if (action === 'cancel') return done(b.undo === true ? regs.undoCancel(db, o, rid) : regs.cancel(db, o, rid), b.undo === true ? 'roster_cancel_undo' : 'roster_cancel');
   if (action === 'noshow') return done(b.on === false ? regs.undoNoShow(db, o, rid) : regs.noShow(db, o, rid), b.on === false ? 'roster_noshow_undo' : 'roster_noshow');
   if (action === 'erase') return done(regs.erase(db, o, rid), 'roster_erase'); // "remove my details" at the counter
   if (action === 'movein') return done(regs.moveIn(db, o, rid), 'roster_movein');
