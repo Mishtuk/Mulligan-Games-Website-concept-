@@ -104,10 +104,10 @@
 @media (min-width: 1024px) {
   #days .day { grid-template-columns: 12rem minmax(0, 1fr); column-gap: var(--s6); }
   #days .day-name { font-size: 2rem; }
-  #days .slot { grid-template-columns: minmax(0, 1fr); gap: var(--s2); }
-  #days .slot-t { flex-direction: row; align-items: baseline; gap: var(--s2); padding-top: 0; }
-  #days .slot-t time { font-size: 1.25rem; }
-  #days .slots { gap: var(--s4); }
+  /* a day's cards flow into one two-column grid in time order (each card shows its own time), so no slot leaves half a row empty */
+  #days .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
+  #days .slot, #days .slot-cards { display: contents; }
+  #days .slot-t { display: none; }
 }
 
 /* ---------- inside the shop: photo gallery ---------- */
@@ -170,8 +170,6 @@
 .day-line[data-state="cancelled"] .dl-title a { text-decoration: line-through; color: var(--ink-2); }
 .day-more { margin: var(--s4) 0 0; font-weight: 750; }
 .day-more a { display: inline-flex; align-items: center; min-height: var(--tap); }
-/* round 3: two even columns on wide screens; a lone card keeps the same width instead of stretching across the row */
-@media (min-width: 1024px) { #days .slot-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
 @media (max-width: 1023px) {
   .dl-bits { flex-basis: 100%; padding-left: 1.25rem; }

@@ -373,8 +373,7 @@ Cleaner and more concise, laid out like the owner's VFW and Riverside sites:
   (from 768px) and the outlined Pause / Play pill right. The pause control is never inside the photo any more.
 - **Week strip** moves out of the hero to the top of "This week" (under the section head). Phone check: headline and
   next up inside the first 844px, the strip within 220px of the hero's bottom.
-- **This week, wide screens:** day column 12rem; the start time sits above its cards (no third column); cards are two
-  even columns, a lone card keeps that width; days that are only one-line rows get the light header (2.6rem mark,
+- **This week, wide screens:** day column 12rem; a day's cards flow into one two-column grid in time order (no time column; each card shows its own time), days that are only one-line rows get the light header (2.6rem mark,
   28px name). "Further out" shows 4 rows, each one line (`Fri 6 Nov` inline).
 - **Visit** is one card with three columns divided by hairlines: Hours | Find us (address, Directions, Call, parking +
   "sign on the roof") | Good to know. The two storefront photos are gone from the front page.

@@ -65,3 +65,19 @@
 .su-link-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .su-link-row input { flex: 1 1 14rem; min-width: 0; min-height: var(--tap); padding: 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-sm); }
 .su-back { margin: 0 0 var(--s3); }
+
+/* ---------- round 3 (D36): calmer wide layout ----------
+ * Tonight: the cards flow into one two-column grid in time order (each card shows its own time; no time column).
+ * Special events: two dates side by side, each a narrow date column + its card(s), so no row leaves half the page empty. */
+@media (min-width: 1024px) {
+  .ep .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
+  .ep .slot, .ep .slot-cards { display: contents; }
+  .ep .slot-t { display: none; }
+  #today .day { grid-template-columns: minmax(0, 1fr); }
+  #special { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s6); align-items: start; }
+  #special .day { grid-template-columns: 6.5rem minmax(0, 1fr); column-gap: var(--s4); }
+  #special .day:nth-child(2) { border-top: 0; }
+  #special .day-h { position: static; }
+  #special .day-name { font-size: var(--t-lg); }
+  #special .slots { grid-template-columns: minmax(0, 1fr); }
+}

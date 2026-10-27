@@ -38,7 +38,7 @@
       case 'closed':
         act = '<p class="ev-how">' + (st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.') + '</p>';
         stat = !st.cap ? '' : st.left ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat') : statBox('Full', '', '', 'lock'); break;
-      case 'walkin': act = '<p class="ev-how">' + MG.icon('door') + 'Just show up. No sign-up needed.</p>'; break;
+      case 'walkin': act = '<p class="ev-how">' + MG.icon('door') + 'Walk in. No sign-up needed.</p>'; break;
       case 'counter':
         act = '<p class="ev-how">' + MG.icon('door') + 'Pre-register at the counter.</p><a class="btn btn-2" href="' + e(MG.data.store.phoneHref) + '">' + MG.icon('phone') + 'Call the shop</a>'; break;
       case 'external':

@@ -203,7 +203,7 @@
       }
       if (!evs.length) {
         if (chip === 'all') html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '">' + head +
-          '<p class="day-skip">' + (i === 0 && all.length === 0 && week.length ? 'Nothing else scheduled today. ' : 'No scheduled events. ') + 'Free play all day.</p></section>';
+          '<p class="day-skip">' + (i === 0 && all.length === 0 && MG.allOccurrences(today, today).some(live) ? 'Nothing else scheduled today. ' : 'No scheduled events. ') + 'Free play all day.</p></section>';
         continue;
       }
       shownAny = true;

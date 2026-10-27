@@ -230,7 +230,7 @@
     hourglass: '<path d="M6.5 3h11M6.5 21h11M7.5 3c0 5 9 5 9 9s-9 4-9 9M16.5 3c0 5-9 5-9 9s9 4 9 9"/>',
     lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
     cancel: '<circle cx="12" cy="12" r="9"/><path d="m8.5 8.5 7 7M15.5 8.5l-7 7"/>',
-    door: '<path d="M5 21h14M7 21V4h10v17"/><path d="M13.5 12.5v.01"/>',
+    door: '<path d="M3 21h18"/><path d="M6 21V4h9v17"/><path d="M15 5.5l4 1.5v14"/><path d="M11.5 12.5v.01"/>',
     external: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
     phone: '<path d="M5 3.5h3.5l1.5 4.5-2.3 1.5a11 11 0 0 0 6.8 6.8l1.5-2.3 4.5 1.5V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/>',
     pin: '<path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -301,7 +301,7 @@
         act = '<p class="ev-how">' + (st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.') + '</p>';
         stat = !st.cap ? '' : st.left ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat') : statBox('Full', '', '', 'lock'); break;
       case 'walkin':
-        act = '<p class="ev-how">' + MG.icon('door') + 'Just show up. No sign-up needed.</p>'; break;
+        act = '<p class="ev-how">' + MG.icon('door') + 'Walk in. No sign-up needed.</p>'; break;
       case 'counter':
         act = '<p class="ev-how">' + MG.icon('door') + 'Pre-register at the counter.</p>' +
           '<a class="btn btn-2" href="' + e(D.store.phoneHref) + '">' + MG.icon('phone') + 'Call the shop</a>'; break;

@@ -431,3 +431,9 @@ fixes that change what they see there. Decoration and motion the spec already ru
   "Further out" rows. Visit becomes one three-column card. Spec: DESIGN.md 6 "Round 3".
 - **Why:** the owner's call; it matches the sites they already like and leaves fewer competing boxes on screen.
 - **Known gap:** the only loop is a 540px phone reel, soft at full width; Q21 now asks for landscape 1080p clips.
+- **Round 3, second pass (same day, after the Desktop's build formatting list on #2):** day cards on wide screens
+  flow into one two-column grid in time order (slot time labels hidden, each card shows its time), so a lone slot no
+  longer leaves half a row empty; the events page uses the same grid for Tonight and shows Special events two dates
+  side by side. Nav is five short links (All events, This week, cEDH, Preorders, Visit) on both pages. Walk-in copy is
+  "Walk in. No sign-up needed." with an open-door icon (the old one read as an empty box). "Nothing else scheduled
+  today" only when something ran earlier that day.
