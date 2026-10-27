@@ -10,7 +10,6 @@
 .adm .fld input:not([type="checkbox"]):not([type="radio"]), .adm .fld select, .adm .fld textarea { min-height: var(--tap-admin); }
 .adm .fld textarea { min-height: 5.5rem; }
 .adm :focus-visible { outline-color: var(--focus); }
-.linkbtn { display: inline-flex; align-items: center; gap: .35rem; min-height: 2.75rem; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .18em; cursor: pointer; }
 .ico { display: inline-flex; flex: none; vertical-align: middle; }
 .meta { color: var(--ink-2); font-size: var(--t-sm); }
 .big { font-size: 1.15rem; font-weight: 700; margin: 0 0 var(--s1); }
