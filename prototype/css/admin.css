@@ -4,7 +4,7 @@
  * Targets are 56px (var(--tap-admin)); body text 17px. Loads after tokens.css, site.css, ui.css.
  */
 .adm { --toast-bottom: 5.25rem; background: var(--paper); }
-.adm[data-page="today"] { --toast-bottom: 14.5rem; } /* above the sticky walk-in bar (name row + button row on phones) */
+.adm[data-page="today"] { --toast-bottom: 10.5rem; } /* above the sticky walk-in bar (one row, about 72px, on phones) */
 .adm .btn { min-height: var(--tap-admin); }
 .adm .btn-sm { min-height: 3rem; }
 .adm .fld input:not([type="checkbox"]):not([type="radio"]), .adm .fld select, .adm .input { min-height: var(--tap-admin); }
@@ -76,12 +76,13 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
 .today-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); margin-bottom: var(--s3); }
 .today-open { margin: 0; display: inline-flex; align-items: center; gap: var(--s2); padding: 0.25rem 0.75rem; border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--line); font-weight: 700; font-size: var(--t-sm); }
 .today-open .ob-dot { border-color: var(--ink-2); }
-.reminders { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s4); }
+.reminders { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: var(--s4); font-size: var(--t-sm); font-weight: 650; }
 .reminders:empty { display: none; }
-@media (max-width: 599px) { .today-open { display: none; } /* the top bar already says it */ .reminders { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter); } .rem { flex: none; white-space: nowrap; } }
-.rem { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 3rem; padding: 0 var(--s3); border-radius: var(--r-pill); border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink); font-weight: 700; font-size: var(--t-sm); text-decoration: none; }
-.rem:hover { border-color: var(--ink); }
-.rem-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+@media (max-width: 599px) { .today-open { display: none; } /* the top bar already says it */ }
+.rem { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 2.75rem; color: var(--ink); text-decoration: underline; text-underline-offset: 0.18em; }
+.rem + .rem::before { content: "·"; display: inline-block; margin-inline: var(--s2); color: var(--ink-2); text-decoration: none; }
+.rem:hover { text-decoration-thickness: 2px; }
+.rem-warn .ic { color: var(--warn); }
 
 /* ---------- Today: event selector ---------- */
 .evsel { list-style: none; margin: 0 calc(-1 * var(--gutter)) var(--s4); padding: var(--s1) var(--gutter) var(--s2); display: flex; gap: var(--s2); overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter); }
@@ -103,10 +104,11 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
 .roster-title { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; line-height: 1; }
 .roster-sub { margin: 0; font-weight: 650; color: var(--ink-2); }
 .roster-tool { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); font-size: var(--t-sm); font-weight: 650; }
-.rstats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s2); }
-.rstat { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem; border-radius: var(--r-box); border: 2px solid var(--line-strong); background: var(--surface-2); font-weight: 750; font-size: var(--t-sm); }
+.rstats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--s2); }
+.rstat { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 750; font-size: var(--t-sm); }
+.rstat + .rstat::before { content: "·"; margin-right: var(--s2); color: var(--ink-2); font-weight: 400; }
 .rstat .ic { width: 1.1rem; height: 1.1rem; }
-.rstat-warn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
+.rstat-warn { padding: 0.3rem 0.7rem; border-radius: var(--r-box); border: 2px solid var(--warn); background: var(--warn-bg); color: var(--warn); }
 .rstat-wait { border-color: var(--wait); color: var(--wait); }
 .rtools { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-end; }
 .rtools .rsearch { flex: 1 1 12rem; margin: 0; }
@@ -366,6 +368,20 @@ details.past > summary { display: flex; align-items: center; min-height: 3rem; f
   .walkbar .fld { flex: 1 1 100%; }
   .walkbar .btn { flex: 1 1 0; padding-inline: var(--s2); font-size: var(--t-sm); }
 }
+/* F23: name + "Add" on one row (about 72px) when there is one button; a full event's two buttons keep the row below */
+.walkbar .btn:has(.wb-long) { gap: 0.28em; }
+@media (max-width: 639px) {
+  .walkbar:not(:has(.btn ~ .btn)) { flex-wrap: nowrap; }
+  .walkbar:not(:has(.btn ~ .btn)) .fld { flex: 1 1 0; min-width: 0; }
+  .walkbar:not(:has(.btn ~ .btn)) .btn { flex: none; min-height: var(--tap-admin); padding-inline: var(--s4); font-size: var(--t-md); }
+  .wb-long { display: none; }
+}
+/* F22 on phones: the lines wrap, so a "·" would start a line; the icons and a wider gap separate the items instead */
+@media (max-width: 599px) {
+  .reminders, .rstats { column-gap: var(--s4); }
+  .rem + .rem::before, .rstat + .rstat::before { content: none; }
+}
+.rstat + .rstat-warn::before { content: none; } /* the box separates it */
 
 /* R13 Unpaid is an outline (never filled); only the chosen Door / Online / Comped / Credit is filled */
 @media (min-width: 600px) {
@@ -375,6 +391,6 @@ details.past > summary { display: flex; align-items: center; min-height: 3rem; f
 }
 /* R12 stat chips that jump to a list */
 .rstat:has(.rstat-a) { padding: 0; }
-.rstat-a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem; padding: 0.3rem 0.7rem; color: inherit; text-decoration: underline; text-underline-offset: 0.18em; }
+.rstat-a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem; color: inherit; text-decoration: underline; text-underline-offset: 0.18em; }
 .rstat-a:hover { text-decoration-thickness: 2px; }
 .rstart-acts { margin: 0; }

@@ -16,7 +16,9 @@
     .nf-card { max-width: 34rem; padding: var(--s6); border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface); }
     .nf-card h1 { margin: var(--s4) 0 var(--s2); font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.25rem; line-height: 1.05; }
     .nf-card p { margin: 0 0 var(--s3); }
-    .nf-acts { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
+    .nf-acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); margin-top: var(--s4); }
+    .nf-acts .btn { justify-content: center; text-align: center; }
+    .nf-hours { margin: 0 0 var(--s3); padding: 0; list-style: none; }
   </style>
 </head>
 <body>
@@ -29,7 +31,11 @@
     <div class="nf-card">
       <h1>That page isn't here.</h1>
       <p>The link may be old or mistyped. Here is where to go.</p>
-      <p>Hours: Wed and Thu 2 to 10 PM. Fri and Sat 2 PM to midnight. Sun 1 to 10 PM. Closed Mon and Tue.</p>
+      <ul class="nf-hours" aria-label="Hours">
+        <li>Wed and Thu 2 to 10 PM</li>
+        <li>Fri and Sat 2 PM to midnight</li>
+        <li>Sun 1 to 10 PM. Closed Mon and Tue</li>
+      </ul>
       <div class="nf-acts">
         <a class="btn btn-act" href="/Mulligan-Games-Website-concept-/">Front page</a>
         <a class="btn btn-2" href="/Mulligan-Games-Website-concept-/events.html">All events</a>
@@ -40,8 +46,36 @@
   </main>
   <footer class="site-foot">
     <div class="wrap foot-in">
-      <p>445 York Rd, Warminster, PA 18974 · <a href="tel:+12157893299">(215) 789-3299</a></p>
-      <p class="foot-small">A concept for the owners of Mulligan Games. Sample data; not the store's official site.</p>
+      <div class="foot-brand">
+        <p class="foot-plate"><img src="/Mulligan-Games-Website-concept-/img/logo/logo-plate-330.webp" alt="Mulligan Games" width="330" height="102" loading="lazy"></p>
+        <p>Card games, tables and a crew who know the formats.</p>
+      </div>
+      <div class="foot-visit">
+        <h2>Visit</h2>
+        <p>445 York Rd<br>Warminster, PA 18974</p>
+        <p><a href="tel:+12157893299">(215) 789-3299</a></p>
+        <p><a href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
+      </div>
+      <div class="foot-hours">
+        <h2>Hours</h2>
+        <ul id="foot-hours">
+          <li>Wed–Thu 2–10 PM</li>
+          <li>Fri–Sat 2 PM–midnight</li>
+          <li>Sun 1–10 PM</li>
+          <li>Mon–Tue closed</li>
+        </ul>
+      </div>
+      <nav class="foot-explore" aria-labelledby="foot-explore-h">
+        <h2 id="foot-explore-h">Explore</h2>
+        <ul>
+          <li><a href="/Mulligan-Games-Website-concept-/events.html">All events</a></li>
+          <li><a href="/Mulligan-Games-Website-concept-/index.html#week">This week</a></li>
+          <li><a href="/Mulligan-Games-Website-concept-/index.html#cedh">cEDH</a></li>
+          <li><a href="/Mulligan-Games-Website-concept-/index.html#new">Preorders</a></li>
+          <li><a href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener">Discord<span class="vh"> (opens Discord)</span></a></li>
+        </ul>
+      </nav>
+      <p class="foot-small">A concept for the owners of Mulligan Games. Sample data; not the store's official site. <a id="adm-link" href="/Mulligan-Games-Website-concept-/admin/index.html">Shop admin (concept)</a></p>
     </div>
   </footer>
 </body>

@@ -50,49 +50,184 @@
     return (act || stat) ? '<div class="ev-foot">' + act + stat + '</div>' : '';
   };
 
-  /* ---------- event detail (DESIGN.md section 7) ---------- */
-  V.detail = function (occ, now) {
-    var s = occ.series, st = MG.seatState(occ, now), tool = s.tool || {}, d = MG.parseYmd(occ.date);
-    var tags = '';
-    if (st.onNow) tags += '<span class="tag tag-now"><span class="dot" aria-hidden="true"></span>On now</span>';
-    if (s.kidsWelcome) tags += '<span class="tag">' + MG.icon('kid') + 'Kids welcome</span>';
-    if (s.inviteOnly) tags += '<span class="tag">' + MG.icon('lock') + 'Invite only</span>';
-    var rows = '';
-    function row(k, v) { if (v) rows += '<div><dt>' + e(k) + '</dt><dd>' + v + '</dd></div>'; }
-    row('Prizes', s.prize && e(s.prize));
-    row('Bring', s.bring && e(s.bring));
-    row('About', s.description && e(s.description));
-    row('Kids', s.kidsWelcome && 'Welcome');
+  /* ---------- event detail (DESIGN.md section 7, round 4 layout) ----------
+   * V.detailEl() builds the article with createElement + textContent (owner rule). V.detail() keeps the old string API
+   * (tests, previews): it serializes the same article. */
+  function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function ic(name, cls) { var s = document.createElement('span'); s.innerHTML = MG.icon(name, cls); return s.firstChild; } // constant SVG, no data
+  function withIcon(node, name, cls) { node.insertBefore(ic(name, cls), node.firstChild); return node; }
+  function linkOut(href, label, cls) {
+    var a = mk('a', cls || null, label); a.href = MG.safeUrl(href); a.target = '_blank'; a.rel = 'noopener';
+    return a;
+  }
+  var PICS = {
+    cedh: { src: 'media/video/cedh-monthly-event-poster.webp', w: 720, h: 1280, pos: '50% 70%', alt: 'Players at tables during a Commander night at Mulligan Games' },
+    pokemon: { src: 'media/video/sealed-packs-counter-poster.webp', w: 360, h: 640, pos: '50% 50%', alt: 'Sealed Pokemon packs on the counter at Mulligan Games' },
+    other: { src: 'img/social/interior-welcome-banner-800.webp', w: 800, h: 600, pos: '50% 40%', alt: 'The Welcome to Mulligan Games banner over the doorway into the play room' }
+  };
+  PICS.magic = PICS.cedh;
+  V.detailPic = function (gameId) {
+    var p = PICS[gameId] || PICS.other, fig = mk('figure', 'det-pic'), img = document.createElement('img');
+    img.src = p.src; img.alt = p.alt; img.width = p.w; img.height = p.h; img.loading = 'eager'; img.style.objectPosition = p.pos;
+    fig.appendChild(img); return fig;
+  };
+  // "open" / "few seats" / "full" / "cancelled" / "changed" for the Other dates list
+  V.dateState = function (o, now) {
+    if (o.cancelled) return 'cancelled';
+    var st = MG.seatState(o, now);
+    if (o.note) return 'changed';
+    switch (st.state) {
+      case 'few': return 'few seats';
+      case 'full': case 'waitlist': return 'full';
+      case 'closed': return 'closed';
+      default: return 'open';
+    }
+  };
+  function nextOne(occ, now) {
+    var from = MG.ymd(now), to = MG.ymd(MG.addDays(now, 120));
+    return MG.occurrences(occ.series, from, to).filter(function (o) { return o.key !== occ.key && !o.cancelled && o.endAt > now && o.date > occ.date; })[0] || null;
+  }
+  function kicker(occ, now) {
+    var d = MG.parseYmd(occ.date), rel = MG.relDay(occ.date, now);
+    return rel === 'today' ? 'Tonight' : rel === 'tomorrow' ? 'Tomorrow' : MG.dayShort(d) + ', ' + MG.fmtDate(d);
+  }
+  function stateLine(big, text) { var p = mk('p', 'det-state'); p.appendChild(mk('strong', 'det-big', big)); if (text) p.appendChild(mk('span', null, text)); return p; }
+  function actionBox(occ, st) {
+    var s = occ.series, tool = s.tool || {}, box = mk('div', 'det-act'), btn;
+    function seats() { return stateLine(String(st.left), (st.left === 1 ? 'seat left' : 'seats left') + (st.state === 'few' ? ', almost full' : ' of ' + st.cap)); }
+    function signBtn(cls, label) { var b = mk('button', 'btn ' + cls + ' det-go', label); b.type = 'button'; b.setAttribute('data-signup', occ.key); return b; }
+    switch (st.state) {
+      case 'open': case 'few': case 'needs':
+        box.appendChild(st.state === 'needs' ? stateLine(String(st.taken), 'signed up, needs ' + st.min + ' to run')
+          : st.cap ? seats() : stateLine(String(st.taken), 'signed up'));
+        box.appendChild(signBtn('btn-act', 'Sign up')); break;
+      case 'waitlist':
+        box.appendChild(stateLine('Full', st.waiting ? st.waiting + ' waiting' : 'waitlist open'));
+        box.appendChild(signBtn('btn-2', 'Join the waitlist')); break;
+      case 'full': box.appendChild(stateLine('Full', 'Ask at the counter about open seats.')); break;
+      case 'closed':
+        if (st.cap) box.appendChild(st.left ? stateLine(String(st.left), 'of ' + st.cap + ' seats left') : stateLine('Full'));
+        box.appendChild(mk('p', 'det-how', st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.')); break;
+      case 'walkin': box.appendChild(withIcon(mk('p', 'det-how det-walk', 'Walk in. No sign-up needed.'), 'door')); break;
+      case 'counter':
+        box.appendChild(withIcon(mk('p', 'det-how det-walk', 'Pre-register at the counter.'), 'door'));
+        btn = mk('a', 'btn btn-2 det-go', 'Call the shop'); btn.href = MG.data.store.phoneHref; withIcon(btn, 'phone'); box.appendChild(btn); break;
+      case 'external':
+        if (s.inviteOnly) { box.appendChild(withIcon(mk('p', 'det-how det-walk', 'Invite only. Seats come from the Championship Series.'), 'lock')); break; }
+        if (st.count) box.appendChild(stateLine(String(st.count), 'registered on ' + (tool.name || 'the other site')));
+        if (tool.url) {
+          btn = linkOut(tool.url, tool.cta || 'Sign up on ' + tool.name, 'btn btn-act det-go');
+          btn.appendChild(mk('span', 'vh', ' (opens ' + (tool.name || 'another site') + ')')); btn.appendChild(ic('external', 'ic-ext')); box.appendChild(btn);
+        } else box.appendChild(mk('p', 'det-how', 'Sign up on ' + (tool.name || 'the other site') + '.'));
+        break;
+    }
+    var price = V.priceLine(s);
+    if (price && ['open', 'few', 'needs', 'waitlist', 'closed'].indexOf(st.state) !== -1) box.appendChild(mk('p', 'det-how', price));
+    var ics = mk('button', 'btn btn-2 btn-sm det-ics', 'Add this date to my calendar'); ics.type = 'button'; ics.setAttribute('data-ics-one', occ.key); withIcon(ics, 'calendar');
+    box.appendChild(ics);
+    return box;
+  }
+  V.detailEl = function (occ, now) {
+    var s = occ.series, st = MG.seatState(occ, now), tool = s.tool || {}, over = occ.cancelled || occ.endAt <= now;
+    var art = mk('article', 'det ev'); art.setAttribute('data-game', s.game); art.setAttribute('data-state', st.state); art.setAttribute('aria-labelledby', 'det-title');
+    var x = mk('button', 'dlg-x'); x.type = 'button'; x.id = 'det-x'; x.setAttribute('data-close', ''); x.setAttribute('aria-label', 'Close'); x.appendChild(ic('x'));
+    art.appendChild(x);
+    art.appendChild(V.detailPic(s.game));
+
+    /* head */
+    var head = mk('div', 'det-head');
+    head.appendChild(mk('p', 'det-kicker', kicker(occ, now)));
+    var h = mk('h2', 'det-h'); h.id = 'det-title'; h.tabIndex = -1; h.appendChild(mk('span', 'det-name', s.title));
+    var price = mk('span', 'det-price'); price.appendChild(mk('span', 'vh', 'Entry: ')); price.appendChild(document.createTextNode(MG.fmtFee(s.fee))); h.appendChild(price);
+    head.appendChild(h);
+    var gl = mk('p', 'det-gl'), gb = document.createElement('span'); gb.innerHTML = MG.gameBadge(s.game); // constant SVG + the game's name from our own list
+    gl.appendChild(gb.firstChild); gl.appendChild(mk('span', 'ev-fmt', s.format)); head.appendChild(gl);
+    head.appendChild(withIcon(mk('p', 'det-time', V.timeLine(occ)), 'clock'));
+    if (occ.cancelled) {
+      var cb = mk('p', 'det-banner det-banner-bad'); cb.appendChild(ic('cancel')); cb.appendChild(mk('strong', null, 'Cancelled. ')); cb.appendChild(document.createTextNode(occ.note || 'This date is cancelled.')); head.appendChild(cb);
+    } else if (occ.note) {
+      var ub = mk('p', 'det-banner'); ub.appendChild(withIcon(mk('span', 'tag tag-upd', 'Updated'), 'pencil')); ub.appendChild(document.createTextNode(' ' + occ.note)); head.appendChild(ub);
+    }
+    if (over) {
+      var nx = nextOne(occ, now);
+      if (nx) head.appendChild(mk('p', 'det-next', 'Next one: ' + MG.dayShort(MG.parseYmd(nx.date)) + ' ' + MG.fmtDate(MG.parseYmd(nx.date))));
+    }
+    var tags = mk('p', 'det-tags');
+    if (st.onNow) { var on = mk('span', 'tag tag-now'), dot = mk('span', 'dot'); dot.setAttribute('aria-hidden', 'true'); on.appendChild(dot); on.appendChild(document.createTextNode('On now')); tags.appendChild(on); }
+    if (s.kidsWelcome) tags.appendChild(withIcon(mk('span', 'tag', 'Kids welcome'), 'kid'));
+    if (s.inviteOnly) tags.appendChild(withIcon(mk('span', 'tag', 'Invite only'), 'lock'));
+    if (tags.firstChild) head.appendChild(tags);
+    art.appendChild(head);
+    if (!over) art.appendChild(actionBox(occ, st));
+
+    /* about this night */
+    var rows = [];
+    function row(k, v) { if (v) rows.push([k, v]); }
+    row('Prizes', s.prize); row('Bring', s.bring); row('Kids', s.kidsWelcome && 'Welcome');
     if (s.warhammer) {
       var w = s.warhammer, bits = [];
       if (w.points) bits.push(w.points + ' points');
       if (w.roundMins) bits.push(w.roundMins + ' minute rounds');
       if (w.listDeadline) bits.push('lists due ' + w.listDeadline);
-      row('Warhammer', bits.length && e(bits.join(', ')));
+      row('Warhammer', bits.join(', '));
     }
     if (tool.name && tool.name !== 'another site') {
-      var link = tool.url ? '<a href="' + e(MG.safeUrl(tool.url)) + '" target="_blank" rel="noopener">' + e(tool.name) + '<span class="vh"> (opens ' + e(tool.name) + ')</span>' + MG.icon('external', 'ic-ext') + '</a>' : e(tool.name);
-      var code = tool.code ? ' Event code: <strong class="code">' + e(tool.code) + '</strong> <button type="button" class="btn btn-2 btn-sm" data-copy="' + e(tool.code) + '">' + MG.icon('copy') + 'Copy<span class="vh"> the event code</span></button>' : '';
-      row('Official tool', link + code);
+      var dd = document.createDocumentFragment();
+      var toolEl = function () {
+        if (!tool.url) return document.createTextNode(tool.name);
+        var a = linkOut(tool.url, tool.name); a.appendChild(mk('span', 'vh', ' (opens ' + tool.name + ')')); a.appendChild(ic('external', 'ic-ext')); return a;
+      };
+      if (tool.code) {
+        dd.appendChild(mk('strong', 'code', tool.code)); dd.appendChild(document.createTextNode(' '));
+        var cp = mk('button', 'btn btn-2 btn-sm', 'Copy'); cp.type = 'button'; cp.setAttribute('data-copy', tool.code); withIcon(cp, 'copy'); cp.appendChild(mk('span', 'vh', ' the event code')); dd.appendChild(cp);
+        dd.appendChild(document.createTextNode(' on ')); dd.appendChild(toolEl()); row('Event code', dd);
+      } else { dd.appendChild(toolEl()); row('Official tool', dd); }
     }
-    var others = MG.occurrences(s, MG.ymd(now), MG.ymd(MG.addDays(now, 120))).filter(function (o) { return o.key !== occ.key && o.endAt > now; }).slice(0, 6);
-    if (others.length) row('Other dates', '<ul class="det-dates">' + others.map(function (o) {
-      var od = MG.parseYmd(o.date);
-      return '<li><a href="events.html#e-' + e(encodeURIComponent(o.key)) + '"' + (o.cancelled ? ' class="struck"' : '') + '>' + e(MG.dayShort(od) + ' ' + MG.fmtDate(od)) +
-        (o.series.recurrence.type === 'dates' ? ', ' + e(MG.fmtTime(o.start)) : '') + '</a>' + (o.cancelled ? ' <span class="tag tag-bad">cancelled</span>' : '') + '</li>';
-    }).join('') + '</ul>');
-    return '<article class="det ev" data-game="' + e(s.game) + '" data-state="' + st.state + '" aria-labelledby="det-title">' +
-      '<div class="ev-bar"><h3 class="ev-title" id="det-title">' + e(s.title) + '</h3><p class="ev-cost"><span class="vh">Entry: </span>' + MG.fmtFee(s.fee) + '</p></div>' +
-      '<p class="ev-type">' + MG.gameBadge(s.game) + '<span class="ev-fmt">' + e(s.format) + '</span></p>' +
-      '<div class="ev-text"><p class="det-day">' + e(MG.fmtLongDate(d)) + '</p><p class="ev-when">' + MG.icon('clock') + '<span>' + e(V.timeLine(occ)) + '</span>' + tags + '</p>' +
-        (occ.note && !occ.cancelled ? '<p class="ev-note"><span class="tag tag-upd">' + MG.icon('pencil') + 'Updated</span> ' + e(occ.note) + '</p>' : '') +
-        (occ.cancelled ? '<p class="ev-note">' + e(occ.note || 'This date is cancelled.') + '</p>' : '') + '</div>' +
-      (occ.cancelled ? '<p class="ev-stamp det-stamp">' + MG.icon('cancel') + 'Cancelled</p>' : V.action(occ, st)) +
-      (rows ? '<dl class="det-list">' + rows + '</dl>' : '') +
-      '<p class="det-acts"><button type="button" class="btn btn-2" data-ics-one="' + e(occ.key) + '">' + MG.icon('calendar') + 'Add to calendar</button>' +
-      '<a class="btn btn-2" href="' + e(MG.safeUrl(MG.data.store.mapsUrl)) + '" target="_blank" rel="noopener">' + MG.icon('pin') + 'Directions<span class="vh"> (opens Google Maps)</span></a></p>' +
-      '<p class="det-where">445 York Rd, Warminster. ' + e(MG.data.store.parking) + '</p></article>';
+    if (rows.length || s.description) {
+      var about = mk('section', 'det-sec'); about.appendChild(mk('h3', null, 'About this night'));
+      if (rows.length) {
+        var dl = mk('dl', 'det-list');
+        rows.forEach(function (r) {
+          var g = mk('div'), dd2 = mk('dd'); g.appendChild(mk('dt', null, r[0]));
+          if (typeof r[1] === 'string') dd2.textContent = r[1]; else dd2.appendChild(r[1]);
+          g.appendChild(dd2); dl.appendChild(g);
+        });
+        about.appendChild(dl);
+      }
+      if (s.description) about.appendChild(mk('p', 'det-desc', s.description));
+      art.appendChild(about);
+    }
+
+    /* other dates */
+    var others = MG.occurrences(s, MG.ymd(now), MG.ymd(MG.addDays(now, 120))).filter(function (o) { return o.key !== occ.key && o.date > occ.date && o.endAt > now; }).slice(0, 6);
+    if (others.length) {
+      var od = mk('section', 'det-sec'); od.appendChild(mk('h3', null, 'Other dates'));
+      var ul = mk('ul', 'det-dates');
+      others.forEach(function (o) {
+        var d3 = MG.parseYmd(o.date), li = mk('li'), a = mk('a', o.cancelled ? 'struck' : null, MG.dayShort(d3) + ' ' + MG.fmtDate(d3));
+        a.href = 'events.html#e-' + encodeURIComponent(o.key); li.appendChild(a);
+        li.appendChild(mk('span', 'dd-time', MG.fmtTime(o.start)));
+        li.appendChild(mk('span', 'dd-state' + (o.cancelled ? ' dd-bad' : ''), V.dateState(o, now)));
+        ul.appendChild(li);
+      });
+      od.appendChild(ul);
+      var label = s.recurrence.type === 'weekly' ? 'Add every ' + R.DAYS[s.recurrence.day] + ' to my calendar' : 'Add all these dates to my calendar';
+      var sb = mk('button', 'btn btn-2 btn-sm', label); sb.type = 'button'; sb.setAttribute('data-ics-series', s.id); withIcon(sb, 'calendar'); od.appendChild(sb);
+      art.appendChild(od);
+    }
+
+    /* getting here */
+    var A = MG.data.store.address, here = mk('section', 'det-sec'); here.appendChild(mk('h3', null, 'Getting here'));
+    here.appendChild(mk('p', 'det-where', A.street + ', ' + A.city + '. ' + (MG.data.store.parking || '')));
+    if (s.kind === 'learn') here.appendChild(mk('p', 'det-where', 'New here? Tell the counter and we will get you started.'));
+    var acts = mk('p', 'det-acts'), dir = linkOut(MG.data.store.mapsUrl, 'Directions', 'btn btn-2'), call = mk('a', 'btn btn-2', 'Call');
+    withIcon(dir, 'pin'); dir.appendChild(mk('span', 'vh', ' (opens Google Maps)'));
+    call.href = MG.data.store.phoneHref; withIcon(call, 'phone');
+    acts.appendChild(dir); acts.appendChild(call); here.appendChild(acts);
+    art.appendChild(here);
+    return art;
   };
+  V.detail = function (occ, now) { return V.detailEl(occ, now).outerHTML; };
 
   /* ---------- sign-up form (DESIGN.md section 8) ---------- */
   V.signupForm = function (occ, st) {
@@ -172,7 +307,7 @@
     var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot);
     li.appendChild(mk('span', 'dl-time', MG.fmtTime(occ.start)));
     var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = (base || 'events.html') + '#e-' + encodeURIComponent(occ.key); t.appendChild(a); li.appendChild(t);
-    var bits = [g.short, MG.fmtFee(s.fee), V.seatWords(st, s)];
+    var bits = [g.short, MG.fmtFee(s.fee)]; if (st.state !== 'walkin') bits.push(V.seatWords(st, s)); // walk-in is said once per page (F2)
     li.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
     return li;
   };
@@ -204,16 +339,23 @@
     return wrap;
   };
 
-  /* ---------- a repeating series as one card: "Every Friday, 7 PM to 11 PM" + "Next: Fri Oct 30" ---------- */
-  V.weeklyCard = function (s, now, from, to) {
+  /* ---------- a repeating series: one card (from 640 px) or one row (phones) ---------- */
+  // the next date that is still ahead (the first one, even when cancelled), plus the first one that will actually run
+  V.weeklyNext = function (s, now, from, to) {
     var occs = MG.occurrences(s, from, to).filter(function (o) { return o.endAt > now; });
-    if (!occs.length) return '';
+    if (!occs.length) return null;
     var first = occs[0], shown = first.cancelled ? (occs.filter(function (o) { return !o.cancelled; })[0] || first) : first;
+    return { first: first, shown: shown };
+  };
+  // returns the <article> (built from MG.eventCard's escaped markup, then edited with textContent); null when nothing is ahead
+  V.weeklyCardEl = function (s, now, from, to) {
+    var nx = V.weeklyNext(s, now, from, to); if (!nx) return null;
+    var first = nx.first, shown = nx.shown;
     var tpl = document.createElement('template');
     tpl.innerHTML = MG.eventCard(shown, now, { href: 'events.html' });
-    var when = tpl.content.querySelector('.ev-when'), span = when && when.querySelector('span');
-    if (span) span.textContent = 'Every ' + R.DAYS[s.recurrence.day] + ', ' + MG.fmtTime(s.start) + (s.end ? ' to ' + MG.fmtTime(s.end) : '');
-    if (when) {
+    var art = tpl.content.firstElementChild, when = art.querySelector('.ev-when');
+    // the day heading says "next Nov 4" once; the card repeats it only when that date is cancelled or changed
+    if (when && (first.cancelled || shown.cancelled || first.note)) {
       var d = MG.parseYmd(shown.date), p = document.createElement('p');
       p.className = 'ev-next';
       var t = 'Next: ' + MG.dayShort(d) + ' ' + MG.fmtDate(d) + '.';
@@ -222,6 +364,24 @@
       p.textContent = t;
       when.insertAdjacentElement('afterend', p);
     }
-    return tpl.innerHTML;
+    return art;
+  };
+  V.weeklyCard = function (s, now, from, to) { var a = V.weeklyCardEl(s, now, from, to); return a ? a.outerHTML : ''; };
+
+  // phone row (F7): game dot, time, linked title, then only the fee and what is unusual
+  V.weeklyRow = function (s, now, from, to) {
+    var nx = V.weeklyNext(s, now, from, to); if (!nx) return null;
+    var o = nx.shown, first = nx.first, st = MG.seatState(o, now), g = MG.game(s.game);
+    function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', st.state);
+    var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot);
+    li.appendChild(mk('span', 'dl-time', MG.fmtTime(o.start)));
+    var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = 'events.html#e-' + encodeURIComponent(o.key); t.appendChild(a); li.appendChild(t);
+    var bits = [MG.fmtFee(s.fee)];
+    if (st.state !== 'walkin') bits.push(V.seatWords(st, s));
+    if (first.cancelled && o !== first) bits.push(MG.fmtDate(MG.parseYmd(first.date)) + ' cancelled');
+    else if (first.note && !first.cancelled) bits.push('changed');
+    li.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    return li;
   };
 })();

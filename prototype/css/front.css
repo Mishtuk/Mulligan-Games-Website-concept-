@@ -6,7 +6,7 @@
  * Dark in both themes (like the open-now strip and the cEDH band), so the white headline always reads. */
 .phero {
   position: relative; isolation: isolate; overflow: hidden; color-scheme: dark;
-  display: grid; grid-template-rows: 1fr auto; min-height: clamp(30rem, 72svh, 48rem);
+  display: grid; grid-template-rows: 1fr auto; min-height: clamp(28rem, 62svh, 40rem);
   background: #17110E; color: #FFFFFF;
 }
 .phero-media {
@@ -77,7 +77,8 @@
       linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
   }
   .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
-  .phero-media img, .phero-media video { object-position: 50% 42%; }
+  .phero-media img, .phero-media video { object-position: 50% 82%; }
+  .phero-media { background-position: 50% 82%; }
 }
 
 /* the week, seven cards (first thing in "This week") */
@@ -98,6 +99,12 @@
 .wdeck li[data-today] .dc-cap { color: var(--ink); font-weight: 800; background: none; padding: 0; }
 .wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); transform: none; animation: none; }
 @media (min-width: 768px) { .wdeck ol { margin-inline: 0; padding-inline: 0; overflow: visible; } }
+@media (max-width: 767px) { /* seven fitted tiles, no sideways scroll (F18); the aria-label keeps the words */
+  .wdeck ol { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); overflow: visible; margin-inline: 0; padding-inline: 0; gap: 3px; }
+  .wdeck .dc-num { font-size: 1.5rem; }
+  .wdeck .dc-dow { font-size: 0.75rem; }
+  .wdeck .dc-cap { display: none; }
+}
 
 /* ---------- this week: a calmer layout on wide screens (round 3) ----------
  * The day stays on the left; the start time sits above its cards instead of in a third column, so cards get the width. */
@@ -107,11 +114,10 @@
   /* a day's cards flow into one two-column grid in time order (each card shows its own time), so no slot leaves half a row empty */
   #days .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
   #days .slot, #days .slot-cards { display: contents; }
-  #days .slot-t { display: none; }
 }
 
 /* ---------- inside the shop: photo gallery ---------- */
-.shop { padding-top: var(--s6); }
+.shop { background: var(--surface); border-block: 1px solid var(--line); }
 .shots { position: relative; list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) var(--s2); display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: var(--s3); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
 .shot { scroll-snap-align: start; }
 .shot figure { position: relative; margin: 0; height: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
@@ -138,18 +144,14 @@
 .cedh-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
 
 /* ---------- visit: one card, three columns (round 3; like the owner's VFW "New here?" block) ---------- */
-.visit { background: var(--paper); border-block: 0; }
 .visit .sec-head h2 { margin-bottom: 0; }
-.visit-in {
-  display: grid; gap: var(--s6); padding: var(--s5) var(--s4);
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--lift);
-}
+.visit-in { display: grid; gap: var(--s6); } /* no card box: the band is the container (F3); the columns keep their hairlines */
 .visit .visit-in h3 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 850; margin: 0 0 var(--s3); }
 .visit address { font-size: 1.2rem; }
 .visit-small { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
 .visit-small strong { color: var(--ink); }
 .visit .faq dd:last-child { margin-bottom: 0; }
-@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; padding: var(--s6); } .visit-faq { grid-column: 1 / -1; } }
+@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; } .visit-faq { grid-column: 1 / -1; } }
 @media (min-width: 1024px) {
   .visit-in { grid-template-columns: 1fr 1fr 1.15fr; column-gap: var(--s7); }
   .visit-faq { grid-column: auto; }
@@ -159,20 +161,8 @@
 @media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } }
 
 /* ---------- compact week (R5): later days are one line per event ---------- */
-.day-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
-.day-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.6rem; padding-block: 0.55rem; border-top: 1px solid var(--line); min-height: var(--tap); }
-.day-line:first-child { border-top: 0; }
-.dl-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--gc, var(--g-other)); flex: none; align-self: center; }
-.dl-time { font-weight: 800; white-space: nowrap; }
-.dl-title { font-weight: 750; }
-.dl-title a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
-.dl-bits { color: var(--ink-2); font-size: var(--t-sm); font-weight: 600; }
-.day-line[data-state="cancelled"] .dl-title a { text-decoration: line-through; color: var(--ink-2); }
-.day-more { margin: var(--s4) 0 0; font-weight: 750; }
-.day-more a { display: inline-flex; align-items: center; min-height: var(--tap); }
 /* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
 @media (max-width: 1023px) {
-  .dl-bits { flex-basis: 100%; padding-left: 1.25rem; }
   #days .day-closed, #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
   #days .day-closed .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
   #days .day-closed .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
@@ -186,11 +176,11 @@
 .rel-photo { margin: 0 0 var(--s4); max-height: 220px; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
 .rel-photo img { display: block; width: 100%; height: 220px; object-fit: cover; object-position: 50% 50%; }
 @media (min-width: 1024px) {
-  .new .wrap { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 0 var(--s6); align-items: start; }
+  .new .wrap { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 0 var(--s6); align-items: stretch; }
   .new .sec-head { grid-column: 1 / -1; }
-  .rel-photo { max-height: none; grid-row: 2; }
-  .rel-photo img { height: 20rem; }
-  .rel-list { grid-column: 2; grid-row: 2; }
+  .rel-photo { max-height: none; height: 100%; margin: 0; grid-row: 2; }
+  .rel-photo img { height: 100%; min-height: 20rem; object-fit: cover; }
+  .rel-list { grid-column: 2; grid-row: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ---------- round 3: calmer week on wide screens ----------

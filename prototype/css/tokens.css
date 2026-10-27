@@ -46,7 +46,7 @@
   --mark:        light-dark(#9C4A32, #C77A5E);   /* brick: date diamonds only */
   --on-mark:     light-dark(#FFFFFF, #1B1715);
 
-  --band:        light-dark(#3E2A22, #120F0D);   /* open-now strip, cEDH band, footer (used with color-scheme: dark) */
+  --band:        light-dark(#3E2A22, #2A1D17);   /* open-now strip, cEDH band, footer: the band resolves in the page scheme, its inner wrapper is color-scheme: dark */
   --on-band:     #F5EFE4;
   --on-band-2:   #CDBFB0;
   --head-bg:     var(--brick);

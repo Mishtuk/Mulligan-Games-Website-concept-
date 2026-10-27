@@ -57,16 +57,22 @@
     $('#cal-game').textContent = game === 'all' ? 'All events' : MG.game(game).short + ' events';
   }
 
-  /* ---------- the two lists ---------- */
-  function slotHtml(items, now) {
-    var out = [], last;
-    items.forEach(function (o) { if (last && last.start === o.start) last.items.push(o); else { last = { start: o.start, items: [o] }; out.push(last); } });
-    return out.map(function (s) {
-      var multi = s.items.length > 1;
-      return '<div class="slot"' + (multi ? ' data-multi' : '') + '><p class="slot-t"><time>' + e(MG.fmtTime(s.start)) + '</time>' +
-        (multi ? '<span class="slot-n">' + s.items.length + ' events start at ' + e(MG.fmtTime(s.start)) + '</span>' : '') + '</p><div class="slot-cards">' +
-        s.items.map(function (x) { return x.html; }).join('') + '</div></div>';
-    }).join('');
+  /* ---------- the two lists (built with createElement; the cards themselves come from MG.eventCard's escaped markup) ---------- */
+  function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function cardNode(html) { var tpl = document.createElement('template'); tpl.innerHTML = html; return tpl.content.firstElementChild; }
+  function slotNode(items) {
+    var groups = [], last, wrap = mk('div', 'slots');
+    items.forEach(function (o) { if (last && last.start === o.start) last.items.push(o); else { last = { start: o.start, items: [o] }; groups.push(last); } });
+    groups.forEach(function (gr) {
+      var multi = gr.items.length > 1, slot = mk('div', 'slot'), p = mk('p', 'slot-t'), tm = mk('time', null, MG.fmtTime(gr.start)), cards = mk('div', 'slot-cards');
+      if (multi) slot.setAttribute('data-multi', '');
+      p.appendChild(tm);
+      if (multi) p.appendChild(mk('span', 'slot-n', gr.items.length + ' events start at ' + MG.fmtTime(gr.start)));
+      slot.appendChild(p);
+      gr.items.forEach(function (x) { cards.appendChild(x.node); });
+      slot.appendChild(cards); wrap.appendChild(slot);
+    });
+    return wrap;
   }
   function alsoNote(s, occs) {
     var rest = occs.slice(1).filter(function (o) { return !o.cancelled; });
@@ -78,44 +84,69 @@
     if (s.recurrence.type === 'nth') return 'Repeats: ' + R.recurrenceSummary(s).replace(/, .*$/, '') + '.';
     return '';
   }
+  // is there a Tonight block (anything on today's date that is still ahead)? Then Special events leaves today's dates out.
+  function tonightShowing() {
+    return MG.allOccurrences(today, today).some(function (o) { return passes(o.series) && o.endAt > now; });
+  }
   function renderSpecial() {
-    var to = MG.ymd(MG.addDays(now, SPECIAL_DAYS)), byDate = {}, dates = [], count = 0;
+    var to = MG.ymd(MG.addDays(now, SPECIAL_DAYS)), byDate = {}, dates = [], count = 0, skipToday = tonightShowing();
     D.series.filter(function (s) { return passes(s) && !isWeekly(s); }).forEach(function (s) {
-      var occs = MG.occurrences(s, today, to).filter(function (o) { return o.endAt > now; });
+      var occs = MG.occurrences(s, today, to).filter(function (o) { return o.endAt > now && !(skipToday && o.date === today); });
       if (!occs.length) return;
-      var o = occs[0], tpl = document.createElement('template');
-      tpl.innerHTML = MG.eventCard(o, now, { href: 'events.html' });
+      var o = occs[0], art = cardNode(MG.eventCard(o, now, { href: 'events.html' }));
       var note = alsoNote(s, occs);
-      if (note) { var p = document.createElement('p'); p.className = 'ev-also'; p.textContent = note; var when = tpl.content.querySelector('.ev-when'); if (when) when.insertAdjacentElement('afterend', p); }
-      (byDate[o.date] = byDate[o.date] || []).push({ start: o.start, html: tpl.innerHTML, title: s.title });
+      if (note) { var when = art.querySelector('.ev-when'); if (when) when.insertAdjacentElement('afterend', mk('p', 'ev-also', note)); }
+      (byDate[o.date] = byDate[o.date] || []).push({ start: o.start, node: art, title: s.title });
       if (dates.indexOf(o.date) === -1) dates.push(o.date);
       count++;
     });
     dates.sort();
-    $('#special').innerHTML = dates.map(function (ymd) {
+    var host = $('#special'); host.textContent = '';
+    dates.forEach(function (ymd) {
       var d = MG.parseYmd(ymd), items = byDate[ymd].sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : a.title.localeCompare(b.title); });
-      return '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '"><h3 class="day-h" id="dh-' + ymd + '"><span class="day-dia" aria-hidden="true"><span>' + d.getDate() + '</span></span>' +
-        '<span class="day-name">' + e(MG.dayShort(d) + ' ' + MG.fmtDate(d)) + '</span>' + (MG.relDay(ymd, now) === 'today' ? '<span class="tag tag-today">Today</span>' : '') + '</h3>' +
-        '<div class="slots">' + slotHtml(items, now) + '</div></section>';
-    }).join('');
+      var sec = mk('section', 'day'), h = mk('h3', 'day-h');
+      sec.id = 'd-' + ymd; sec.setAttribute('aria-labelledby', 'dh-' + ymd); h.id = 'dh-' + ymd;
+      h.appendChild(mk('span', 'day-name', MG.dayShort(d) + ' ' + MG.fmtDate(d)));
+      if (MG.relDay(ymd, now) === 'today') h.appendChild(mk('span', 'tag tag-today', 'Today'));
+      sec.appendChild(h); sec.appendChild(slotNode(items)); host.appendChild(sec);
+    });
     $('#special-wrap').hidden = !count;
     return count;
   }
+  var PHONE = window.matchMedia ? window.matchMedia('(max-width: 639px)') : { matches: false };
+  function listJoin(names) { return names.length === 2 ? names[0] + ' and ' + names[1] : names[0] + ' to ' + names[names.length - 1]; }
   function renderWeekly() {
-    var to = MG.ymd(MG.addDays(now, 70)), html = '', count = 0, todayDow = now.getDay();
+    var to = MG.ymd(MG.addDays(now, 70)), count = 0, todayDow = now.getDay(), host = $('#weekly'), run = [];
+    host.textContent = '';
+    function flushClosed() { // consecutive closed days with no cards become one quiet row (F9)
+      if (!run.length) return;
+      var row = mk('div', 'day-off');
+      run.forEach(function (dow) { var a = mk('span'); a.id = 'wk-' + dow; row.appendChild(a); });
+      row.appendChild(mk('p', null, (run.length === 1 ? R.DAYS[run[0]] : listJoin(run.map(function (x) { return R.DAYS[x]; }))) + ' · closed'));
+      host.appendChild(row); run = [];
+    }
     [1, 2, 3, 4, 5, 6, 0].forEach(function (dow) {
       var list = D.series.filter(function (s) { return passes(s) && isWeekly(s) && s.recurrence.day === dow; })
         .sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : a.title.localeCompare(b.title); });
-      var cards = list.map(function (s) { return V.weeklyCard(s, now, today, to); }).filter(Boolean);
-      var closed = D.store.hours[dow].closed;
-      var name = R.DAYS[dow];
-      if (!cards.length && (closed ? game !== 'all' || format : true)) return;
-      count += cards.length;
-      html += '<section class="wk' + (closed && !cards.length ? ' wk-closed' : '') + '" aria-labelledby="wk-' + dow + '"><h3 class="wk-name" id="wk-' + dow + '">' + e(name) +
-        (dow === todayDow ? ' <span class="tag tag-today">Today</span>' : '') + '</h3>' +
-        (cards.length ? '<div class="wk-cards">' + cards.join('') + '</div>' : '<p class="day-skip">The shop is closed.</p>') + '</section>';
+      var items = list.map(function (s) { return PHONE.matches ? V.weeklyRow(s, now, today, to) : V.weeklyCardEl(s, now, today, to); }).filter(Boolean);
+      var closed = D.store.hours[dow].closed, name = R.DAYS[dow];
+      if (!items.length) {
+        if (closed && game === 'all' && !format) run.push(dow); else flushClosed();
+        return;
+      }
+      flushClosed();
+      count += items.length;
+      var next = list.map(function (s) { var n = V.weeklyNext(s, now, today, to); return n && n.shown.date; }).filter(Boolean).sort()[0];
+      var sec = mk('section', 'wk'), h = mk('h3', 'wk-name', name);
+      sec.setAttribute('aria-labelledby', 'wk-' + dow); h.id = 'wk-' + dow;
+      if (dow === todayDow) h.appendChild(mk('span', 'tag tag-today', 'Today'));
+      else if (next) h.appendChild(mk('span', 'wk-next', 'next ' + MG.fmtDate(MG.parseYmd(next))));
+      sec.appendChild(h);
+      var box = mk(PHONE.matches ? 'ul' : 'div', PHONE.matches ? 'day-lines' : 'wk-cards');
+      items.forEach(function (n) { box.appendChild(n); });
+      sec.appendChild(box); host.appendChild(sec);
     });
-    $('#weekly').innerHTML = html;
+    flushClosed();
     $('#weekly-wrap').hidden = !count;
     return count;
   }
@@ -156,11 +187,23 @@
 
   /* ---------- event detail dialog ---------- */
   var detKey = null, detMode = 'detail', baseTitle = document.title;
+  // title row with the close X, for the dialog states that are not the event detail (sign-up form, confirmation, not found)
+  function headBar(title) {
+    var bar = mk('div', 'dlg-su-head'), h = mk('h2', 'dlg-h', title), x = mk('button', 'dlg-x'); h.id = 'det-title'; h.tabIndex = -1;
+    x.type = 'button'; x.id = 'det-x'; x.setAttribute('data-close', ''); x.setAttribute('aria-label', 'Close'); x.insertAdjacentHTML('afterbegin', MG.icon('x')); // constant SVG
+    bar.appendChild(h); bar.appendChild(x); return bar;
+  }
   function fillDetail() {
     if (detMode !== 'detail') return; // the sign-up form or its confirmation is showing: leave it alone
     var occ = detKey && window.MG.act.occByKey(detKey), body = $('#det-body');
-    if (!occ) { body.innerHTML = '<div class="empty" role="note"><p class="empty-h">We couldn’t find that event.</p><p>It may have been changed. Pick another from the list.</p></div>'; return; }
-    body.innerHTML = V.detail(occ, now);
+    body.textContent = '';
+    if (!occ) {
+      var box = mk('div', 'empty'); box.setAttribute('role', 'note');
+      box.appendChild(headBar('Event not found'));
+      box.appendChild(mk('p', 'empty-h', 'We couldn’t find that event.')); box.appendChild(mk('p', null, 'It may have been changed. Pick another from the list.'));
+      body.appendChild(box); return;
+    }
+    body.appendChild(V.detailEl(occ, now));
   }
   function openDetail(key, push) {
     var dlg = $('#det-dlg');
@@ -170,7 +213,7 @@
     if (occ) document.title = occ.series.title + ', ' + MG.dayShort(MG.parseYmd(occ.date)) + ' ' + MG.fmtDate(MG.parseYmd(occ.date)) + ', ' + MG.fmtTime(occ.start) + ' · Mulligan Games';
     if (!dlg.open) dlg.showModal();
     if (push) history.replaceState(null, '', location.pathname + location.search + '#e-' + encodeURIComponent(key));
-    $('#det-x').focus();
+    var tt = $('#det-title'); if (tt) tt.focus();
   }
   function closeDetail() { document.title = baseTitle; history.replaceState(null, '', location.pathname + location.search); detKey = null; detMode = 'detail'; }
   function fromHash() {
@@ -193,6 +236,13 @@
     U.download(R.icsName(occ), icsFor([occ], occ.series.title), 'text/calendar');
     U.toast('Calendar file saved: ' + R.icsName(occ));
   }
+  function downloadSeries(id) {
+    var s = MG.act.seriesById(id); if (!s) return;
+    var occs = MG.occurrences(s, today, MG.ymd(MG.addDays(now, 90))).filter(function (o) { return !o.cancelled && o.endAt > now; });
+    var name = 'mulligan-' + String(id).replace(/[^\w-]/g, '') + '.ics';
+    U.download(name, icsFor(occs, s.title), 'text/calendar');
+    U.toast(occs.length + (occs.length === 1 ? ' date' : ' dates') + ' saved to ' + name + '.');
+  }
   function downloadAll() {
     var occs = MG.allOccurrences(today, MG.ymd(MG.addDays(now, 90))).filter(function (o) { return passes(o.series) && o.endAt > now; });
     var name = game === 'all' ? 'mulligan-events.ics' : 'mulligan-' + game + '-events.ics';
@@ -209,11 +259,12 @@
     var title = st.state === 'waitlist' ? 'Join the waitlist' : 'Sign up', dlg, form;
     if (inDetail) {
       dlg = $('#det-dlg'); detMode = 'form';
-      dlg.querySelector('.dlg-h').textContent = title;
       var body = $('#det-body'); body.textContent = '';
-      var back = document.createElement('button'); back.type = 'button'; back.className = 'btn btn-2'; back.setAttribute('data-back', ''); back.textContent = 'Back to details';
-      var p = document.createElement('p'); p.className = 'su-back'; p.appendChild(back); body.appendChild(p);
-      var tpl = document.createElement('template'); tpl.innerHTML = V.signupForm(occ, st); body.appendChild(tpl.content);
+      body.appendChild(headBar(title));
+      var pad = mk('div', 'dlg-pad'), back = mk('button', 'btn btn-2', 'Back to details');
+      back.type = 'button'; back.setAttribute('data-back', '');
+      var p = mk('p', 'su-back'); p.appendChild(back); pad.appendChild(p);
+      var tpl = document.createElement('template'); tpl.innerHTML = V.signupForm(occ, st); pad.appendChild(tpl.content); body.appendChild(pad);
     } else {
       if ($('#det-dlg').open) $('#det-dlg').close();
       dlg = U.dialog(title, V.signupForm(occ, st), { cls: 'dlg-su', onClose: function () { if (/^#su-/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } });
@@ -254,9 +305,12 @@
         banner.textContent = res.message || res.msg || 'That didn’t work. Try again.'; banner.hidden = false; banner.focus && banner.setAttribute('tabindex', '-1'); banner.focus(); return;
       }
       var occNow = MG.act.occByKey(form.dataset.key) || occ;
-      dlg.querySelector('.dlg-h').textContent = res.status === 'in' ? 'You’re in' : 'You’re on the waitlist';
-      if (dlg.id === 'det-dlg') detMode = 'done';
-      var bd = dlg.querySelector('.dlg-body'); bd.textContent = ''; bd.appendChild(V.signupDone(occNow, res, { email: data.email }));
+      var doneTitle = res.status === 'in' ? 'You’re in' : 'You’re on the waitlist';
+      var bd = dlg.querySelector('.dlg-body'); bd.textContent = '';
+      if (dlg.id === 'det-dlg') {
+        detMode = 'done'; bd.appendChild(headBar(doneTitle));
+        var pad2 = mk('div', 'dlg-pad'); pad2.appendChild(V.signupDone(occNow, res, { email: data.email })); bd.appendChild(pad2);
+      } else { dlg.querySelector('.dlg-h').textContent = doneTitle; bd.appendChild(V.signupDone(occNow, res, { email: data.email })); }
       var done = dlg.querySelector('.su-done'); if (done) done.focus();
     }, 450);
   }
@@ -273,11 +327,12 @@
         return;
       }
       var su = t.closest('[data-signup]'); if (su) { openSignup(su.getAttribute('data-signup'), !!t.closest('#det-dlg')); return; }
-      if (t.closest('[data-back]')) { detMode = 'detail'; fillDetail(); $('#det-x').focus(); return; }
+      if (t.closest('[data-back]')) { detMode = 'detail'; fillDetail(); var bt = $('#det-title'); if (bt) bt.focus(); return; }
       var cl = t.closest('[data-copy-link]');
       if (cl) { U.copy(cl.getAttribute('data-copy-link'), function (ok) { U.toast(ok ? 'Link copied.' : 'Couldn’t copy. Select the link and copy it.'); }); return; }
       var suLink = t.closest('a[href*="#su-"]');
       if (suLink && /^events.html/.test(suLink.getAttribute('href'))) { ev.preventDefault(); openSignup(decodeURIComponent(suLink.getAttribute('href').split('#su-')[1]), false); return; }
+      var sics = t.closest('[data-ics-series]'); if (sics) { downloadSeries(sics.getAttribute('data-ics-series')); return; }
       var ics = t.closest('[data-ics-one]'); if (ics) { downloadOne(ics.getAttribute('data-ics-one')); return; }
       var cp = t.closest('[data-copy]');
       if (cp) { U.copy(cp.getAttribute('data-copy'), function (ok) { U.toast(ok ? 'Event code copied.' : 'Couldn’t copy. Select the code and copy it.'); }); return; }
@@ -292,6 +347,7 @@
     dlg.addEventListener('click', function (ev) { if (ev.target === dlg || ev.target.closest('#det-x') || ev.target.closest('[data-close]')) { document.title = baseTitle; dlg.close(); } });
     dlg.addEventListener('close', closeDetail);
     window.addEventListener('hashchange', fromHash);
+    if (PHONE.addEventListener) PHONE.addEventListener('change', function () { renderWeekly(); });
     MG.scheme.wire();
     MG.state.subscribe(function () { now = MG.now(); render(); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && $('#cal-menu').open) $('#cal-menu').open = false; });

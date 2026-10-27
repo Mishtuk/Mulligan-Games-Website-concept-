@@ -38,7 +38,7 @@
     hoursConfirmed: false,
     // Date overrides (D7). Nov 1 is a guess: the 1st-Sunday cEDH starts at 10 AM (fb) but Sunday opens at 1 PM (pub).
     hourOverrides: [
-      { date: '2026-11-01', open: '10:00', close: '22:00', note: 'Opening at 10 AM for the cEDH Championship Series.', confirmed: false }
+      { date: '2026-11-01', open: '10:00', close: '22:00', note: 'Opens at 10 AM for the cEDH Championship Series.', confirmed: false }
     ],
     links: {
       discord: { url: 'https://discord.gg/YJAW4aTwaZ', confirmed: false }, // two invites found (Q3)
@@ -104,7 +104,7 @@
       description: 'Drop-in tables for new and returning players.' },
     { id: 'pokemon-l2p', title: 'Learn to Play Pokemon', game: 'pokemon', format: 'Learn to play', kind: 'learn',
       recurrence: { type: 'weekly', day: 3 }, start: '19:00', end: '21:00', fee: 0, signup: 'walkin', kidsWelcome: true,
-      description: 'Staff teach the game with loaner decks. Kids welcome.' },
+      description: 'Staff teach the game with loaner decks.' },
 
     // Thursday
     { id: 'commander-thu', title: 'Commander Night', game: 'magic', format: 'Commander', kind: 'open',
@@ -238,9 +238,9 @@
   /* ---------- Releases: coming soon / preorder tiles (fb takeaway 7, D14). ---------- */
   var releases = [
     { id: 'startrek', game: 'magic', name: 'Star Trek', status: 'preorder', preorderEnds: '2026-11-01',
-      note: 'Preorders in store only.', event: 'startrek-prerelease' },
+      note: '', event: 'startrek-prerelease' },
     { id: 'delta-reign', game: 'pokemon', name: 'Mega Evolution: Delta Reign', status: 'preorder', preorderEnds: '2026-11-01',
-      note: 'Preorders in store only. The prerelease ran Oct 24.' },
+      note: 'The prerelease ran Oct 24.' },
     { id: 'radiance', game: 'riftbound', name: 'Riftbound: Radiance', status: 'out', note: 'On the shelf now.', event: 'rb-skirmish' },
     { id: 'op12', game: 'onepiece', name: 'One Piece set 12', status: 'soon', note: 'Ask at the counter for the release date.' },
     { id: 'gundam', game: 'other', name: 'Gundam Card Game nights', status: 'soon',

@@ -145,7 +145,7 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   opacity; `color-scheme: dark`. Left: the logo on the **sign plate** (`.plate`: white, 6px radius, 6px 10px padding,
   hairline `--plate-edge` ring and a small drop shadow; logo 168px wide, 132px under 420px; the link says "Mulligan
   Games, home"). Nav links in cream; the current page underlined. Right: the theme switch. Under 900px the nav drops
-  to its own sideways-scrolling row. The footer repeats the plate (120px) on `--band`.
+  to its own sideways-scrolling row. The footer repeats the plate (120px) on `--band` and is an index (section 6, round 4).
 - **Admin chrome (`admin.css`):** plainer and calm for the counter: `--charcoal`, no brick texture. Sidebar (1024+,
   16rem): the plate (160px) with "SHOP ADMIN" under it, sections with a 4px `--act` bar on the current one, then
   open status, "View the website" and the labelled theme switch. Under 1024: a charcoal top bar with a small plate
@@ -156,8 +156,7 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   explicit `width`/`height`, `loading="lazy"` except the first one on the page, and a real `alt`. Captions sit on a
   `--scrim` chip at the bottom left, never as text over the bare photo. Sources are max 960px, so photos are used at
   card size, never as a full-width hero. Where they appear: front hero (video), "Inside the shop" gallery, cEDH
-  section, Visit (storefront); events page head (the "Welcome to Mulligan Games" banner over the play-room door: a
-  16:7 strip on phones, beside the title from 768px); the public empty state (`.empty-photo`, staff with the corgi,
+  section, Visit (storefront); events page head (round 4, F13: no head photo any more); the public empty state (`.empty-photo`, staff with the corgi,
   plus "Free play is on all day"). Admin uses no photos (speed at the counter). Flyers built on third-party art and
   stills with burned-in captions are not used.
 - **Video hero (front page):** the hero copy and week strip on the left, a framed 4:5 box (16:9 on tablets, 4:3
@@ -168,8 +167,8 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   `timeupdate` past 0), and drops back to the poster on `error`, `emptied` or `abort`; blocked autoplay simply leaves
   the poster. A "Play video / Pause video" button (48px, `--scrim`) is the control (WCAG 2.2.2); the choice lasts the
   visit (`sessionStorage`). Section 6.1 keeps the encoding, crop and size budgets.
-- **Theme switch:** a labelled pill on every page, "Theme | Light | Dark" (two `aria-pressed` buttons with sun and
-  moon icons, in a `role="group"` named "Colour theme"; the word "Theme" hides under 420px). Follows the system until
+- **Theme switch (round 4: D27 wins over F16):** a pill on every page, "Light | Dark" with no "Theme" word (two `aria-pressed` buttons with sun and
+  moon icons, in a `role="group"` named "Colour theme"; the group name carries the label). Follows the system until
   the visitor picks; the pick is stored (`mg-scheme`) only when it differs from the system. One implementation:
   `MG.scheme` in `mg.js` (`html()` draws it, `wire()` handles clicks with one delegated listener, other tabs via the
   `storage` event and system changes). `?theme=light|dark` shows one scheme without saving it (screenshots, reviews);
@@ -182,7 +181,7 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   play-room door photo) with width, height and alt, and `twitter:card` = `summary_large_image`. Note for the build:
   Facebook and X want an absolute `og:image`, so the prototype uses `https://mishtuk.github.io/Mulligan-Games-Website-concept-/img/og/mulligan-games-og.jpg` on every page (tests.html too) and an absolute `og:url` per page; the build writes `{siteUrl}/img/og/...` and `canonical` from the configured origin. Fonts: `<link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>` in every head.
 - **Phone nav (D34):** the main nav stays a sideways strip with "All events" first and a static right-edge fade (mask, no motion) under 900 px. **Phone quick-action bar (D33):** `.mobile-bar` (Events, Hours, Directions, Call) on public pages under 900 px: fixed bottom, static, 56 px tall items in 4 equal columns on `--charcoal`, an icon over each label (calendar, clock, pin, phone), the current page tinted `--act`, links keep `?now=`, safe-area padding, the page gets matching bottom padding and the toast sits above it; hidden in print.
-- **Print:** `@media print` in `site.css` forces light and black on white at 11pt, hides the demo bar, nav, theme switch, chips, buttons, `.no-print`, video and decorative photos, keeps the logo plate, avoids breaking days and cards, and shows `.print-only` (the store line on the events page). **404:** `prototype/404.html` (plate, "That page isn't here.", Front page, All events, hours, Call, Directions; absolute `/Mulligan-Games-Website-concept-/` paths; `noindex`; footer clears a short card). **Demo bar:** one bar on all five pages, built with `createElement`: "Concept with sample data." + short note, "Pretend it's" menu (every demo moment plus Real clock, keeps the hash and other params), "Reset demo data", and an optional link to the other side (owners: counter screen; admin: the players' side). At most 2 lines at 390 px, 56 px at 1280 px, controls 44 px. The prototype opens on Friday 6:50 PM; `?now=real` shows the real clock. Toast: pauses on hover and focus and restarts in full after, Undo is 48 px.
+- **Print:** `@media print` in `site.css` forces light and black on white at 11pt, hides the demo bar, nav, theme switch, chips, buttons, `.no-print`, video and decorative photos, keeps the logo plate, avoids breaking days and cards, and shows `.print-only` (the store line on the events page). **404 (round 4, F24):** `prototype/404.html` (plate, "That page isn't here.", hours as a three-line list, then `.nf-acts`, a two-column grid of equal buttons: Front page (primary), All events, Call, Directions; absolute `/Mulligan-Games-Website-concept-/` paths including the footer links (`index.html#week`); `noindex`; the footer is the same index footer as the other pages). **Demo bar:** one bar on all five pages, built with `createElement`: "Concept with sample data." + short note, "Pretend it's" menu (every demo moment plus Real clock, keeps the hash and other params), "Reset demo data", and an optional link to the other side (owners: counter screen; admin: the players' side). At most 2 lines at 390 px, 56 px at 1280 px, controls 44 px. The prototype opens on Friday 6:50 PM; `?now=real` shows the real clock. Toast: pauses on hover and focus and restarts in full after, Undo is 48 px.
 
 ---
 
@@ -249,6 +248,9 @@ paper text, `aria-current="true"`. The cEDH chip looks like the others (its crow
 Phone: one row, scrolls sideways; desktop: wraps. The Magic chip includes cEDH (cEDH is Magic; `family: 'magic'`);
 the cEDH chip shows only cEDH. A visually hidden live region says "Showing Magic: 9 events this week." after a change.
 A chip with 0 still shows (so you learn the game exists) and leads to the empty state (section 10).
+
+> **Round 4 (D37, formatting only; `docs/review/round-4-formatting.md`) supersedes older sketches below where they conflict.**
+> Event card (F1): no cost circle; the game line sits in the bar; one hairline between bar and body; the stat box shows only for full, waitlist, few seats, needs-more and cancelled; the date stamp is straight (no tilt). `.slot-t` is hidden everywhere. Preorder rows show a `.rel[data-soon]` countdown. Weekly cards come from `V.weeklyCardEl`, one-line rows under 640px from `V.weeklyRow`, the "Next:" line from `V.weeklyNext` (`.wk-next`).
 
 ### 5.3 Event card (the core component)
 
@@ -353,6 +355,13 @@ circle is retired with look A).
 ---
 
 ## 6. Front page (prototype: `prototype/index.html`)
+
+> **Round 4 (D37) supersedes the older section sketches below where they conflict.**
+> - **Bands (F3, F4):** `--band` is #3E2A22 light and #2A1D17 dark, with `color-scheme` set on the inner wrapper so text and controls inherit the right scheme. One section rhythm: 48px between sections on phones, 72px from 1024px. Visit is unboxed (text on the page, no card).
+> - **Game chips** sit on one row from 900px. **Days list (F9):** consecutive closed days merge into one quiet `.day-off` line ("Monday and Tuesday · closed"), keeping each `d-` anchor. The walk-in line is said once, in the `.week-note` under the This week head ("Most nights are walk-in. Cards with a Sign up button hold seats."), not per card or row. cEDH shows "10 AM · $40" and "80 registered".
+> - **Hero crop (F8):** from 900px the video and poster sit at `50% 82%` (the table, not the ceiling); no height cap (D36). Under 900px the hero is `clamp(28rem, 62svh, 40rem)` so its strip clears the bottom bar (F17). **Footer (F10):** an index, columns Brand, Visit, Hours, Explore, then one hairline row (`.foot-small`, demo note and admin link). `events.html` and `404.html` copy the markup (404 with absolute paths).
+> - **Phone week strip (F18):** under 768px the seven day tiles fit the width in one grid row (no sideways scroll); the caption hides, the aria-label keeps the words.
+
 
 Order (D1 and the brief): open-now strip > header > hero (status + next up + week deck) > This week at Mulligan >
 cEDH band > New and preorders > Visit > Between events (Discord, proof, lately) > footer. The concept-only demo bar
@@ -530,6 +539,11 @@ network error mid-play > the current frame stays, no message, the button reads "
 
 ## 7. Events page and event detail (P1.2: `prototype/events.html`)
 
+> **Round 4 (D37) supersedes the older layouts below where they conflict.**
+> - **Events page:** under 640px weekly cards become one-line rows (F7, `V.weeklyRow`); Special events get kickers (F12); no head photo (F13); one controls row under the chips (Format select left; "Add to my calendar" and "Print the schedule" right, Print hidden under 900px); the Every week day heading carries "next Nov 4" once (beside the name, or on its own line from 1024px). The theme switch reads "Light | Dark".
+> - **Event detail, one layout** (`round-4-formatting.md`, "Event detail: one layout"): picture, then kicker, title and price, game and time, status banner, tags, and one action box (state and button); about-this-night facts and "Other dates" under a hairline, then "Getting here". Built by `V.detailEl`. The dialog uses the phone order inside a 42rem dialog; differences from the build page: the close X is sticky inside the article, and there is no "Also on" list. The dialog stays the static `#det-dlg`; `U.dialog` takes `opts.bare`, `opts.labelledby` and `opts.focus`.
+
+
 **URL:** prototype `events.html`, filters `?game=magic&format=Draft`, details `#e-<key>` (key = `series@YYYY-MM-DD`,
 plus `T1500` when a series has two slots that day). Build: `/events`, `/events/<series-id>?date=YYYY-MM-DD`.
 
@@ -630,6 +644,9 @@ won't be told automatically; their contacts are in the roster.").
 - Unsaved-changes bar in editors (VFW): sticky bottom "You have unsaved changes [Discard] [Save event]".
 
 ### 9.2 Today (counter check-in, the default screen)
+
+> **Round 4 (D37, F22 and F23).** The counts under the event title (Checked in, Paid, seats, waitlist) are plain text joined by " · ", with no border or fill; only a warning count (Started with 0, Needs 3 more) keeps its box, and the jump links keep a 44px hit area. The reminders are one line of text links joined by " · " ("3 low in stock · 3 will run short · Draft FNM Oct 23 not reported · 2 preorders arrived"), a `--warn` icon on the first two; under 600px they wrap as text instead of scrolling. The walk-in bar is one row under 640px: name field, then an "Add" button whose accessible name stays "Add and check in" (`.wb-long` hides the rest); a full event still shows Add to waitlist and Seat anyway on a wrapped row. Toast clearance (`--toast-bottom`) on Today: 10.5rem on phones.
+
 
 ```
 TABLET 768 (portrait)

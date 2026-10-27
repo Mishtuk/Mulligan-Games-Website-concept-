@@ -67,7 +67,6 @@
       </nav>
       <!-- Light / Dark switch: follows the system until a visitor picks one; the pick is remembered (mg-scheme). -->
       <div class="scheme" role="group" aria-label="Colour theme">
-        <span class="scheme-k" aria-hidden="true">Theme</span>
         <button type="button" data-scheme="light" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><span>Light</span></button>
         <button type="button" data-scheme="dark" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg><span>Dark</span></button>
       </div>
@@ -124,6 +123,7 @@
           <h2 id="week-h">This week at Mulligan</h2>
           <a class="more" href="events.html">All events and sign-ups<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
         </div>
+        <p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
         <nav class="wdeck" aria-labelledby="wdeck-k">
           <p class="wdeck-k vh" id="wdeck-k">The next seven days</p>
           <ol id="deck"></ol>
@@ -196,7 +196,6 @@
       <div class="wrap">
         <div class="sec-head">
           <h2 id="visit-h">Visit</h2>
-          <p class="sec-note">445 York Rd, Warminster. Free play every day we're open.</p>
         </div>
         <div class="visit-in">
         <div class="visit-hours">
@@ -211,6 +210,7 @@
               <tr><th scope="row">Monday, Tuesday</th><td>Closed</td></tr>
             </tbody>
           </table>
+          <p class="note" id="hours-why"></p>
           <p class="note" id="hours-note"></p>
         </div>
         <div class="visit-where">
@@ -241,39 +241,69 @@
 
     <!-- 7. Community -->
     <section class="sec community" id="community" aria-labelledby="comm-h">
-      <div class="wrap comm-in">
-        <div class="comm-discord">
+      <div class="wrap">
+        <div class="sec-head">
           <h2 id="comm-h">Between events</h2>
-          <p>Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
-          <p><a class="btn btn-act" href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>Join the Discord<span class="vh"> (opens Discord)</span></a></p>
-          <p class="note">Invite link to be confirmed by the owners.</p>
-          <ul class="socials">
-            <li><a href="https://www.facebook.com/profile.php?id=100085975454414" target="_blank" rel="noopener">Facebook</a></li>
-            <li><a href="https://www.instagram.com/mulligangames" target="_blank" rel="noopener">Instagram</a></li>
-            <li><a href="https://www.tiktok.com/@mulligangames" target="_blank" rel="noopener">TikTok</a></li>
-            <li><a href="https://x.com/MulliganGames" target="_blank" rel="noopener">X</a></li>
-            <li><a href="https://topdeck.gg/mulligangames" target="_blank" rel="noopener">TopDeck</a></li>
-          </ul>
+          <p class="sec-note">Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
         </div>
-        <div class="comm-proof">
-          <h3>What people say</h3>
-          <ul class="proof" id="proof"></ul>
-        </div>
-        <div class="comm-lately">
-          <h3>Lately at the shop</h3>
-          <ul class="lately" id="lately"></ul>
+        <div class="comm-in">
+          <div class="comm-discord">
+            <h3>Join the Discord</h3>
+            <p><a class="btn btn-act" href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>Join the Discord<span class="vh"> (opens Discord)</span></a></p>
+            <p class="note">Invite link to be confirmed by the owners.</p>
+            <ul class="socials">
+              <li><a href="https://www.facebook.com/profile.php?id=100085975454414" target="_blank" rel="noopener">Facebook</a></li>
+              <li><a href="https://www.instagram.com/mulligangames" target="_blank" rel="noopener">Instagram</a></li>
+              <li><a href="https://www.tiktok.com/@mulligangames" target="_blank" rel="noopener">TikTok</a></li>
+              <li><a href="https://x.com/MulliganGames" target="_blank" rel="noopener">X</a></li>
+              <li><a href="https://topdeck.gg/mulligangames" target="_blank" rel="noopener">TopDeck</a></li>
+            </ul>
+          </div>
+          <div class="comm-proof">
+            <h3>What people say</h3>
+            <ul class="proof" id="proof"></ul>
+          </div>
+          <div class="comm-lately">
+            <h3>Lately at the shop</h3>
+            <ul class="lately" id="lately"></ul>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="site-foot">
+    <!-- the footer is an index (round 4, F10): Brand | Visit | Hours | Explore, then a hairline row. events.html and 404.html copy this markup. -->
     <div class="wrap foot-in">
-      <div>
+      <div class="foot-brand">
         <p class="foot-plate"><img src="img/logo/logo-plate-330.webp" alt="Mulligan Games" width="330" height="102" loading="lazy"></p>
-        <p>445 York Rd, Warminster, PA 18974<br><a href="tel:+12157893299">(215) 789-3299</a></p>
+        <p>Card games, tables and a crew who know the formats.</p>
       </div>
-      <p id="foot-hours">Wed and Thu 2 to 10 PM. Fri and Sat 2 PM to midnight. Sun 1 to 10 PM. Closed Mon and Tue.</p>
+      <div class="foot-visit">
+        <h2>Visit</h2>
+        <p>445 York Rd<br>Warminster, PA 18974</p>
+        <p><a href="tel:+12157893299">(215) 789-3299</a></p>
+        <p><a href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
+      </div>
+      <div class="foot-hours">
+        <h2>Hours</h2>
+        <ul id="foot-hours">
+          <li>Wed–Thu 2–10 PM</li>
+          <li>Fri–Sat 2 PM–midnight</li>
+          <li>Sun 1–10 PM</li>
+          <li>Mon–Tue closed</li>
+        </ul>
+      </div>
+      <nav class="foot-explore" aria-labelledby="foot-explore-h">
+        <h2 id="foot-explore-h">Explore</h2>
+        <ul>
+          <li><a href="events.html">All events</a></li>
+          <li><a href="#week">This week</a></li>
+          <li><a href="#cedh">cEDH</a></li>
+          <li><a href="#new">Preorders</a></li>
+          <li><a href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener">Discord<span class="vh"> (opens Discord)</span></a></li>
+        </ul>
+      </nav>
       <p class="foot-small">A concept for the owners of Mulligan Games. Sample data; not the store's official site. <a id="adm-link" href="admin/index.html">Shop admin (concept)</a></p>
     </div>
   </footer>

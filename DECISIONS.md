@@ -437,3 +437,47 @@ fixes that change what they see there. Decoration and motion the spec already ru
   side by side. Nav is five short links (All events, This week, cEDH, Preorders, Visit) on both pages. Walk-in copy is
   "Walk in. No sign-up needed." with an open-door icon (the old one read as an empty box). "Nothing else scheduled
   today" only when something ran earlier that day.
+
+### D37. Round 4 scope: formatting before features (2026-10-27)
+Plan: `docs/review/round-4-plan.md` (packages A shared look + front page, B events page + detail dialog, C counter + 404
++ docs; disjoint files). Input: `docs/review/round-4-formatting.md` (F1-F24 + event detail layout).
+(1) **One box per item.** Event cards lose the cost circle and the inner hairlines (one left, head / body); the stat box
+is plain text unless the event is full, waitlisted, low on seats, needs players or cancelled (F1). Admin Today counts
+read as text and the reminders as one line of links (F22).
+(2) **Say things once.** Walk-in is the default: no walk-in line on cards or rows; one note per section ("Most nights are
+walk-in. Cards with a Sign up button hold seats."); the detail's action box still says it. Weekly cards drop
+"Every <day>" and "Next:", which move to the day heading (F2). Replaces D36's per-card walk-in line.
+(3) **Sections by bands, not boxes:** one section padding, alternating paper / surface / band backgrounds; Visit keeps
+three columns without its card box (replaces D36's "one three-column card"). `--band` fixed to brown `#3E2A22` in light
+and `#2A1D17` in dark, with `color-scheme: dark` on the inner wrapper (F3, F4, a bug).
+(4) **Hero (D36 stands):** crop moves to the table (50% 82%) from 900 px; the 1440+ height cap is cut because the owner
+asked for a bigger hero. Phone hero shortened so its strip clears the D33 bar (F8, F17).
+(5) **Theme switch stays labelled (D27):** "Light | Dark" without the "Theme" word, quieter outline. The designer's
+icon-only button (F16) goes to the mediator: D27 (labelled) vs D36 (like VFW).
+(6) **Event detail:** one layout for the build page and the prototype dialog (picture, kicker, name + plain price, one
+action box, About this night, Other dates always shown for a series, Getting here). The dialog has a sticky close X at
+the top-right and no "Also on <day>"; the build page keeps "Also on <day>". The events page head drops its photo.
+(7) Everything else in F5-F24 as the plan lists; no new features this round. The Desktop ports the same list (#2).
+**Why:** the owner's D36 words ("not popping out... jumbled... more concise"); the reference sites show the pattern;
+each fix removes a shape or a repeated line, except two bugs (F4 bands, F11 icon) and the detail page, which was the
+thinnest page in the build.
+
+### D38. Round 4 review: PASS with fixes (2026-10-27)
+Boss review of packages A, B, C (`docs/review/round-4-plan.md`) before push. Tests 143 passed, 0 failed; no console
+errors on index, events, admin Today / Events / Inventory; no sideways scroll at 390.
+**Injection (owner rule):** no data-fed `innerHTML` in new code; `V.detailEl`, `V.weeklyRow`, Special kickers, admin
+reminders and walk-in button use `createElement` + `textContent`. `MG.eventCard` (parsed through `template.innerHTML`)
+escapes every data field; the one gap, the fee in `.ev-cost`, is now escaped. `V.detail()` / `V.weeklyCard()` strings
+(`outerHTML`) are only used by tests; the pages append the elements.
+**Fixed in review:** (1) F23's CSS had not landed: the walk-in bar was still two rows (~135px) and read "Add  and check in";
+now one row at 74px under 640px when there is one button (a full event's two buttons keep their row), toast clears it
+(toast bottom 676 vs bar top 698 at 390x844). (2) Admin counts and reminders: no "·" starting a wrapped line on phones,
+no "·" inside the boxed warning count. (3) Events page Every week from 1024px: "next Nov 4" sits on its own line
+without a leading "·" (the dot is now CSS, beside the name only). (4) DESIGN.md round-4 notes corrected (week strip fits
+seven tiles, hero crop F8 50% 82%, controls row contents, closed days / walk-in note).
+**Measured:** events page at 390 is 6,252px (target under 6,500), first event at 714px (above the 788px bar); chips one
+row at 1280; detail dialog action box ends at 625px on 390 and 827px on 1280, X stays at the top while scrolled, focus on
+`#det-title`.
+**Carried, not blocking:** the hero at 1440/1920 is a portrait clip upscaled (soft); Q21 landscape clips fix it. The Visit
+head's address line repeats "Find us" on phones. At 1280 the toast can briefly cover the walk-in bar when the roster is
+short (pre-existing). The counter-only card (Star Trek Prerelease) has its text and Call button on different baselines.

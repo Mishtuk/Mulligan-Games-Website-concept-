@@ -37,7 +37,7 @@
       lab.appendChild(sp); lab.appendChild(inp); f.appendChild(lab);
       function sub(cls, val, text) { var b = el('button', 'btn ' + cls, text); b.type = 'submit'; b.value = val; f.appendChild(b); }
       if (full) { sub('btn-act', 'waitlist', 'Add to waitlist'); sub('btn-2', 'over', 'Seat anyway (' + (c.in + 1) + ' of ' + cap + ')'); }
-      else sub('btn-act', 'auto', 'Add and check in');
+      else { sub('btn-act', 'auto', ''); var ab = f.lastChild; ab.setAttribute('aria-label', 'Add and check in'); ab.appendChild(el('span', '', 'Add')); ab.appendChild(el('span', 'wb-long', ' and check in')); }
       return f;
     }
 

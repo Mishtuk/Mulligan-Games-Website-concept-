@@ -152,6 +152,12 @@
     ok(!bar.querySelector('button[value="over"]').classList.contains('btn-act'), 'Seat anyway is not');
     c.destroy();
   });
+  T.test('a walk-in bar with room has one Add button whose accessible name is "Add and check in"', function () {
+    fresh();
+    var c = mount('fnm-draft@2026-10-23'), bar = box.querySelector('.walkbar'), b = bar.querySelector('button[value="auto"]');
+    ok(b && b.getAttribute('aria-label') === 'Add and check in' && b.textContent === 'Add and check in', b && b.textContent);
+    c.destroy();
+  });
   T.async('Seat anyway asks first: Go back leaves nobody added, Seat anyway seats 29 of 28', function () {
     fresh(); closeDlgs();
     var c = mount('fnm-draft@2026-10-30'), bar = box.querySelector('.walkbar');
@@ -274,7 +280,7 @@
   var N = 'now=2026-10-28T16:00';
   pageTest('events.html loads with cards, chips and no errors', 'events.html?' + N, function (w, d) {
     ok(d.querySelectorAll('.ev').length > 15, 'cards: ' + d.querySelectorAll('.ev').length);
-    ok(d.querySelector('#weekly .ev-next'), 'weekly cards say "Next:"');
+    ok(d.querySelector('#weekly .wk-next'), 'weekly cards say "Next:"');
     eq(d.querySelectorAll('.chip').length, 9);
   });
   pageTest('events.html: a game chip filters, a format filters', 'events.html?' + N + '&game=magic', function (w, d) {
@@ -324,6 +330,7 @@
     ok(d.getElementById('today-h').textContent.indexOf('Today, Friday Oct 30') === 0, d.getElementById('today-h').textContent);
     eq(d.querySelector('.evb[aria-pressed="true"] .evb-n').textContent, 'Draft FNM');
     ok(d.querySelector('.reminders').textContent.indexOf('low in stock') !== -1 && d.querySelector('.reminders').textContent.indexOf('not reported') !== -1 && d.querySelector('.reminders').textContent.indexOf('preorders arrived') !== -1, d.querySelector('.reminders').textContent);
+    ok(d.querySelectorAll('.reminders a.rem').length >= 3 && !d.querySelector('.reminders button, .reminders [style]'), 'reminders are plain text links');
     ok(Array.prototype.some.call(d.querySelectorAll('.rrow-wait .rr-name'), function (n) { return n.textContent === 'Testy T.'; }), 'the waitlisted test sign-up is on the waitlist');
     var btn = d.querySelector('.rrow[data-status="in"] .chk56'); frameClick(btn);
     ok(d.querySelector('.rrow[data-checked]'), 'a row is checked in'); ok(d.querySelector('.toast.on .toast-btn'), 'toast with Undo');

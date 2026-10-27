@@ -68,7 +68,6 @@
       </nav>
       <!-- Light / Dark switch: follows the system until a visitor picks one; the pick is remembered (mg-scheme). -->
       <div class="scheme" role="group" aria-label="Colour theme">
-        <span class="scheme-k" aria-hidden="true">Theme</span>
         <button type="button" data-scheme="light" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg><span>Light</span></button>
         <button type="button" data-scheme="dark" aria-pressed="false"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg><span>Dark</span></button>
       </div>
@@ -78,23 +77,25 @@
   <main id="main">
     <div class="wrap ep">
       <div class="ep-head">
-        <div class="ep-copy">
-          <h1>Events</h1>
-          <p class="ep-lede">Every game night at the shop, from Learn to Play Pokemon to the cEDH Championship Series. Pick a game, check the fee and open seats, and hold a seat. You pay at the store.</p>
+        <h1>Events</h1>
+        <p class="ep-lede">Every game night at the shop. Pick a game, check the seats, pay at the store.</p>
+      </div>
+      <nav class="chips" id="chips" aria-label="Show one game"></nav>
+      <div class="ep-format">
+        <label for="fmt">Format</label><select id="fmt"><option value="">All formats</option></select>
+        <span class="ep-tools">
           <details class="cal-menu" id="cal-menu">
             <summary class="btn btn-2"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Add to my calendar</summary>
             <div class="cal-pop"><button type="button" class="btn btn-2" id="cal-all"><span id="cal-game">All events</span><span class="vh"> (saves a calendar file)</span></button></div>
           </details>
-        </div>
-        <!-- A shop photo so the list feels like the room it happens in (D27). Decorative context; the alt says what it shows. -->
-        <figure class="ep-photo"><img src="img/social/interior-welcome-banner-800.webp" width="800" height="600" alt="The Welcome to Mulligan Games banner over the doorway into the play room" fetchpriority="high"><figcaption>The play room is through this door</figcaption></figure>
+          <button type="button" class="btn btn-2 no-print ep-print" id="print-btn">Print the schedule</button>
+        </span>
       </div>
-      <nav class="chips" id="chips" aria-label="Show one game"></nav>
-      <div class="ep-format"><label for="fmt">Format</label><select id="fmt"><option value="">All formats</option></select><button type="button" class="btn btn-2 no-print" id="print-btn">Print the schedule</button></div>
       <p class="loading" id="loading"><span class="spin" aria-hidden="true"></span>Loading the events...</p>
 
       <section class="ep-sec" id="today-wrap" aria-labelledby="today-h" hidden>
         <h2 id="today-h">Tonight</h2>
+        <p class="sec-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
         <div id="today"></div>
       </section>
       <section class="ep-sec" id="special-wrap" aria-labelledby="special-h" hidden>
@@ -103,6 +104,7 @@
       </section>
       <section class="ep-sec" id="weekly-wrap" aria-labelledby="weekly-h" hidden>
         <h2 id="weekly-h">Every week</h2>
+        <p class="sec-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
         <div id="weekly"></div>
       </section>
       <div id="ep-empty" hidden></div>
@@ -110,21 +112,44 @@
     </div>
   </main>
 
-  <dialog id="det-dlg" class="dlg dlg-det" aria-label="Event details">
+  <dialog id="det-dlg" class="dlg dlg-det" aria-labelledby="det-title">
     <div class="dlg-in">
-      <div class="dlg-top"><h2 class="dlg-h">Event details</h2>
-        <button type="button" class="dlg-x" id="det-x" aria-label="Close"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
       <div class="dlg-body" id="det-body"></div>
     </div>
   </dialog>
 
   <footer class="site-foot">
+    <!-- the footer is an index (round 4, F10): Brand | Visit | Hours | Explore, then a hairline row. copied from index.html. -->
     <div class="wrap foot-in">
-      <div>
+      <div class="foot-brand">
         <p class="foot-plate"><img src="img/logo/logo-plate-330.webp" alt="Mulligan Games" width="330" height="102" loading="lazy"></p>
-        <p>445 York Rd, Warminster, PA 18974<br><a href="tel:+12157893299">(215) 789-3299</a></p>
+        <p>Card games, tables and a crew who know the formats.</p>
       </div>
-      <p id="foot-hours">Wed and Thu 2 to 10 PM. Fri and Sat 2 PM to midnight. Sun 1 to 10 PM. Closed Mon and Tue.</p>
+      <div class="foot-visit">
+        <h2>Visit</h2>
+        <p>445 York Rd<br>Warminster, PA 18974</p>
+        <p><a href="tel:+12157893299">(215) 789-3299</a></p>
+        <p><a href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p>
+      </div>
+      <div class="foot-hours">
+        <h2>Hours</h2>
+        <ul id="foot-hours">
+          <li>Wed–Thu 2–10 PM</li>
+          <li>Fri–Sat 2 PM–midnight</li>
+          <li>Sun 1–10 PM</li>
+          <li>Mon–Tue closed</li>
+        </ul>
+      </div>
+      <nav class="foot-explore" aria-labelledby="foot-explore-h">
+        <h2 id="foot-explore-h">Explore</h2>
+        <ul>
+          <li><a href="events.html">All events</a></li>
+          <li><a href="index.html#week">This week</a></li>
+          <li><a href="index.html#cedh">cEDH</a></li>
+          <li><a href="index.html#new">Preorders</a></li>
+          <li><a href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener">Discord<span class="vh"> (opens Discord)</span></a></li>
+        </ul>
+      </nav>
       <p class="foot-small">A concept for the owners of Mulligan Games. Sample data; not the store's official site. <a id="adm-link" href="admin/index.html">Shop admin (concept)</a></p>
     </div>
   </footer>

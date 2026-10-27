@@ -69,8 +69,8 @@
     var first = lines[0];
     ok(/PM/.test(first.querySelector('.dl-time').textContent), 'time'); ok(first.querySelector('.dl-title a'), 'title is the link');
     ok(/Free|\$\d/.test(first.querySelector('.dl-bits').textContent), 'fee in words');
-    ok(/^See all \d+ events on the events page$/.test(d.querySelector('.day-more a').textContent), d.querySelector('.day-more a').textContent);
-    ok(d.querySelector('.day-more a').getAttribute('href').indexOf('now=') !== -1, 'see-all keeps now');
+    eq(d.querySelectorAll('.day-more').length, 0, 'one link to the events page per job: no "See all N events" line (F21)');
+    ok(d.querySelector('.week .sec-head .more'), 'the head link stays'); ok(d.querySelector('.later .more'), '"See every date" stays');
     Array.prototype.forEach.call(d.querySelectorAll('.wdeck a'), function (a) { ok(d.querySelector(a.getAttribute('href')), 'week strip target ' + a.getAttribute('href')); });
   });
 
@@ -89,12 +89,73 @@
     eq(d.querySelector('.site-nav li:first-child a').getAttribute('href'), 'events.html');
   });
 
+  /* ---------- round 4, package A: one look for the front page ---------- */
+  pageTest('walk-in is said once: no card or row on the front page says "Walk in", the section note does', 'index.html', function (w, d) {
+    var bad = Array.prototype.filter.call(d.querySelectorAll('#days .ev:not([data-state="closed"]), #days .day-line, #later li'), function (n) { return /Walk in/i.test(n.textContent); });
+    eq(bad.length, 0, 'cards or rows with "Walk in": ' + bad.map(function (n) { return n.textContent.slice(0, 40); }).join(' | '));
+    ok(/Most nights are walk-in\. Cards with a Sign up button hold seats\./.test(d.querySelector('.week-note').textContent), 'the note');
+    ok(/Sign up here|Join the waitlist|Sign up/.test(d.querySelector('#d-2026-10-30').textContent), 'exceptions keep their words');
+  });
+  pageTest('cEDH ticket: "10 AM · $40" and "80 registered" (no tool name repeated)', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var t = d.querySelector('#cedh-list .tix'); ok(t, 'a ticket');
+    eq(t.querySelector('.tix-what p').textContent, '10 AM · $40');
+    eq(t.querySelector('.ev-stat-big').textContent + ' ' + t.querySelector('.ev-stat-unit').textContent, '80 registered');
+    eq(d.querySelectorAll('#cedh-list .ev-stat-small').length, 0, 'no small "on TopDeck" line');
+    ok(!/Preorders in store only/.test(d.getElementById('rel-list').textContent), 'preorder tiles do not repeat the section note');
+    eq(d.querySelectorAll('.rel-art').length, 0, 'no tinted icon band on the tiles');
+  });
+  pageTest('closed Monday and Tuesday are one quiet line with both anchors (F9)', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var off = d.querySelectorAll('#days .day-off'); eq(off.length, 1, 'one .day-off');
+    eq(off[0].querySelector('p').textContent, 'Monday and Tuesday · closed');
+    ok(off[0].querySelector('#d-2026-11-02') && off[0].querySelector('#d-2026-11-03'), 'both d- anchors');
+    eq(d.querySelectorAll('#days .day-closed').length, 0, 'no per-day closed rows');
+    ok(d.querySelector('.wdeck a[href="#d-2026-11-02"]') && d.querySelector('#d-2026-11-02'), 'the week strip still has its target');
+  });
+  pageTest('hours: the changed hours get a tag, the reason is one line under the table (F15)', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var sun = d.querySelector('#hours-body tr:last-child td'); eq(sun.firstChild.textContent, '10 AM to 10 PM'); eq(sun.querySelector('.tag-upd').textContent, 'Nov 1');
+    eq(d.querySelector('#hours-why').textContent, 'Sun Nov 1 opens at 10 AM for the cEDH Championship Series.');
+    ok(!d.querySelector('.hours').contains(d.getElementById('hours-why')), 'the reason is outside the table'); eq(d.querySelectorAll('.hours-note').length, 0, 'no bold note in a cell');
+  });
+  pageTest('bands: brown in light, lighter than the page and edged in dark; no "Theme" word (F4, F16)', 'index.html', function (w, d) {
+    var cs = function (s) { return w.getComputedStyle(d.querySelector(s)); };
+    try {
+      d.querySelector('[data-scheme="light"]').click();
+      eq(cs('.site-foot').backgroundColor, 'rgb(62, 42, 34)', 'light footer band'); eq(cs('.cedh').backgroundColor, 'rgb(62, 42, 34)', 'light cEDH band');
+      d.querySelector('[data-scheme="dark"]').click();
+      ok(cs('.site-foot').backgroundColor !== cs('body').backgroundColor, 'dark footer differs from the page');
+      eq(cs('.site-foot').backgroundColor, 'rgb(42, 29, 23)', 'dark footer band'); eq(cs('.cedh').backgroundColor, 'rgb(42, 29, 23)', 'dark cEDH band');
+      ok(cs('.site-foot').borderTopWidth !== '0px' && cs('.cedh').borderTopWidth !== '0px', 'a hairline edge in dark');
+    } finally { try { w.localStorage.removeItem('mg-scheme'); } catch (err) { /* nothing stored */ } }
+    ok(!/Theme/.test(d.body.textContent), 'no "Theme" text'); eq(d.querySelectorAll('.scheme button').length, 2, 'Light and Dark buttons stay');
+    eq(d.querySelector('.scheme').textContent.replace(/\s+/g, ' ').trim(), 'Light Dark');
+  });
+  pageTest('the footer is an index: four columns at 1280, Explore links keep ?now=', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var cols = ['.foot-brand', '.foot-visit', '.foot-hours', '.foot-explore'].map(function (s) { return d.querySelector(s).getBoundingClientRect().left; });
+    ok(cols[0] < cols[1] && cols[1] < cols[2] && cols[2] < cols[3], 'side by side: ' + cols.join(','));
+    var all = d.querySelector('.foot-explore a'); eq(all.textContent, 'All events'); ok(/now=2026-10-30T19%3A30/.test(all.getAttribute('href')), all.getAttribute('href'));
+    eq(Array.prototype.map.call(d.querySelectorAll('.foot-hours li'), function (l) { return l.textContent; }).join('|'), 'Wed–Thu 2–10 PM|Fri–Sat 2 PM–midnight|Sun 1–10 PM|Mon–Tue closed');
+  }, 1280);
+  pageTest('at 390 px the week strip is seven fitted tiles without sideways scroll, and the hero strip clears the bottom bar (F17, F18)', 'index.html', function (w, d) {
+    var tiles = d.querySelectorAll('.wdeck .daycard'); eq(tiles.length, 7);
+    Array.prototype.forEach.call(tiles, function (a) { ok(a.getBoundingClientRect().width >= 40, 'tile ' + a.getBoundingClientRect().width); });
+    var ol = d.querySelector('.wdeck ol'); ok(ol.scrollWidth <= ol.clientWidth + 1, 'the strip does not scroll sideways');
+    var bottom = d.querySelector('.phero-strip').getBoundingClientRect().bottom + w.scrollY; ok(bottom <= w.innerHeight - 56, 'hero strip bottom ' + bottom + ' clears the 56 px bar at ' + w.innerHeight);
+  }, 390);
+  pageTest('at 1280 the game chips are one row, and a card has no price circle or stat box unless it needs attention (F1, F6)', 'index.html', function (w, d) {
+    var tops = {}; Array.prototype.forEach.call(d.querySelectorAll('.chip'), function (c) { tops[Math.round(c.getBoundingClientRect().top)] = 1; });
+    eq(Object.keys(tops).length, 1, 'chip rows: ' + Object.keys(tops).join(','));
+    var cost = d.querySelector('#days .ev-cost'); if (cost) eq(w.getComputedStyle(cost).borderTopWidth, '0px', 'no circle around the price');
+    var open = d.querySelector('#days .ev[data-state="open"] .ev-stat'); if (open) { eq(w.getComputedStyle(open).backgroundColor, 'rgba(0, 0, 0, 0)', 'plain stat text'); eq(w.getComputedStyle(open).borderTopColor, 'rgba(0, 0, 0, 0)'); }
+    var full = d.querySelector('#days .ev[data-state="waitlist"] .ev-stat, #days .ev[data-state="full"] .ev-stat'); ok(full, 'a full or waitlist card exists'); if (full) ok(w.getComputedStyle(full).backgroundColor !== 'rgba(0, 0, 0, 0)', 'the box stays when it needs attention');
+    eq(w.getComputedStyle(d.querySelector('.slot-t')).display, 'none', 'the repeated time label is hidden');
+  }, 1280);
+
   /* ---------- A3 phone order ---------- */
   // round 3 (D36): a full-bleed photo hero; tonight's headline and "next up" stay in the first screen, the week strip follows the hero
   pageTest('at 390 px the headline and next up are inside the first screen, the week strip right after the hero', 'index.html', function (w, d) {
     var box = function (s) { var r = d.querySelector(s).getBoundingClientRect(); return { top: r.top + w.scrollY, bottom: r.bottom + w.scrollY, width: r.width }; };
     ok(box('#hero-h').top < 600, 'h1 at ' + box('#hero-h').top); ok(box('#nextup').bottom < 844, 'next up ends at ' + box('#nextup').bottom);
-    ok(box('#deck').top - box('.phero').bottom < 220, 'strip ' + (box('#deck').top - box('.phero').bottom) + ' px below the hero');
+    ok(box('#deck').top - box('.phero').bottom < 260, 'strip ' + (box('#deck').top - box('.phero').bottom) + ' px below the hero');
     ok(box('#hero-media').width >= d.documentElement.clientWidth - 1, 'the photo spans the full width');
   }, 390);
   pageTest('at 1280 px the hero photo spans the full width and the headline is white on the scrim', 'index.html', function (w, d) {
@@ -203,6 +264,18 @@
     eq(links.length, 4, 'four links'); eq(d.querySelectorAll('.mobile-bar a svg.ic').length, 4, 'an icon on each');
     eq(links[0].getAttribute('aria-current'), 'page', 'Events is the current page');
     ok(/now=2026-10-30T19%3A30/.test(links[1].getAttribute('href')), 'Hours keeps ?now=: ' + links[1].getAttribute('href'));
+  });
+  pageTest('hostile text in a cEDH ticket, a preorder tile, the hours reason and a compact row is text (owner rule)', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var X = w.MG.data;
+    X.series.forEach(function (x) { x.title = XSS_IMG; });
+    X.releases[0].name = XSS_IMG; X.releases[0].note = XSS_IMG; X.store.hourOverrides[0].note = XSS_IMG;
+    var s2 = d.createElement('script'); s2.src = BASE + 'js/front.js'; // runs the renderers again against the changed data
+    return new Promise(function (res) { s2.onload = res; s2.onerror = res; d.body.appendChild(s2); }).then(function () { return T.wait(100); }).then(function () {
+      eq(w.__xss || 0, 0, 'nothing ran'); eq(d.querySelectorAll('img[src="x"], [onerror]').length, 0, 'no injected markup');
+      eq(d.querySelector('#cedh-list .tix h4').textContent, XSS_IMG, 'the cEDH title is text'); eq(d.querySelector('#rel-list .rel-name').textContent, XSS_IMG, 'the tile name is text');
+      ok(d.querySelector('#hours-why').textContent.indexOf('<img') !== -1, 'the hours reason is text');
+      eq(d.querySelector('#d-2026-11-04 .dl-title a').textContent, XSS_IMG, 'the compact row title is text');
+    });
   });
   T.test('the compact row lists dates in the order given and words the seat state', function () {
     fresh();

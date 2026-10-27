@@ -1,25 +1,19 @@
 /* Mulligan Games concept: the events page (events.html). Reuses site.css (chips, day heads, slots, event card). */
 .ep { padding-block: var(--s4) var(--s7); }
-/* page head: title, one line on how sign-ups work, the calendar button; a shop photo beside it (D27, look A) */
-.ep-head { display: grid; grid-template-areas: "photo" "copy"; gap: var(--s4); margin-bottom: var(--s5); }
-.ep-copy { grid-area: copy; display: grid; justify-items: start; gap: var(--s3); }
+/* page head: title and one line; controls in one row under the chips (F13) */
+.ep-head { margin-block: var(--s2) var(--s4); display: grid; gap: var(--s2); }
 .ep-head h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
 .ep-lede { margin: 0; max-width: 46ch; font-size: 1.125rem; color: var(--ink-2); }
-.ep-photo { grid-area: photo; position: relative; margin: 0 calc(-1 * var(--gutter)); aspect-ratio: 16 / 7; overflow: hidden; background: var(--surface-2); }
-.ep-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; }
-.ep-photo figcaption {
-  position: absolute; left: var(--s3); bottom: var(--s3); max-width: calc(100% - 1.5rem); padding: 0.35rem 0.7rem; border-radius: var(--r-pill);
-  background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
-}
-@media (min-width: 768px) {
-  .ep-head { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); grid-template-areas: "copy photo"; align-items: center; column-gap: var(--s7); margin-block: var(--s4) var(--s6); }
-  .ep-photo { margin: 0; aspect-ratio: 4 / 3; border-radius: var(--r-photo); }
-}
-@media (min-width: 1024px) { .ep-photo { aspect-ratio: 16 / 10; } }
-.ep-format { display: flex; align-items: center; gap: var(--s3); margin: 0 0 var(--s5); }
+.ep-format { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); margin: 0 0 var(--s4); }
 .ep-format label { font-weight: 750; }
-.ep-format select { min-height: var(--tap); padding: 0 2rem 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 650; max-width: 100%; }
-.ep-sec { margin-top: var(--s6); }
+.ep-format select { min-height: 2.5rem; padding: 0 2rem 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 650; max-width: 100%; }
+.ep-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-left: auto; }
+.ep-tools .btn { min-height: 2.5rem; }
+.ep-print { display: none; }
+@media (min-width: 900px) { .ep-print { display: inline-flex; } }
+@media (max-width: 480px) { .ep-tools { margin-left: 0; } }
+.ep-sec { margin-top: var(--s5); }
+.ep-sec > .sec-note { margin: 0 0 var(--s3); font-size: var(--t-sm); }
 .ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 2px solid var(--line); }
 .ep .chips { margin-bottom: var(--s3); }
 
@@ -38,15 +32,15 @@
 /* every week: one block per weekday, cards side by side */
 .wk { display: grid; gap: var(--s3); padding-block: var(--s4) var(--s5); border-top: 2px solid var(--line); }
 .wk:first-child { border-top: 0; }
-.wk-name { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; display: flex; align-items: center; gap: var(--s3); }
+.wk-name { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s3); }
+.wk-next { font-family: var(--font); font-stretch: 100%; font-size: var(--t-sm); font-weight: 600; color: var(--ink-2); }
+.wk-next::before { content: "· "; } /* the dot only while it sits beside the day name */
+.wk .day-lines { padding: 0; }
 .wk-cards { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
-.wk-closed { padding-block: var(--s3); }
-.wk-closed .wk-name { font-size: 1.35rem; color: var(--ink-2); }
 @media (min-width: 1024px) {
   .wk { grid-template-columns: 12.5rem minmax(0, 1fr); column-gap: var(--s6); align-items: start; }
-  .wk-closed { align-items: center; }
   .wk-name { padding-top: var(--s2); font-size: 2.1rem; }
-  .wk-closed .wk-name { font-size: 1.5rem; padding-top: 0; }
+  .wk-next { flex-basis: 100%; } .wk-next::before { content: none; } .wk-next::first-letter { text-transform: uppercase; } /* its own line under the day name */
 }
 .ep .day-h { position: static; }
 @media (min-width: 1024px) { .ep .day-h { position: sticky; } }
@@ -55,9 +49,6 @@
 /* the demo bar is a block above the strip on the events page */
 .demo-host:empty { display: none; }
 
-/* print button sits with the format filter */
-.ep-format { flex-wrap: wrap; }
-@media (min-width: 640px) { .ep-format #print-btn { margin-left: auto; } }
 
 /* sign-up confirmation: the personal link (D26 mock) and the back button inside the detail dialog */
 .su-link { display: grid; gap: var(--s2); margin-top: var(--s3); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface-2); }
@@ -72,12 +63,11 @@
 @media (min-width: 1024px) {
   .ep .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
   .ep .slot, .ep .slot-cards { display: contents; }
-  .ep .slot-t { display: none; }
   #today .day { grid-template-columns: minmax(0, 1fr); }
   #special { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s6); align-items: start; }
-  #special .day { grid-template-columns: 6.5rem minmax(0, 1fr); column-gap: var(--s4); }
+  #special .day { grid-template-columns: 1fr; row-gap: var(--s2); }
   #special .day:nth-child(2) { border-top: 0; }
-  #special .day-h { position: static; }
-  #special .day-name { font-size: var(--t-lg); }
+  #special .day-h { position: static; flex-direction: row; padding: 0; }
+  #special .day-name { font-family: var(--font); font-stretch: 100%; letter-spacing: 0.04em; text-transform: uppercase; font-size: var(--t-sm); font-weight: 800; color: var(--mark); }
   #special .slots { grid-template-columns: minmax(0, 1fr); }
 }

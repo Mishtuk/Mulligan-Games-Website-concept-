@@ -6,6 +6,17 @@
   'use strict';
   var MG = window.MG, D = MG.data, U = MG.ui, e = MG.esc;
   var $ = function (s) { return document.querySelector(s); };
+  // owner rule: data goes in with createElement + textContent; icons are constant markup from MG.icon()
+  function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function icon(parent, name, cls) { parent.insertAdjacentHTML('beforeend', MG.icon(name, cls)); return parent; }
+  function badge(gameId) { var g = MG.game(gameId), b = mk('span', 'gbadge'); b.setAttribute('data-game', g.id); icon(b, g.icon, 'gi'); b.appendChild(mk('span', null, g.short)); return b; }
+  function statBox(ic, big, unit, small) { // the seat / countdown / registered box
+    var p = mk('p', 'ev-stat'); icon(p, ic);
+    if (big != null) p.appendChild(mk('span', 'ev-stat-big', big));
+    p.appendChild(mk('span', 'ev-stat-unit', unit));
+    if (small) p.appendChild(mk('span', 'ev-stat-small', small));
+    return p;
+  }
   var now = MG.now(), today = MG.ymd(now);
   var weekEnd = MG.ymd(MG.addDays(now, 6));
   var params = new URLSearchParams(location.search);
@@ -187,8 +198,17 @@
     return t;
   }
   function renderDays() {
-    var html = '', shownAny = false, nextSeen = false, hiddenCount = 0, frag = document.createDocumentFragment();
+    var html = '', shownAny = false, nextSeen = false, run = [], frag = document.createDocumentFragment();
     function flush() { if (!html) return; var t = document.createElement('template'); t.innerHTML = html; frag.appendChild(t.content); html = ''; }
+    // F9: consecutive closed days are one quiet line ("Monday and Tuesday · closed"); an empty span per day keeps each #d-YYYY-MM-DD anchor
+    function endRun() {
+      if (!run.length) return;
+      flush();
+      var box = mk('div', 'day-off'), names = run.map(function (r) { return MG.dayName(r.d); });
+      run.forEach(function (r) { var sp = mk('span'); sp.id = 'd-' + r.ymd; box.appendChild(sp); });
+      box.appendChild(mk('p', null, (names.length > 2 ? names[0] + ' to ' + names[names.length - 1] : names.join(' and ')) + ' · closed'));
+      frag.appendChild(box); run = [];
+    }
     for (var i = 0; i < 7; i++) {
       var d = MG.addDays(now, i), ymd = MG.ymd(d), h = MG.hoursFor(ymd);
       var all = week.filter(function (o) { return o.date === ymd; });
@@ -197,10 +217,10 @@
         '<span class="day-name">' + (i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : MG.dayName(d)) + '</span>' +
         '<span class="day-meta">' + e((i < 2 ? MG.dayName(d) + ', ' : '') + dayMeta(ymd, d)) + '</span></h3>';
       if (h.closed && !all.length) {
-        if (chip === 'all') html += '<section class="day day-closed" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '">' + head +
-          '<p class="day-skip">The shop is closed' + (i === 0 ? ' today' : '') + '.</p></section>';
+        if (chip === 'all') run.push({ d: d, ymd: ymd });
         continue;
       }
+      endRun();
       if (!evs.length) {
         if (chip === 'all') html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '">' + head +
           '<p class="day-skip">' + (i === 0 && all.length === 0 && MG.allOccurrences(today, today).some(live) ? 'Nothing else scheduled today. ' : 'No scheduled events. ') + 'Free play all day.</p></section>';
@@ -218,7 +238,7 @@
         secEl.appendChild(hEl);
         var ul = document.createElement('ul'); ul.className = 'day-lines';
         evs.forEach(function (o) { ul.appendChild(MG.views.compactLine(o, now, keepNow('events.html'))); });
-        secEl.appendChild(ul); frag.appendChild(secEl); hiddenCount += evs.length;
+        secEl.appendChild(ul); frag.appendChild(secEl);
         continue;
       }
       if (i > 0) nextSeen = true;
@@ -232,13 +252,10 @@
       html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '"' + (i === 0 ? ' data-today' : '') + '>' + head +
         '<div class="slots">' + slots + '</div></section>';
     }
+    endRun();
     if (!shownAny && chip !== 'all') html = emptyState() + html;
     flush();
     var host = $('#days'); host.textContent = ''; host.appendChild(frag);
-    if (hiddenCount) {
-      var more = document.createElement('p'), ma = document.createElement('a'), total = week.filter(function (o) { return live(o) && MG.inGame(o.series, chip); }).length;
-      more.className = 'day-more'; ma.href = keepNow('events.html'); ma.textContent = 'See all ' + total + ' events on the events page'; more.appendChild(ma); host.appendChild(more);
-    }
     var n = week.filter(function (o) { return live(o) && MG.inGame(o.series, chip); }).length;
     var g = chip === 'all' ? null : MG.game(chip);
     $('#filter-status').textContent = (g ? 'Showing ' + g.short + ': ' : 'Showing all games: ') + n + (n === 1 ? ' event' : ' events') + ' this week.';
@@ -253,7 +270,7 @@
       '<a class="btn btn-2" href="' + e(href({ game: null })) + '#week" data-chip="all">Show all games</a></div>';
   }
   function signupShort(s) {
-    return s.inviteOnly ? 'Invite only' : s.signup === 'walkin' ? 'Walk in' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
+    return s.inviteOnly ? 'Invite only' : s.signup === 'walkin' ? '' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
       : (s.tool && s.tool.cta) || 'Sign up on ' + ((s.tool && s.tool.name) || 'another site');
   }
   function renderLater() {
@@ -266,15 +283,21 @@
       seen[o.series.id] = { o: o, more: 0 }; list.push(seen[o.series.id]);
     });
     list = list.slice(0, 4); // round 3: the front page shows four; the events page has the rest
-    $('#later').innerHTML = list.length ? list.map(function (x) {
-      var o = x.o, d = MG.parseYmd(o.date);
-      return '<li><p class="later-date" aria-hidden="true">' + MG.dayShort(d) + '<b>' + d.getDate() + '</b>' + MG.monthShort(d) + '</p>' +
-        '<p class="later-what"><a href="' + e(keepNow('events.html')) + '#e-' + e(encodeURIComponent(o.key)) + '">' + e(o.series.title) + '</a>' +
-        '<span class="vh">, ' + e(MG.fmtLongDate(d)) + '</span>' +
-        (x.more ? ' <span class="tag">and ' + x.more + ' more ' + (x.more === 1 ? 'date' : 'dates') + '</span>' : '') + '</p>' +
-        '<p class="later-meta">' + MG.gameBadge(o.series.game) + '<span>' + MG.fmtTime(o.start) + '</span><span>' + MG.fmtFee(o.series.fee) +
-        '</span><span>' + e(signupShort(o.series)) + '</span></p></li>';
-    }).join('') : '<li><p class="later-what">Nothing big on the calendar yet.</p></li>';
+    var host = $('#later'); host.textContent = '';
+    if (!list.length) { var none = mk('li'); none.appendChild(mk('p', 'later-what', 'Nothing big on the calendar yet.')); host.appendChild(none); return; }
+    list.forEach(function (x) {
+      var o = x.o, d = MG.parseYmd(o.date), li = mk('li');
+      var dt = mk('p', 'later-date'); dt.setAttribute('aria-hidden', 'true');
+      dt.appendChild(document.createTextNode(MG.dayShort(d))); dt.appendChild(mk('b', null, d.getDate())); dt.appendChild(document.createTextNode(MG.monthShort(d)));
+      var what = mk('p', 'later-what'), a = mk('a', null, o.series.title);
+      a.href = keepNow('events.html') + '#e-' + encodeURIComponent(o.key);
+      what.appendChild(a); what.appendChild(mk('span', 'vh', ', ' + MG.fmtLongDate(d)));
+      if (x.more) { what.appendChild(document.createTextNode(' ')); what.appendChild(mk('span', 'tag', 'and ' + x.more + ' more ' + (x.more === 1 ? 'date' : 'dates'))); }
+      var meta = mk('p', 'later-meta'); meta.appendChild(badge(o.series.game));
+      meta.appendChild(mk('span', null, MG.fmtTime(o.start))); meta.appendChild(mk('span', null, MG.fmtFee(o.series.fee)));
+      var how = signupShort(o.series); if (how) meta.appendChild(mk('span', null, how));
+      li.appendChild(dt); li.appendChild(what); li.appendChild(meta); host.appendChild(li);
+    });
   }
 
   /* ---------- 4. cEDH ---------- */
@@ -282,70 +305,87 @@
     var list = MG.allOccurrences(today, MG.ymd(MG.addDays(now, 60))).filter(function (o) {
       return live(o) && o.series.game === 'cedh' && o.series.cedhSeries && o.endAt > now;
     }).slice(0, 3);
-    $('#cedh-list').innerHTML = list.map(function (o) {
-      var s = o.series, d = MG.parseYmd(o.date), st = MG.seatState(o, now), tool = s.tool || {};
-      var act = s.inviteOnly ? '<p class="ev-how">' + MG.icon('lock') + 'Invite only. Seats come from the Championship Series.</p>'
-        : '<a class="btn btn-act" href="' + e(MG.safeUrl(tool.url)) + '" target="_blank" rel="noopener">' + e(tool.cta || 'Sign up on ' + tool.name) +
-          '<span class="vh"> (opens ' + e(tool.name) + ')</span>' + MG.icon('external', 'ic-ext') + '</a>';
-      var stat = st.count ? '<p class="ev-stat">' + MG.icon('users') + '<span class="ev-stat-big">' + e(st.count) + '</span><span class="ev-stat-unit">registered</span><span class="ev-stat-small">on ' + e(tool.name) + '</span></p>' : '';
-      return '<li class="tix"><p class="tix-date" aria-hidden="true">' + MG.dayShort(d) + '<b>' + d.getDate() + '</b>' + MG.monthShort(d) + '</p>' +
-        '<div class="tix-what"><h4>' + e(s.title) + '</h4><p>' + e(MG.fmtLongDate(d)) + ', ' + MG.fmtTime(o.start) +
-        (s.fee ? '. Entry ' + MG.fmtFee(s.fee) : '') + '.</p></div>' +
-        '<div class="tix-acts">' + act + stat + '</div></li>';
-    }).join('');
+    var host = $('#cedh-list'); host.textContent = '';
+    list.forEach(function (o) {
+      var s = o.series, d = MG.parseYmd(o.date), st = MG.seatState(o, now), tool = s.tool || {}, li = mk('li', 'tix');
+      var dt = mk('p', 'tix-date'); dt.setAttribute('aria-hidden', 'true');
+      dt.appendChild(document.createTextNode(MG.dayShort(d))); dt.appendChild(mk('b', null, d.getDate())); dt.appendChild(document.createTextNode(MG.monthShort(d)));
+      var what = mk('div', 'tix-what');
+      what.appendChild(mk('h4', null, s.title));
+      what.appendChild(mk('p', null, MG.fmtTime(o.start) + (s.fee ? ' · ' + MG.fmtFee(s.fee) : ''))); // the date block above says the day (F2)
+      var acts = mk('div', 'tix-acts');
+      if (s.inviteOnly) { var how = mk('p', 'ev-how'); icon(how, 'lock'); how.appendChild(document.createTextNode('Invite only. Seats come from the Championship Series.')); acts.appendChild(how); }
+      else {
+        var a = mk('a', 'btn btn-act', tool.cta || 'Sign up on ' + tool.name);
+        a.href = MG.safeUrl(tool.url); a.target = '_blank'; a.rel = 'noopener';
+        a.appendChild(mk('span', 'vh', ' (opens ' + tool.name + ')')); icon(a, 'external', 'ic-ext'); acts.appendChild(a);
+      }
+      if (st.count) acts.appendChild(statBox('users', st.count, 'registered')); // the button already names the tool (F2)
+      li.appendChild(dt); li.appendChild(what); li.appendChild(acts); host.appendChild(li);
+    });
     var last = D.results.filter(function (r) { return r.series === 'cedh-mcs' && r.public && r.date < today; })
       .sort(function (a, b) { return a.date < b.date ? 1 : -1; })[0];
-    if (last) $('#cedh-last').innerHTML = 'Last Championship Series, ' + e(MG.fmtDate(MG.parseYmd(last.date))) + ': <strong>' +
-      last.headcount + ' players.</strong> ' + e(last.prizes || '');
+    var lastEl = $('#cedh-last'); lastEl.textContent = '';
+    if (last) {
+      lastEl.appendChild(document.createTextNode('Last Championship Series, ' + MG.fmtDate(MG.parseYmd(last.date)) + ': '));
+      lastEl.appendChild(mk('strong', null, last.headcount + ' players.')); lastEl.appendChild(document.createTextNode(' ' + (last.prizes || '')));
+    }
   }
 
   /* ---------- 5. new and preorders ---------- */
   function renderReleases() {
-    $('#rel-list').innerHTML = D.releases.map(function (r) {
+    var host = $('#rel-list'); host.textContent = '';
+    D.releases.forEach(function (r) {
       var g = MG.game(r.game), label = r.status === 'preorder' ? 'Preorder' : r.status === 'out' ? 'Out now' : 'Coming soon';
-      var text = '<p>' + e(r.note) + '</p>', stat = '';
+      var li = mk('li', 'rel'); li.setAttribute('data-game', g.id); li.setAttribute('data-status', r.status);
+      li.appendChild(mk('h3', 'rel-name', r.name));
+      var ty = mk('p', 'ev-type'); ty.appendChild(badge(g.id)); ty.appendChild(mk('span', 'ev-fmt', label)); li.appendChild(ty);
+      var text = mk('div', 'rel-text'); if (r.note) text.appendChild(mk('p', null, r.note));
       if (r.event) {
         var s = D.series.filter(function (x) { return x.id === r.event; })[0];
         var occ = s && MG.occurrences(s, today, MG.ymd(MG.addDays(now, 60))).filter(live);
         if (occ && occ.length) {
           var when = occ.map(function (o) { var d = MG.parseYmd(o.date); return MG.dayShort(d) + ' ' + MG.fmtDate(d) + ' at ' + MG.fmtTime(o.start); });
-          text += '<p><a href="' + e(keepNow('events.html')) + '#e-' + e(encodeURIComponent(occ[0].key)) + '">' + e(s.title) + '</a>: ' + e(MG.list(when.slice(0, 3))) +
-            '. ' + MG.fmtFee(s.fee) + '.</p>';
+          var p = mk('p'), a = mk('a', null, s.title); a.href = keepNow('events.html') + '#e-' + encodeURIComponent(occ[0].key);
+          p.appendChild(a); p.appendChild(document.createTextNode(': ' + MG.list(when.slice(0, 3)) + '. ' + MG.fmtFee(s.fee) + '.')); text.appendChild(p);
         }
       }
+      li.appendChild(text);
+      var stat = null;
       if (r.status === 'preorder' && r.preorderEnds) {
         var days = Math.round((MG.parseYmd(r.preorderEnds) - MG.parseYmd(today)) / 864e5), end = MG.parseYmd(r.preorderEnds);
         var endTxt = 'preorders end ' + MG.dayShort(end) + ' ' + MG.fmtDate(end);
-        stat = days < 0 ? '<p class="ev-stat">' + MG.icon('lock') + '<span class="ev-stat-unit">Preorders closed</span></p>'
-          : days === 0 ? '<p class="ev-stat">' + MG.icon('hourglass') + '<span class="ev-stat-unit">Last day today</span><span class="ev-stat-small">' + endTxt + '</span></p>'
-          : '<p class="ev-stat">' + MG.icon('hourglass') + '<span class="ev-stat-big">' + days + '</span><span class="ev-stat-unit">' + (days === 1 ? 'day left' : 'days left') +
-            '</span><span class="ev-stat-small">' + endTxt + '</span></p>';
-      } else if (r.status === 'out') {
-        stat = '<p class="ev-stat">' + MG.icon('check') + '<span class="ev-stat-unit">On the shelf</span></p>';
-      }
-      return '<li class="rel" data-game="' + e(g.id) + '" data-status="' + e(r.status) + '">' +
-        '<div class="rel-art" aria-hidden="true">' + MG.icon(g.icon, 'gi') + '</div>' +
-        '<h3 class="rel-name">' + e(r.name) + '</h3>' +
-        '<p class="ev-type">' + MG.gameBadge(g.id) + '<span class="ev-fmt">' + label + '</span></p>' +
-        '<div class="rel-text">' + text + '</div>' + (stat ? '<div class="rel-foot">' + stat + '</div>' : '') + '</li>';
-    }).join('');
+        stat = days < 0 ? statBox('lock', null, 'Preorders closed')
+          : days === 0 ? statBox('hourglass', null, 'Last day today', endTxt)
+          : statBox('hourglass', days, days === 1 ? 'day left' : 'days left', endTxt);
+        if (days >= 0 && days <= 3) li.setAttribute('data-soon', ''); // the box only shows on the last three days (A3 rule)
+      } else if (r.status === 'out') stat = statBox('check', null, 'On the shelf');
+      if (stat) { var foot = mk('div', 'rel-foot'); foot.appendChild(stat); li.appendChild(foot); }
+      host.appendChild(li);
+    });
   }
 
   /* ---------- 6. visit ---------- */
   function renderHours() {
-    var order = [1, 2, 3, 4, 5, 6, 0], todayDow = now.getDay(), rows = '';
-    var names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var order = [1, 2, 3, 4, 5, 6, 0], todayDow = now.getDay(), names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var body = $('#hours-body'), why = [];
+    body.textContent = '';
     order.forEach(function (dow) {
-      var w = D.store.hours[dow];
-      var txt = w.closed ? 'Closed' : MG.fmtTime(w.open) + ' to ' + MG.fmtTime(w.close);
-      // a date override in the next 7 days on this weekday
-      var off = (dow - todayDow + 7) % 7, ymd = MG.ymd(MG.addDays(now, off)), h = MG.hoursFor(ymd), note = '';
-      if (h.override) note = '<span class="hours-note">' + e(MG.dayShort(MG.parseYmd(ymd)) + ' ' + MG.fmtDate(MG.parseYmd(ymd)) + ': ' +
-        (h.closed ? 'closed' : MG.fmtTime(h.open) + ' to ' + MG.fmtTime(h.close)) + '. ' + (h.note || '')) + '</span>';
-      rows += '<tr' + (dow === todayDow ? ' data-today' : '') + (w.closed ? ' data-closed' : '') + '><th scope="row">' + names[dow] +
-        (dow === todayDow ? '<span class="tag">Today</span>' : '') + '</th><td>' + txt + note + '</td></tr>';
+      var w = D.store.hours[dow], tr = mk('tr'), th = mk('th'), td = mk('td'), day = mk('span', 'hrs-d', names[dow]);
+      th.scope = 'row'; if (dow === todayDow) { tr.setAttribute('data-today', ''); day.appendChild(mk('span', 'tag', 'Today')); }
+      th.appendChild(day);
+      // a date override in the next 7 days on this weekday: the cell shows the changed hours, the reason goes under the table (F15)
+      var off = (dow - todayDow + 7) % 7, ymd = MG.ymd(MG.addDays(now, off)), h = MG.hoursFor(ymd), closed = h.override ? h.closed : w.closed;
+      if (closed) tr.setAttribute('data-closed', '');
+      td.appendChild(document.createTextNode(h.override ? (h.closed ? 'Closed' : MG.fmtTime(h.open) + ' to ' + MG.fmtTime(h.close)) : w.closed ? 'Closed' : MG.fmtTime(w.open) + ' to ' + MG.fmtTime(w.close)));
+      if (h.override) {
+        td.appendChild(mk('span', 'tag tag-upd', MG.fmtDate(MG.parseYmd(ymd))));
+        var n = h.note ? h.note.charAt(0).toLowerCase() + h.note.slice(1) : (h.closed ? 'closed.' : 'has different hours.');
+        why.push(MG.dayShort(MG.parseYmd(ymd)) + ' ' + MG.fmtDate(MG.parseYmd(ymd)) + ' ' + n);
+      }
+      tr.appendChild(th); tr.appendChild(td); body.appendChild(tr);
     });
-    $('#hours-body').innerHTML = rows;
+    $('#hours-why').textContent = why.join(' ');
     $('#hours-note').textContent = D.store.hoursConfirmed ? '' : 'Hours from public listings. The owners will confirm them before launch.';
   }
   function renderCommunity() {

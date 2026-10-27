@@ -107,8 +107,13 @@
     opts = opts || {};
     var opener = document.activeElement, d = document.createElement('dialog');
     d.className = 'dlg' + (opts.cls ? ' ' + opts.cls : '');
-    d.setAttribute('aria-labelledby', 'dlg-t');
-    d.innerHTML = '<div class="dlg-in"><div class="dlg-top"><h2 id="dlg-t" class="dlg-h">' + e(title) + '</h2>' +
+    d.setAttribute('aria-labelledby', opts.bare && opts.labelledby ? opts.labelledby : 'dlg-t');
+    // opts.bare: no title bar; bodyHtml (a string or a node) brings its own heading and close button (event detail)
+    if (opts.bare) {
+      d.innerHTML = '<div class="dlg-in"><div class="dlg-body"></div></div>';
+      var bd = d.querySelector('.dlg-body');
+      if (bodyHtml && bodyHtml.nodeType) bd.appendChild(bodyHtml); else bd.innerHTML = bodyHtml || '';
+    } else d.innerHTML = '<div class="dlg-in"><div class="dlg-top"><h2 id="dlg-t" class="dlg-h">' + e(title) + '</h2>' +
       '<button type="button" class="dlg-x" data-close aria-label="Close">' + MG.icon('x') + '</button></div><div class="dlg-body">' + bodyHtml + '</div></div>';
     document.body.appendChild(d);
     d.addEventListener('click', function (ev) {
@@ -120,6 +125,7 @@
       if (opts.onClose) opts.onClose();
     });
     d.showModal();
+    if (opts.bare && opts.focus) { var f = d.querySelector(opts.focus); if (f) f.focus(); }
     return d;
   };
   // plain-words confirm: resolves true or false. body is text.

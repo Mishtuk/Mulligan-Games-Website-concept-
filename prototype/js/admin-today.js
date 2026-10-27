@@ -39,15 +39,21 @@
     $('#today-open').setAttribute('data-open', st.open);
 
     // reminders: low stock, results not reported, preorders to call
-    var pic = A.stockPicture(14), un = A.unreportedList(), arrived = A.arrivedPreorders(), chips = '';
-    if (pic.alerts.low.length) chips += '<a class="rem rem-warn" href="' + e(U.href('inventory.html?f=low')) + '">' + MG.icon('alert') + pic.alerts.low.length + ' low in stock</a>';
-    if (pic.alerts.short.length) chips += '<a class="rem rem-warn" href="' + e(U.href('inventory.html?f=short')) + '">' + MG.icon('alert') + pic.alerts.short.length + ' will run short for events</a>';
+    var pic = A.stockPicture(14), un = A.unreportedList(), arrived = A.arrivedPreorders(), host = $('#reminders');
+    host.textContent = '';
+    function rem(href, icon, text, warn) {
+      var a = document.createElement('a'); a.className = 'rem' + (warn ? ' rem-warn' : ''); a.href = href;
+      var ic = document.createElement('span'); ic.innerHTML = MG.icon(icon); /* constant icon markup, no data */
+      if (ic.firstChild) a.appendChild(ic.firstChild);
+      a.appendChild(document.createTextNode(text)); host.appendChild(a);
+    }
+    if (pic.alerts.low.length) rem(U.href('inventory.html?f=low'), 'alert', pic.alerts.low.length + ' low in stock', true);
+    if (pic.alerts.short.length) rem(U.href('inventory.html?f=short'), 'alert', pic.alerts.short.length + ' will run short', true);
     if (un.length) {
       var o = un[0], d = MG.parseYmd(o.date);
-      chips += '<a class="rem" href="' + e(U.href('events.html#roster/' + encodeURIComponent(o.key))) + '">' + MG.icon('pencil') + e(o.series.title + ' ' + MG.fmtDate(d)) + ' not reported' + (un.length > 1 ? ' (and ' + (un.length - 1) + ' more)' : '') + '</a>';
+      rem(U.href('events.html#roster/' + encodeURIComponent(o.key)), 'pencil', o.series.title + ' ' + MG.fmtDate(d) + ' not reported' + (un.length > 1 ? ' (and ' + (un.length - 1) + ' more)' : ''));
     }
-    if (arrived.length) chips += '<a class="rem" href="' + e(U.href('inventory.html?f=arrived#preorders')) + '">' + MG.icon('bag') + arrived.length + (arrived.length === 1 ? ' preorder' : ' preorders') + ' arrived</a>';
-    $('#reminders').innerHTML = chips;
+    if (arrived.length) rem(U.href('inventory.html?f=arrived#preorders'), 'bag', arrived.length + (arrived.length === 1 ? ' preorder' : ' preorders') + ' arrived');
 
     var keys = list.map(function (o) { return o.key; });
     if (!sel || keys.indexOf(sel) === -1) {

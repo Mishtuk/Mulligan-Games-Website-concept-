@@ -287,6 +287,13 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Done when:** [ ] each package's "done when" in the plan is checked; [ ] tests.html passes (89 + new);
   [ ] the mediator has ruled on the bottom bar and the phone nav, and any follow-up is filed.
 
+### P3.0b Laptop round 4: formatting (D36 direction, D37 rulings) (now)
+- **Owner:** Laptop coders, three packages with disjoint files (A shared look + front page, B events page + card
+  builder + detail dialog, C counter + 404 + tests wiring + docs); boss reviews. **Plan:** `docs/review/round-4-plan.md`
+  (from `docs/review/round-4-formatting.md`, F1-F24 + event detail layout). Desktop items go to #2 as one comment.
+- **Done when:** [ ] each package's "done when" in the plan is checked; [ ] tests.html 0 failed (122 + new);
+  [ ] the mediator has ruled on F16 (labelled switch vs icon button) and any follow-up is filed.
+
 ### P3.1 Content fill
 - **Owner:** Desktop researcher. **Files:** seed files under `src/content/`, `docs/research/` updates.
 - **Needs:** R1. Start now from `docs/research/mulligan-facebook.md` (issue #6); owner answers to Q1-Q3 fill the gaps later.

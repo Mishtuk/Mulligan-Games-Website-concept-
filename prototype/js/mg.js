@@ -301,7 +301,7 @@
         act = '<p class="ev-how">' + (st.cap && !st.left ? 'Sign-ups closed. All seats are taken.' : 'Sign-ups closed. Walk in if seats are left.') + '</p>';
         stat = !st.cap ? '' : st.left ? statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat') : statBox('Full', '', '', 'lock'); break;
       case 'walkin':
-        act = '<p class="ev-how">' + MG.icon('door') + 'Walk in. No sign-up needed.</p>'; break;
+        act = ''; break; // walk-in is said once per page, not on every card (F2)
       case 'counter':
         act = '<p class="ev-how">' + MG.icon('door') + 'Pre-register at the counter.</p>' +
           '<a class="btn btn-2" href="' + e(D.store.phoneHref) + '">' + MG.icon('phone') + 'Call the shop</a>'; break;
@@ -320,7 +320,7 @@
         ' id="c-' + e(occ.key) + '" aria-labelledby="t-' + e(occ.key) + '">' +
         '<div class="ev-bar">' +
           '<h4 class="ev-title" id="t-' + e(occ.key) + '"><a href="' + href + '">' + e(s.title) + '</a></h4>' +
-          '<p class="ev-cost"><span class="vh">Entry: </span>' + MG.fmtFee(s.fee) + '</p>' +
+          '<p class="ev-cost"><span class="vh">Entry: </span>' + e(MG.fmtFee(s.fee)) + '</p>' +
         '</div>' +
         '<p class="ev-type">' + MG.gameBadge(s.game) + '<span class="ev-fmt">' + e(s.format) + '</span></p>' +
         '<div class="ev-text">' +
@@ -363,7 +363,7 @@
       function b(id, label, icon) {
         return '<button type="button" data-scheme="' + id + '" aria-pressed="' + (cur === id) + '">' + MG.icon(icon) + '<span>' + label + '</span></button>';
       }
-      return '<div class="scheme' + (cls ? ' ' + MG.esc(cls) : '') + '" role="group" aria-label="Colour theme"><span class="scheme-k" aria-hidden="true">Theme</span>' +
+      return '<div class="scheme' + (cls ? ' ' + MG.esc(cls) : '') + '" role="group" aria-label="Colour theme">' +
         b('light', 'Light', 'sun') + b('dark', 'Dark', 'moon') + '</div>';
     },
     // keep every switch on the page in step; one delegated listener, so switches drawn later (admin shell, dialogs) work too
