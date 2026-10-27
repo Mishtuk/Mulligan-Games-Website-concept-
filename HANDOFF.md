@@ -37,7 +37,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** round 3 (D36) pushed (f35974c, 8f90656); next: round 4 polish from the Desktop's post-port screenshots (event detail page layout, remaining formatting). Files: `prototype/`, `DESIGN.md`, `docs/review/`. The Laptop now has Node 24 (no gh/python): tests run headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
+- **Laptop:** (1) round 4 formatting polish (designer review `docs/review/round-4-formatting.md`, plan `docs/review/round-4-plan.md`): `prototype/`, `DESIGN.md`, `docs/review/`. (2) Owner-asked research, TCGplayer + TopDeck: `docs/research/tcgplayer-topdeck.md`. The Laptop has Node 24 (no gh/python): tests run headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
 - **Desktop:** (1) #14 round-3 port (f35974c, 8f90656): `src/`, `public/`, `server.js`, `test/`. (2) Owner-asked deep asset research (Instagram carousels, TikTok, Facebook, TCGplayer, TopDeck): `docs/research/social-assets-2.md`, `public/img/social/`, local `source/social/desktop/`.
 
 ## Status (handoff, 2026-10-26)
