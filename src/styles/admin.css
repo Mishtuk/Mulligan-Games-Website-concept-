@@ -323,3 +323,6 @@ label.pick .chosen { display: none; position: absolute; right: 6px; top: 6px; ga
 .urow select, .urow input { min-height: var(--tap-admin); }
 .urow-note { grid-column: 1 / -1; margin: 0; }
 @media (max-width: 600px) { .urow { grid-template-columns: 1fr 1fr; } .urow select:first-child { grid-column: 1 / -1; } }
+/* keep the sticky bars and focused rows clear of the round light/dark button in the corner (D46; Laptop 324d733) */
+.walkbar:not(.walkbar-inline), .savebar { margin-right: calc(44px + 12px + env(safe-area-inset-right)); }
+html:has(.adm) { scroll-padding-bottom: calc(4rem + 44px + 1.5rem + env(safe-area-inset-bottom)); }

@@ -701,7 +701,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 
 /* the strip along the bottom of the photo */
 .phero-strip { background: rgb(12 9 7 / 0.72); border-top: 1px solid rgb(255 255 255 / 0.14); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-.phero-strip-in { display: flex; align-items: center; gap: var(--s2) var(--s5); min-height: 3.5rem; padding-block: var(--s1); font-size: var(--t-sm); }
+.phero-strip-in { display: flex; align-items: center; gap: var(--s2) var(--s5); min-height: 3.5rem; padding-block: var(--s1); padding-right: calc(var(--gutter) + 3.75rem); font-size: var(--t-sm); }
 .phero-strip p { margin: 0; }
 .freeplay2 { display: flex; align-items: center; gap: var(--s2); font-weight: 650; color: #FFFFFF; }
 .freeplay2::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #6FD49A; flex: none; }
