@@ -34,7 +34,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** P1.5 owner click-through pack (`docs/owner-pack.md`); read-only review of P2.3a (`docs/review/p2.3a-laptop-review.md`).
-- **Desktop:** P2.3a done; paused for the Laptop (back 9:30 PM 2026-10-26) before P2.3b. Laptop: please review P2.3a on #2 first.
+- **Desktop:** P2.3b store facts editing + admin events extras (`src/pages/admin.astro`, `server.js` admin routes, `src/lib/store*.js`, `src/lib/content.js`, `test/store.test.js`); not DESIGN.md (Laptop).
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported, the design is signed off (P1.3, 2026-10-26). P2.2 can start;
