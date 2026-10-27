@@ -54,3 +54,14 @@
 
 /* the demo bar is a block above the strip on the events page */
 .demo-host:empty { display: none; }
+
+/* print button sits with the format filter */
+.ep-format { flex-wrap: wrap; }
+@media (min-width: 640px) { .ep-format #print-btn { margin-left: auto; } }
+
+/* sign-up confirmation: the personal link (D26 mock) and the back button inside the detail dialog */
+.su-link { display: grid; gap: var(--s2); margin-top: var(--s3); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--surface-2); }
+.su-link p { margin: 0; }
+.su-link-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.su-link-row input { flex: 1 1 14rem; min-width: 0; min-height: var(--tap); padding: 0 0.75rem; border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-sm); }
+.su-back { margin: 0 0 var(--s3); }

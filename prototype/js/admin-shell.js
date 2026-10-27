@@ -53,7 +53,7 @@
   };
 
   SH.init = function () {
-    U.demoBar($('#demo'), { note: 'This is the owners’ side. Everything you click is saved in this browser only.' });
+    U.demoBar($('#demo'), { note: 'This is the owners’ side. Everything you click is saved in this browser only.', owners: { href: '../index.html', label: 'See the players’ side' } });
     SH.render();
     MG.state.subscribe(SH.render);
     window.addEventListener('hashchange', SH.render);

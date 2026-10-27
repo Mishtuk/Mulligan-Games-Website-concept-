@@ -19,7 +19,7 @@
   V.when = function (occ) { // "Friday, October 30 at 7 PM"
     return MG.fmtLongDate(MG.parseYmd(occ.date)) + ' at ' + MG.fmtTime(occ.start);
   };
-  V.priceLine = function (s) { return s.fee === 0 ? 'Free.' : s.fee == null ? '' : 'Pay $' + s.fee + ' at the store when you arrive.'; };
+  V.priceLine = function (s) { return !s.fee ? '' : 'Pay $' + s.fee + ' at the counter when you arrive.'; }; // free events: no line (R17)
 
   /* The card's one action, as in MG.eventCard, but the sign-up opens the dialog instead of going to the detail. */
   V.action = function (occ, st) {
@@ -111,18 +111,97 @@
       '<button type="submit" class="btn btn-act su-go"><span class="spin" aria-hidden="true" hidden></span><span class="su-go-t">' + (wait ? 'Join the waitlist' : 'Hold my seat') + '</span></button>' +
       '<p class="hint">We delete your contact details 30 days after the event.</p></form>';
   };
-  V.signupDone = function (occ, res) {
-    var s = occ.series, price = s.fee === 0 ? 'It’s free.' : 'Pay $' + s.fee + ' at the counter.';
-    if (res.status === 'in') {
-      return '<div class="su-done" role="status" tabindex="-1"><p class="su-big">You’re in.</p><p>' + (occ.series.capacity || MG.capOf(occ) ? 'Seat ' + e(res.seat) + ' of ' + e(MG.capOf(occ)) + ' is yours for ' : 'You’re signed up for ') +
-        e(s.title) + ', ' + e(MG.fmtDate(MG.parseYmd(occ.date))) + ' at ' + e(MG.fmtTime(occ.start)) + '. ' + e(price) + '</p>' + V.doneActs(occ) + '</div>';
-    }
-    return '<div class="su-done" role="status" tabindex="-1"><p class="su-big">' + (res.raced ? 'That seat just went. ' : '') + 'You’re on the waitlist (#' + e(res.position) + ').</p>' +
-      '<p>If a seat opens, you move in automatically. Check this page or ask at the counter.</p>' + V.doneActs(occ) + '</div>';
+  /* the mock personal link (D26): a real one comes from the server in the build */
+  V.sampleLink = function (occ) {
+    var h = 0, k = String(occ.key); for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+    return 'https://mishtuk.github.io/Mulligan-Games-Website-concept-/my/' + h.toString(36) + 'k7Q2x9';
   };
-  V.doneActs = function (occ) {
-    return '<p class="det-acts"><button type="button" class="btn btn-2" data-ics-one="' + e(occ.key) + '">' + MG.icon('calendar') + 'Add to calendar</button>' +
-      '<button type="button" class="btn btn-act" data-close>Done</button></p>';
+  // returns a div.su-done element; built with createElement + textContent (owner rule, D35)
+  V.signupDone = function (occ, res, extra) {
+    var s = occ.series, price = V.priceLine(s), link = V.sampleLink(occ), mailed = extra && extra.email;
+    function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    var box = mk('div', 'su-done'); box.setAttribute('role', 'status'); box.tabIndex = -1;
+    if (res.status === 'in') {
+      box.appendChild(mk('p', 'su-big', 'You’re in.'));
+      box.appendChild(mk('p', null, (s.capacity || MG.capOf(occ) ? 'Seat ' + res.seat + ' of ' + MG.capOf(occ) + ' is yours for ' : 'You’re signed up for ') +
+        s.title + ', ' + MG.fmtDate(MG.parseYmd(occ.date)) + ' at ' + MG.fmtTime(occ.start) + '.'));
+      if (price) box.appendChild(mk('p', null, price));
+    } else {
+      box.appendChild(mk('p', 'su-big', (res.raced ? 'That seat just went. ' : '') + 'You’re on the waitlist (#' + res.position + ').'));
+      box.appendChild(mk('p', null, 'If a seat opens, you move in automatically' + (mailed ? ' and we email you' : '') + '. Use the link below to check your place or cancel.'));
+    }
+    var keep = mk('div', 'su-link'), p1 = mk('p'), row = mk('p', 'su-link-row'), inp = mk('input'), cp = mk('button', 'btn btn-2');
+    p1.appendChild(mk('strong', null, 'Keep this link to cancel or check your place:')); keep.appendChild(p1);
+    inp.type = 'text'; inp.readOnly = true; inp.value = link; inp.setAttribute('aria-label', 'Your personal link (a sample in this concept)');
+    cp.type = 'button'; cp.setAttribute('data-copy-link', link); cp.insertAdjacentHTML('afterbegin', MG.icon('copy')); // constant SVG
+    cp.appendChild(document.createTextNode('Copy')); cp.appendChild(mk('span', 'vh', ' the link'));
+    row.appendChild(inp); row.appendChild(cp); keep.appendChild(row);
+    if (mailed) keep.appendChild(mk('p', null, 'We emailed it too.'));
+    box.appendChild(keep); box.appendChild(V.doneActs(occ));
+    return box;
+  };
+  V.doneActs = function (occ) { // returns a p.det-acts element
+    var p = document.createElement('p'), ics = document.createElement('button'), done = document.createElement('button');
+    p.className = 'det-acts';
+    ics.type = 'button'; ics.className = 'btn btn-2'; ics.setAttribute('data-ics-one', occ.key); ics.insertAdjacentHTML('afterbegin', MG.icon('calendar')); ics.appendChild(document.createTextNode('Add to calendar'));
+    done.type = 'button'; done.className = 'btn btn-act'; done.setAttribute('data-close', ''); done.textContent = 'Done';
+    p.appendChild(ics); p.appendChild(done); return p;
+  };
+
+
+  /* ---------- one line per event, for the later days of the front page week (R5) ---------- */
+  V.seatWords = function (st, s) {
+    switch (st.state) {
+      case 'open': return st.cap ? st.left + (st.left === 1 ? ' seat left' : ' seats left') : 'Sign up';
+      case 'few': return st.left + (st.left === 1 ? ' seat left' : ' seats left') + ', almost full';
+      case 'needs': return st.taken + ' signed up, needs ' + st.min + ' to run';
+      case 'waitlist': return st.waiting ? 'Full, ' + st.waiting + ' waiting' : 'Full, waitlist open';
+      case 'full': return 'Full';
+      case 'closed': return 'Sign-ups closed';
+      case 'walkin': return 'Walk in';
+      case 'counter': return 'Pre-register at the counter';
+      case 'cancelled': return 'Cancelled';
+      default: return s.inviteOnly ? 'Invite only' : (s.tool && s.tool.cta) || 'Sign up on ' + ((s.tool && s.tool.name) || 'another site');
+    }
+  };
+  // returns an <li>; everything is built with createElement + textContent (owner rule)
+  V.compactLine = function (occ, now, base) {
+    var s = occ.series, st = MG.seatState(occ, now), g = MG.game(s.game);
+    function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', st.state);
+    var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot);
+    li.appendChild(mk('span', 'dl-time', MG.fmtTime(occ.start)));
+    var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = (base || 'events.html') + '#e-' + encodeURIComponent(occ.key); t.appendChild(a); li.appendChild(t);
+    var bits = [g.short, MG.fmtFee(s.fee), V.seatWords(st, s)];
+    li.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    return li;
+  };
+
+  /* ---------- the Tonight block at the top of the events page (R16): every date for one day, in time order ---------- */
+  // occs: occurrences of one day. Returns a div.slots (or null when empty). Card ids are dropped because the same
+  // dates also appear in the lists below.
+  V.todayBlock = function (occs, now, opts) {
+    opts = opts || {};
+    if (!occs.length) return null;
+    var list = occs.slice().sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : a.series.title.localeCompare(b.series.title); });
+    var groups = [], last;
+    list.forEach(function (o) { if (last && last.start === o.start) last.items.push(o); else { last = { start: o.start, items: [o] }; groups.push(last); } });
+    var wrap = document.createElement('div'); wrap.className = 'slots';
+    groups.forEach(function (gr) {
+      var slot = document.createElement('div'); slot.className = 'slot'; if (gr.items.length > 1) slot.setAttribute('data-multi', '');
+      var p = document.createElement('p'); p.className = 'slot-t'; var tm = document.createElement('time'); tm.textContent = MG.fmtTime(gr.start); p.appendChild(tm);
+      if (gr.items.length > 1) { var n = document.createElement('span'); n.className = 'slot-n'; n.textContent = gr.items.length + ' events start at ' + MG.fmtTime(gr.start); p.appendChild(n); }
+      slot.appendChild(p);
+      var cards = document.createElement('div'); cards.className = 'slot-cards';
+      gr.items.forEach(function (o) {
+        var tpl = document.createElement('template'); tpl.innerHTML = MG.eventCard(o, now, { href: opts.href || 'events.html' });
+        var art = tpl.content.firstElementChild, title = art.querySelector('.ev-title');
+        art.removeAttribute('id'); if (title) { title.id = 'tt-' + o.key; art.setAttribute('aria-labelledby', title.id); }
+        cards.appendChild(art);
+      });
+      slot.appendChild(cards); wrap.appendChild(slot);
+    });
+    return wrap;
   };
 
   /* ---------- a repeating series as one card: "Every Friday, 7 PM to 11 PM" + "Next: Fri Oct 30" ---------- */

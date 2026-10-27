@@ -65,7 +65,7 @@
     empty.hidden = true; main.hidden = false;
     $('#evsel').innerHTML = list.map(function (o) {
       var over = o.endAt <= now;
-      return '<li><button type="button" class="evb" data-key="' + e(o.key) + '" data-game="' + e(o.series.game) + '" aria-pressed="' + (o.key === sel) + '">' +
+      return '<li><button type="button" class="evb" title="' + e(o.series.title) + '" data-key="' + e(o.key) + '" data-game="' + e(o.series.game) + '" aria-pressed="' + (o.key === sel) + '">' +
         '<span class="evb-t">' + e(MG.fmtTime(o.start)) + '</span><span class="evb-n">' + e(o.series.title) + '</span><span class="evb-c">' + e(countText(o)) + (over ? ', finished' : '') + '</span></button></li>';
     }).join('');
   }

@@ -180,7 +180,9 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   `#26211D` admin), `og:type`, `og:site_name`, `og:title`, `og:description`, `og:image` =
   `img/og/mulligan-games-og.jpg` (1200x630: the logo plate on brick with "Card nights five days a week." beside the
   play-room door photo) with width, height and alt, and `twitter:card` = `summary_large_image`. Note for the build:
-  Facebook and X want an absolute `og:image`; the build writes `{siteUrl}/img/og/...` from the configured origin.
+  Facebook and X want an absolute `og:image`, so the prototype uses `https://mishtuk.github.io/Mulligan-Games-Website-concept-/img/og/mulligan-games-og.jpg` on every page (tests.html too) and an absolute `og:url` per page; the build writes `{siteUrl}/img/og/...` and `canonical` from the configured origin. Fonts: `<link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>` in every head.
+- **Phone nav (D34):** the main nav stays a sideways strip with "All events" first and a static right-edge fade (mask, no motion) under 900 px. **Phone quick-action bar (D33):** `.mobile-bar` (Events, Hours, Directions, Call) on public pages under 900 px: fixed bottom, static, 56 px tall items in 4 equal columns on `--charcoal`, an icon over each label (calendar, clock, pin, phone), the current page tinted `--act`, links keep `?now=`, safe-area padding, the page gets matching bottom padding and the toast sits above it; hidden in print.
+- **Print:** `@media print` in `site.css` forces light and black on white at 11pt, hides the demo bar, nav, theme switch, chips, buttons, `.no-print`, video and decorative photos, keeps the logo plate, avoids breaking days and cards, and shows `.print-only` (the store line on the events page). **404:** `prototype/404.html` (plate, "That page isn't here.", Front page, All events, hours, Call, Directions; absolute `/Mulligan-Games-Website-concept-/` paths; `noindex`; footer clears a short card). **Demo bar:** one bar on all five pages, built with `createElement`: "Concept with sample data." + short note, "Pretend it's" menu (every demo moment plus Real clock, keeps the hash and other params), "Reset demo data", and an optional link to the other side (owners: counter screen; admin: the players' side). At most 2 lines at 390 px, 56 px at 1280 px, controls 44 px. The prototype opens on Friday 6:50 PM; `?now=real` shows the real clock. Toast: pauses on hover and focus and restarts in full after, Undo is 48 px.
 
 ---
 
@@ -308,10 +310,9 @@ The card's power/toughness corner: 2px `--line-strong` border, 6px radius, `--su
 number + unit, small line under. Reused for cEDH "registered" counts, preorder "6 days left", and admin counts.
 
 ### 5.5 Day header
-Brick diamond (`--mark`) with the date number (`--on-mark`, condensed) + day name ("Today", "Tomorrow", then "Wednesday") + a "Today"
-highlight tag with the weekday when relative + meta line "Oct 28, open 2 PM to 10 PM" (with any date override note:
+Brick diamond (`--mark`) with the date number (`--on-mark`, condensed) + day name ("Today", "Tomorrow", then "Wednesday") + meta line (for Today and Tomorrow it starts with the weekday, no separate tag, R23) "Oct 28, open 2 PM to 10 PM" (with any date override note:
 "Opening at 10 AM for the cEDH Championship Series"). Sticky while you scroll the day (phone: top of screen; desktop:
-left rail). Closed day: dashed diamond, "The shop is closed.", compact row.
+left rail). Closed day: dashed diamond, "The shop is closed.", compact row. Phone (D35): closed and one-line days use a smaller diamond and name, and a closed day drops the "The shop is closed." line (the meta already says closed).
 
 ### 5.6 Week strip (hero)
 Seven flat day cards in a row under "THE NEXT SEVEN DAYS" (look A replaced the dealt, tapped hand): `--surface`, 1px
@@ -355,7 +356,7 @@ circle is retired with look A).
 
 Order (D1 and the brief): open-now strip > header > hero (status + next up + week deck) > This week at Mulligan >
 cEDH band > New and preorders > Visit > Between events (Discord, proof, lately) > footer. The concept-only demo bar
-sits above everything in the prototype and is not built.
+sits above everything in the prototype and is not built. Phone order (R1): copy, week deck, then the photo box (16:9) so events come first. "This week" (R5): today and the next day with events (after the game filter) are full cards, later days are one line per event with the seat state in words, every day keeps its `d-YYYY-MM-DD` anchor, then "See all N events". Sign up (R7): a card goes straight to the form on the events page (`events.html#su-<key>`); from the detail dialog the form replaces the body with a "Back to details" button. The events page opens with a "Tonight" block (from 5 PM) listing today's dates in time order. The full demo-bar spec is in 2.5.
 
 Look A (D28) keeps this order and grid; the hero is now copy + next-up ticket + week strip on the left and the video
 box on the right (section 2.5), the header is brick with the logo plate, and the bands are `--band` brown, not navy.
@@ -432,7 +433,7 @@ aria-hidden="true"`) holding a `<picture>` poster and the `<video>`, then `.hero
 decoration: no audio track, no captions needed, no accessible name; the pause button is its only control.
 
 **The video element.** `muted loop playsinline preload="none"`, no `controls`, no `autoplay` attribute (the script starts
-it, so nothing downloads early). `<source>` order: `.webm` first (smaller), `.mp4` second (Safari, everything else).
+it, so nothing downloads early). `<source>` order: the smaller file first, which for the `-loop` clip is the `.mp4`; the other format follows. Check sizes whenever a clip is re-encoded.
 `tools/enhance-video.sh <in> <name> [height=1080] [seconds=12]` writes `media/<name>.mp4` (H.264, CRF 20, faststart),
 `media/<name>.webm` (VP9, CRF 33) and `media/<name>.jpg` (first frame = poster source); no audio. The script does not
 make the AVIF/WebP posters, a vertical cut, or a smaller rendition: the coder adds those (poster formats through the
@@ -572,12 +573,13 @@ POST, server reply page). One column, 48px fields, labels above, errors under th
 | Player ID (optional) | text, `inputmode="numeric"` | label from the tool: "Wizards ID (Companion)", "Play! Pokemon ID", "Bandai TCG+ ID", "KONAMI ID". Hidden when the tool has none. |
 | website (honeypot) | hidden from people | off-screen, `tabindex=-1`, `autocomplete="off"` |
 
-- Above the button: "Pay $20 at the store when you arrive." (D3), or "Free." Waitlist mode adds "The event is full. Join
+- Above the button: "Pay $20 at the counter when you arrive." (D3; one phrase in form and result, R17), and no payment line for a free event. Waitlist mode adds "The event is full. Join
   the waitlist and you move in automatically if a seat opens."
 - Button: "Hold my seat" / "Join the waitlist". While sending: disabled with spinner + "Holding your seat...".
 - Success (replaces the form, focus moves to it, `role="status"`):
-  - "**You're in.** Seat 18 of 28 is yours for Draft FNM, Friday Oct 30 at 7 PM. Pay $20 at the counter." [Add to calendar]
-  - "**You're on the waitlist (#3).** If a seat opens, you move in automatically. Check this page or ask at the counter."
+  - "**You're in.** Seat 18 of 28 is yours for Draft FNM, Oct 30 at 7 PM." then "Pay $20 at the counter when you arrive." [Add to calendar] [Done]
+  - "**You're on the waitlist (#3).** If a seat opens, you move in automatically (and we email you, when an email was given). Use the link below to check your place or cancel."
+  - Both add the D26 personal link (R17): "Keep this link to cancel or check your place:" + the link read-only + Copy, and "We emailed it too." only when an email was given. The prototype shows a sample link.
   - Last-seat race: "That seat just went. You're on the waitlist (#1) instead."
   - When the event has an arrive-by time (D17, 15.1 `arriveByMins`), "You're in" adds: "Arrive by 6:50 PM or your
     seat goes to the next person on the waitlist." (without a waitlist: "... or your seat may go to a walk-in.").
@@ -644,7 +646,7 @@ TABLET 768 (portrait)
 - Tapping check-in toggles at once; toast "Sam B. checked in. Undo".
 - **No-show** (one tap, Undo, promotes the waitlist): section 15.7.
 - **Cancel** a registered player: toast "Riley K. cancelled. Jordan K. moved in from the waitlist. Undo" (auto-promote,
-  D6); the promoted row flashes `--ok-bg` once (respect reduced motion).
+  event is full: two buttons replace one: "Add to waitlist" (the primary) and "Seat anyway (29 of 28)" (secondary, asks "Seat anyway?" before it seats; R10). The toast sits above the walk-in bar (R11), Unpaid is an outlined segment with no fill (R13), and an event past its start with fewer than the minimum shows "Started with 5 (min 8)" with "Run it" and "Cancel this date" (R19).
 - **Walk-in add:** name only (contact optional), adds as checked in and "At the door" payment preset (editable). If the
   event is full: two buttons replace one: "Add to waitlist" and "Seat anyway (29 of 28)".
 - **Walk-in-only events:** no list; a big headcount counter (- 56px, number 3rem, + 56px) "Players tonight" plus an
@@ -709,6 +711,8 @@ no-shows** (15.7), rows as in Today (9.2). "Copy post text" next to the tool lin
 - "Save results" + toast.
 
 ### 9.5 Inventory (`admin/inventory.html`)
+
+Round 2 (R8): the − / + steppers never shrink; they stay 56 x 56 at 1024 and 1280 px and Details wraps to its own row.
 
 ```
 Inventory                                  [Receive stock] [Add product]
@@ -802,7 +806,7 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 | Public pages | server-rendered with markers | the card component and week deck are new |
 | Events calendar | hall month grid | not on public pages (players want this week, not a month); the admin list uses "Next dates" per series |
 | Base polish (look A) | `global.css`: smooth anchor scroll gated on reduced motion, `touch-action: manipulation` on controls, tap-highlight and `::selection` in the accent tint, `safe-area-inset-top` on the header | the header is not sticky on Mulligan: the day headings are the sticky element while you scroll the week |
-| Owner's other sites (Madison Networks, Riverside) | Madison `docs/design.md`: 12px radius for media, dark bands reserved for header / strip / footer (and here cEDH), white and cream sections alternating, a phone bottom bar for the main actions (the admin tab bar), field borders at 3:1 | no transparent-over-hero header and no scroll reveals: the hero is a framed photo, and the counter screens stay still. Riverside's public repo showed no design notes to borrow beyond the same Astro + server.js stack |
+| Owner's other sites (Madison Networks, Riverside) | Madison `docs/design.md`: 12px radius for media, dark bands reserved for header / strip / footer (and here cEDH), white and cream sections alternating, a phone bottom bar for the main actions (the admin tab bar; D33 adds a static one to the public pages), field borders at 3:1 | no transparent-over-hero header and no scroll reveals: the hero is a framed photo, and the counter screens stay still. Riverside's public repo showed no design notes to borrow beyond the same Astro + server.js stack |
 
 ---
 

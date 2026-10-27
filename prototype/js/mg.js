@@ -27,11 +27,12 @@
   MG.now = function () {
     var q = new URLSearchParams(location.search).get('now');
     if (q && /^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(q)) return new Date(q);
+    if (q !== 'real') return new Date(D.demoNow); // the shared link opens on the busy Friday evening (R3)
     var real = new Date(), w = D.window;
     if (w && (MG.ymd(real) < w.from || MG.ymd(real) > w.to)) return new Date(D.demoNow);
     return real;
   };
-  MG.isDemoClock = function () { return MG.ymd(MG.now()) !== MG.ymd(new Date()); };
+  MG.isDemoClock = function () { return new URLSearchParams(location.search).get('now') !== 'real' || MG.ymd(MG.now()) !== MG.ymd(new Date()); };
 
   /* ---------- formatting ---------- */
   var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -262,6 +263,7 @@
     opts = opts || {};
     var s = occ.series, st = MG.seatState(occ, now), e = MG.esc, base = opts.href || 'events.html';
     var href = base + '#e-' + encodeURIComponent(occ.key), tool = s.tool || {};
+    var suHref = base + '#su-' + encodeURIComponent(occ.key); // Sign up / Join the waitlist open the form straight away (R7)
     var timeLine = MG.fmtTime(occ.start) + (s.end ? ' to ' + MG.fmtTime(MG.fmtEnd(occ)) : '');
     if (s.doors) timeLine = 'Doors ' + MG.fmtTime(s.doors) + ', starts ' + MG.fmtTime(occ.start);
 
@@ -281,16 +283,16 @@
     var ext = '<span class="vh"> (opens ' + e(tool.name || 'another site') + ')</span>' + MG.icon('external', 'ic-ext');
     switch (st.state) {
       case 'open':
-        act = '<a class="btn btn-act" href="' + href + '">Sign up</a>';
+        act = '<a class="btn btn-act" href="' + suHref + '">Sign up</a>';
         stat = statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'of ' + st.cap, 'seat'); break;
       case 'few':
-        act = '<a class="btn btn-act" href="' + href + '">Sign up</a>';
+        act = '<a class="btn btn-act" href="' + suHref + '">Sign up</a>';
         stat = statBox(st.left, st.left === 1 ? 'seat left' : 'seats left', 'almost full', 'alert'); break;
       case 'needs':
-        act = '<a class="btn btn-act" href="' + href + '">Sign up</a>';
+        act = '<a class="btn btn-act" href="' + suHref + '">Sign up</a>';
         stat = statBox(st.taken, 'signed up', 'needs ' + st.min + ' to run', 'users'); break;
       case 'waitlist':
-        act = '<a class="btn btn-2" href="' + href + '">Join the waitlist</a>';
+        act = '<a class="btn btn-2" href="' + suHref + '">Join the waitlist</a>';
         stat = statBox('Full', '', st.waiting ? st.waiting + ' waiting' : 'waitlist open', 'hourglass'); break;
       case 'full':
         act = '<p class="ev-how">Full. Ask at the counter about open seats.</p>';

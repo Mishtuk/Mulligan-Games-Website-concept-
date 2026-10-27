@@ -1,7 +1,7 @@
 # Mulligan Games website: plan
 
 Owner of this file: the boss. Goal: `BRIEF.md`. Rulings: `DECISIONS.md`. Open questions: `OWNER-QUESTIONS.md`.
-Last updated 2026-10-26.
+Last updated 2026-10-27.
 
 **Order of work:** Phase 1 gives the owners something to click through (a concept, no server). Phase 2 builds the
 real site on the Desktop by copying the Warminster VFW site. Phase 3 is polish and owner review. Within each phase,
@@ -280,6 +280,12 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 ---
 
 ## Phase 3: polish and owner review
+
+### P3.0 Laptop round 2: fixes from the live review (now)
+- **Owner:** Laptop coders, three packages with disjoint files (A players, B counter, C shared/print/404/media/docs);
+  boss reviews. **Plan:** `docs/review/laptop-round-2-plan.md`. Rulings: D32. Desktop items go to #14 as one comment.
+- **Done when:** [ ] each package's "done when" in the plan is checked; [ ] tests.html passes (89 + new);
+  [ ] the mediator has ruled on the bottom bar and the phone nav, and any follow-up is filed.
 
 ### P3.1 Content fill
 - **Owner:** Desktop researcher. **Files:** seed files under `src/content/`, `docs/research/` updates.

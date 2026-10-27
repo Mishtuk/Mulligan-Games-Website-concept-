@@ -294,12 +294,13 @@
 
   window.MG_SAMPLE = {
     version: 1,
-    // Demo clock: the page uses ?now=YYYY-MM-DDTHH:MM if given, else the real clock if it falls in `window`,
-    // else demoNow. Keeps the concept meaningful after these dates pass.
+    // Demo clock: the page uses ?now=YYYY-MM-DDTHH:MM if given, the real clock only with ?now=real (and only if it falls in `window`),
+    // else demoNow (Friday 6:50 PM, the busy moment). Keeps the concept meaningful after these dates pass.
     window: { from: '2026-10-19', to: '2026-11-29' },
-    demoNow: '2026-10-28T16:00',
+    demoNow: '2026-10-30T18:50',
     demoMoments: [
       { label: 'Wednesday 4 PM', now: '2026-10-28T16:00' },
+      { label: 'Friday 6:50 PM', now: '2026-10-30T18:50' },
       { label: 'Friday 7:30 PM', now: '2026-10-30T19:30' },
       { label: 'Monday (closed)', now: '2026-10-26T12:00' },
       { label: 'Saturday 11:30 PM', now: '2026-10-31T23:30' }

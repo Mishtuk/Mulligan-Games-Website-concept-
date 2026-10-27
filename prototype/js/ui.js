@@ -71,6 +71,10 @@
     if (!toastEl) {
       toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite');
       document.body.appendChild(toastEl);
+      var hold = function () { clearTimeout(toastTimer); };
+      var free = function (ev) { if (ev.type === 'focusout' && ev.relatedTarget && toastEl.contains(ev.relatedTarget)) return; if (toastEl._start) toastEl._start(); };
+      toastEl.addEventListener('pointerenter', hold); toastEl.addEventListener('focusin', hold);
+      toastEl.addEventListener('pointerleave', free); toastEl.addEventListener('focusout', free);
     }
     toastEl.textContent = '';
     var p = document.createElement('span'); p.className = 'toast-msg'; p.textContent = msg; toastEl.appendChild(p);
@@ -83,9 +87,12 @@
     if (opts.href) {
       var a = document.createElement('a'); a.className = 'toast-btn'; a.href = opts.href; a.textContent = opts.label || 'See it'; toastEl.appendChild(a);
     }
+    // the timer is paused while the pointer or keyboard focus is on the toast, and restarts in full after
+    var ms = opts.ms || 6000;
+    var start = function () { clearTimeout(toastTimer); if (!toastEl.matches(':hover, :focus-within')) toastTimer = setTimeout(hide, ms); };
+    toastEl._start = start;
     toastEl.classList.add('on');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hide, opts.ms || 6000);
+    start();
   };
   // run an action result through the toast: fail shows the message, success shows it with Undo
   U.say = function (res, opts) {
@@ -131,25 +138,66 @@
   };
 
   /* ---------- the concept bar: not part of the real site ---------- */
+  // U.nav and U.reload are the two page-leaving calls, kept here so tests can replace them.
+  /* D33 phone quick-action bar (public pages): constant icons, the current page marked, links keep ?now= */
+  U.mobileBar = function () {
+    var icons = ['calendar', 'clock', 'pin', 'phone'], here = location.pathname.split('/').pop() || 'index.html';
+    Array.prototype.forEach.call(document.querySelectorAll('.mobile-bar a'), function (a, i) {
+      var h = a.getAttribute('href');
+      if (icons[i]) a.insertAdjacentHTML('afterbegin', MG.icon(icons[i])); // constant SVG, no data
+      if (h === here) a.setAttribute('aria-current', 'page');
+      if (/^[\w\/-]+\.html(#.*)?$/.test(h)) a.setAttribute('href', U.href(h));
+    });
+  };
+  U.nav = function (href) { location.href = href; };
+  U.reload = function () { location.reload(); };
+  // U.demoBar(host, { note, owners: { href, label } }): built with createElement, text only.
   U.demoBar = function (host, opts) {
     opts = opts || {};
-    var D = MG.data, params = new URLSearchParams(location.search), cur = params.get('now');
-    function link(now) {
-      var p = new URLSearchParams(location.search); if (now) p.set('now', now); else p.delete('now');
-      var q = p.toString(); return (q ? '?' + q : location.pathname.split('/').pop() || '') + location.hash;
+    var D = MG.data, cur = new URLSearchParams(location.search).get('now');
+    function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    // same page, same other params and #hash, only ?now= changes
+    function target(now) {
+      var p = new URLSearchParams(location.search); p.set('now', now);
+      return (location.pathname.split('/').pop() || './') + '?' + p.toString() + location.hash;
     }
-    var links = D.demoMoments.map(function (m) {
-      return '<a href="' + e(link(m.now)) + '"' + (cur === m.now ? ' aria-current="true"' : '') + '>' + e(m.label) + '</a>';
-    });
-    links.push('<a href="' + e(link(null)) + '"' + (!cur ? ' aria-current="true"' : '') + '>Right now' + (MG.isDemoClock() ? ' (sample week)' : '') + '</a>');
     host.className = (host.className ? host.className + ' ' : '') + 'demo';
     host.setAttribute('aria-label', 'About this concept');
-    host.innerHTML = '<div class="wrap demo-in"><p><strong>Concept with sample data.</strong> ' + e(opts.note || 'Your clicks are saved in this browser only.') + '</p>' +
-      '<p class="demo-times">Pretend it’s: <span>' + links.join(' ') + '</span></p>' +
-      '<p class="demo-reset"><button type="button" class="demo-btn" id="reset-demo">Reset demo data</button></p></div>';
-    host.querySelector('#reset-demo').addEventListener('click', function () {
-      var r = MG.act.resetDemo(); U.toast(r.msg, { undo: r.before });
+    host.textContent = '';
+    var inner = mk('div', 'wrap demo-in');
+    var msg = mk('p', 'demo-msg'); msg.appendChild(mk('strong', null, 'Concept with sample data.'));
+    msg.appendChild(document.createTextNode(" ")); msg.appendChild(mk("span", "demo-note", opts.note || "Your clicks are saved in this browser only."));
+    inner.appendChild(msg);
+
+    var times = mk('p', 'demo-times'), lab = mk('label', null, 'Pretend it’s'); lab.setAttribute('for', 'demo-now');
+    var sel = mk('select', 'demo-sel'); sel.id = 'demo-now';
+    var matched = false;
+    function opt(label, now, selected) {
+      var o = mk('option', null, label); o.value = now; o.setAttribute('data-href', target(now)); o.selected = !!selected; sel.appendChild(o); return o;
+    }
+    D.demoMoments.forEach(function (m) {
+      var on = cur === m.now || (!cur && m.now === D.demoNow); if (on) matched = true; opt(m.label, m.now, on);
     });
+    opt('Real clock', 'real', cur === 'real'); if (cur === 'real') matched = true;
+    if (!matched && cur) { var c = opt('Custom time', cur, true); c.setAttribute('data-href', target(cur)); }
+    sel.addEventListener('change', function () {
+      var o = sel.options[sel.selectedIndex]; U.nav(o.getAttribute('data-href'));
+    });
+    times.appendChild(lab); times.appendChild(document.createTextNode(' ')); times.appendChild(sel);
+    inner.appendChild(times);
+
+    var rs = mk('p', 'demo-reset'), btn = mk('button', 'demo-btn', 'Reset demo data'); btn.type = 'button'; btn.id = 'reset-demo';
+    btn.addEventListener('click', function () {
+      if (MG.act && MG.act.resetDemo) { var r = MG.act.resetDemo(); U.toast(r.msg, { undo: r.before }); }
+      else { MG.state.reset(); U.reload(); }
+    });
+    rs.appendChild(btn); inner.appendChild(rs);
+
+    if (opts.owners && opts.owners.href) {
+      var ow = mk('p', 'demo-owners'), a = mk('a', null, opts.owners.label || 'Owners: open the counter screen');
+      a.href = opts.owners.href; ow.appendChild(a); inner.appendChild(ow); inner.classList.add('has-owners');
+    }
+    host.appendChild(inner);
   };
 
   /* the Light | Dark switch is MG.scheme.html() / MG.scheme.wire() in mg.js, shared with the public pages */

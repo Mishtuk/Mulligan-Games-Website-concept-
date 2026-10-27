@@ -4,7 +4,7 @@
  */
 (function () {
   'use strict';
-  var MG = window.MG, D = MG.data, e = MG.esc;
+  var MG = window.MG, D = MG.data, U = MG.ui, e = MG.esc;
   var $ = function (s) { return document.querySelector(s); };
   var now = MG.now(), today = MG.ymd(now);
   var weekEnd = MG.ymd(MG.addDays(now, 6));
@@ -24,15 +24,21 @@
   }
   function timeWord(d) { return d.getHours() >= 17 ? 'Tonight' : 'Today'; }
 
-  /* ---------- concept demo bar ---------- */
-  function renderDemo() {
-    var cur = params.get('now');
-    var links = D.demoMoments.map(function (m) {
-      return '<a href="' + e(href({ now: m.now })) + '"' + (cur === m.now ? ' aria-current="true"' : '') + '>' + e(m.label) + '</a>';
+  // keep ?now= on links to other pages (same logic as U.href in js/ui.js)
+  function keepNow(path) {
+    var n = params.get('now');
+    if (!n) return path;
+    var hash = '', i = path.indexOf('#');
+    if (i !== -1) { hash = path.slice(i); path = path.slice(0, i); }
+    return path + (path.indexOf('?') === -1 ? '?' : '&') + 'now=' + encodeURIComponent(n) + hash;
+  }
+  function keepNowLinks() { // static links to *.html (nav, "All events", footer)
+    Array.prototype.forEach.call(document.querySelectorAll('a[href]'), function (a) {
+      var h = a.getAttribute('href');
+      if (!h || h.charAt(0) === '#' || /^[a-z][a-z0-9+.-]*:/i.test(h) || h.indexOf('//') === 0) return;
+      if (!/\.html(#.*)?$/.test(h)) return;
+      a.setAttribute('href', keepNow(h));
     });
-    links.push('<a href="' + e(href({ now: null })) + '"' + (!cur ? ' aria-current="true"' : '') + '>Right now' +
-      (MG.isDemoClock() ? ' (sample week)' : '') + '</a>');
-    $('#demo-links').innerHTML = links.join(' ');
   }
 
   /* ---------- hero video (DESIGN 6.1): poster first; the loop starts after load unless motion or data is limited ---------- */
@@ -181,15 +187,15 @@
     return t;
   }
   function renderDays() {
-    var html = '', shownAny = false;
+    var html = '', shownAny = false, nextSeen = false, hiddenCount = 0, frag = document.createDocumentFragment();
+    function flush() { if (!html) return; var t = document.createElement('template'); t.innerHTML = html; frag.appendChild(t.content); html = ''; }
     for (var i = 0; i < 7; i++) {
       var d = MG.addDays(now, i), ymd = MG.ymd(d), h = MG.hoursFor(ymd);
       var all = week.filter(function (o) { return o.date === ymd; });
       var evs = all.filter(function (o) { return MG.inGame(o.series, chip); });
       var head = '<h3 class="day-h" id="dh-' + ymd + '"><span class="day-dia" aria-hidden="true"><span>' + d.getDate() + '</span></span>' +
         '<span class="day-name">' + (i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : MG.dayName(d)) + '</span>' +
-        (i === 0 ? '<span class="tag tag-today">' + MG.dayName(d) + '</span>' : i === 1 ? '<span class="tag">' + MG.dayName(d) + '</span>' : '') +
-        '<span class="day-meta">' + e(dayMeta(ymd, d)) + '</span></h3>';
+        '<span class="day-meta">' + e((i < 2 ? MG.dayName(d) + ', ' : '') + dayMeta(ymd, d)) + '</span></h3>';
       if (h.closed && !all.length) {
         if (chip === 'all') html += '<section class="day day-closed" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '">' + head +
           '<p class="day-skip">The shop is closed' + (i === 0 ? ' today' : '') + '.</p></section>';
@@ -201,18 +207,38 @@
         continue;
       }
       shownAny = true;
+      if (i > 0 && nextSeen) {
+        // R5: later days are one line per event
+        flush();
+        // built with createElement (owner rule): the hours note comes from data
+        var secEl = document.createElement('section'), hEl = document.createElement('h3'), dia = document.createElement('span'), num = document.createElement('span');
+        secEl.className = 'day'; secEl.id = 'd-' + ymd; secEl.setAttribute('aria-labelledby', 'dh-' + ymd);
+        hEl.className = 'day-h'; hEl.id = 'dh-' + ymd; dia.className = 'day-dia'; dia.setAttribute('aria-hidden', 'true'); num.textContent = d.getDate(); dia.appendChild(num); hEl.appendChild(dia);
+        [['day-name', MG.dayName(d)], ['day-meta', dayMeta(ymd, d)]].forEach(function (x) { var sp = document.createElement('span'); sp.className = x[0]; sp.textContent = x[1]; hEl.appendChild(sp); });
+        secEl.appendChild(hEl);
+        var ul = document.createElement('ul'); ul.className = 'day-lines';
+        evs.forEach(function (o) { ul.appendChild(MG.views.compactLine(o, now, keepNow('events.html'))); });
+        secEl.appendChild(ul); frag.appendChild(secEl); hiddenCount += evs.length;
+        continue;
+      }
+      if (i > 0) nextSeen = true;
       var slots = groupByStart(evs).map(function (s) {
         var multi = s.items.length > 1;
         return '<div class="slot"' + (multi ? ' data-multi' : '') + '>' +
           '<p class="slot-t"><time datetime="' + s.date + 'T' + s.start + '">' + MG.fmtTime(s.start) + '</time>' +
           (multi ? '<span class="slot-n">' + s.items.length + ' events start at ' + MG.fmtTime(s.start) + '</span>' : '') + '</p>' +
-          '<div class="slot-cards">' + s.items.map(function (o) { return MG.eventCard(o, now, { compact: true }); }).join('') + '</div></div>';
+          '<div class="slot-cards"' + (s.items.length === 1 ? ' data-one' : '') + '>' + s.items.map(function (o) { return MG.eventCard(o, now, { compact: true, href: keepNow('events.html') }); }).join('') + '</div></div>';
       }).join('');
       html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '"' + (i === 0 ? ' data-today' : '') + '>' + head +
         '<div class="slots">' + slots + '</div></section>';
     }
     if (!shownAny && chip !== 'all') html = emptyState() + html;
-    $('#days').innerHTML = html;
+    flush();
+    var host = $('#days'); host.textContent = ''; host.appendChild(frag);
+    if (hiddenCount) {
+      var more = document.createElement('p'), ma = document.createElement('a'), total = week.filter(function (o) { return live(o) && MG.inGame(o.series, chip); }).length;
+      more.className = 'day-more'; ma.href = keepNow('events.html'); ma.textContent = 'See all ' + total + ' events on the events page'; more.appendChild(ma); host.appendChild(more);
+    }
     var n = week.filter(function (o) { return live(o) && MG.inGame(o.series, chip); }).length;
     var g = chip === 'all' ? null : MG.game(chip);
     $('#filter-status').textContent = (g ? 'Showing ' + g.short + ': ' : 'Showing all games: ') + n + (n === 1 ? ' event' : ' events') + ' this week.';
@@ -243,7 +269,7 @@
     $('#later').innerHTML = list.length ? list.map(function (x) {
       var o = x.o, d = MG.parseYmd(o.date);
       return '<li><p class="later-date" aria-hidden="true">' + MG.dayShort(d) + '<b>' + d.getDate() + '</b>' + MG.monthShort(d) + '</p>' +
-        '<p class="later-what"><a href="events.html#e-' + e(encodeURIComponent(o.key)) + '">' + e(o.series.title) + '</a>' +
+        '<p class="later-what"><a href="' + e(keepNow('events.html')) + '#e-' + e(encodeURIComponent(o.key)) + '">' + e(o.series.title) + '</a>' +
         '<span class="vh">, ' + e(MG.fmtLongDate(d)) + '</span>' +
         (x.more ? ' <span class="tag">and ' + x.more + ' more ' + (x.more === 1 ? 'date' : 'dates') + '</span>' : '') + '</p>' +
         '<p class="later-meta">' + MG.gameBadge(o.series.game) + '<span>' + MG.fmtTime(o.start) + '</span><span>' + MG.fmtFee(o.series.fee) +
@@ -283,7 +309,7 @@
         var occ = s && MG.occurrences(s, today, MG.ymd(MG.addDays(now, 60))).filter(live);
         if (occ && occ.length) {
           var when = occ.map(function (o) { var d = MG.parseYmd(o.date); return MG.dayShort(d) + ' ' + MG.fmtDate(d) + ' at ' + MG.fmtTime(o.start); });
-          text += '<p><a href="events.html#e-' + e(encodeURIComponent(occ[0].key)) + '">' + e(s.title) + '</a>: ' + e(MG.list(when.slice(0, 3))) +
+          text += '<p><a href="' + e(keepNow('events.html')) + '#e-' + e(encodeURIComponent(occ[0].key)) + '">' + e(s.title) + '</a>: ' + e(MG.list(when.slice(0, 3))) +
             '. ' + MG.fmtFee(s.fee) + '.</p>';
         }
       }
@@ -350,9 +376,11 @@
 
   function init() {
     var st = MG.openStatus(now);
-    renderDemo(); renderOpenbar(st); renderHero(st); renderDeck();
+    U.demoBar($('#demo'), { note: 'Some seat counts, one cancellation and one change are made up.', owners: { href: keepNow('admin/index.html'), label: 'Owners: open the counter screen' } });
+    U.mobileBar();
+    renderOpenbar(st); renderHero(st); renderDeck();
     renderChips(); renderDays(); renderLater();
-    renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips();
+    renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips(); keepNowLinks();
   }
   try { MG.scheme.wire(); wireVideo(); } catch (err) { if (window.console) console.error(err); }
   try { init(); } catch (err) {

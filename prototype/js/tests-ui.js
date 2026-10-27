@@ -141,14 +141,81 @@
     eq(A.regById(victim).status, 'in'); eq(box.querySelectorAll('.rrow-wait').length, 3);
     c.destroy();
   });
-  T.test('a full event offers "Add to waitlist" and "Seat anyway (29 of 28)" for a walk-in', function () {
+  function submitWalk(bar, name, btn) { bar.elements.name.value = name; bar.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true, submitter: btn || null })); }
+  function dlgOf() { return document.querySelector('dialog.dlg[open]'); }
+  function closeDlgs() { Array.prototype.forEach.call(document.querySelectorAll('dialog.dlg'), function (d) { try { d.close(); } catch (e) { d.remove(); } }); }
+  T.test('a full event offers "Add to waitlist" (the main button) and "Seat anyway (29 of 28)" for a walk-in', function () {
     fresh();
     var c = mount('fnm-draft@2026-10-30'), bar = box.querySelector('.walkbar');
     ok(bar.textContent.indexOf('Add to waitlist') !== -1 && bar.textContent.indexOf('Seat anyway (29 of 28)') !== -1, bar.textContent);
-    bar.elements.name.value = 'Walt Z.';
-    var go = bar.querySelector('button[value="over"]'); bar.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true, submitter: go }));
-    var w = D.registrations.filter(function (r) { return r.name === 'Walt Z.'; })[0];
-    ok(w && w.status === 'in' && w.checkedIn, 'seated and checked in');
+    ok(bar.querySelector('button[value="waitlist"]').classList.contains('btn-act'), 'Add to waitlist is the primary');
+    ok(!bar.querySelector('button[value="over"]').classList.contains('btn-act'), 'Seat anyway is not');
+    c.destroy();
+  });
+  T.async('Seat anyway asks first: Go back leaves nobody added, Seat anyway seats 29 of 28', function () {
+    fresh(); closeDlgs();
+    var c = mount('fnm-draft@2026-10-30'), bar = box.querySelector('.walkbar');
+    submitWalk(bar, 'Walt Z.', bar.querySelector('button[value="over"]'));
+    var d = dlgOf(); ok(d, 'a confirm opened'); ok(d.textContent.indexOf('takes seat 29 of 28') !== -1, d.textContent);
+    eq(D.registrations.filter(function (r) { return r.name === 'Walt Z.'; }).length, 0, 'nobody added yet');
+    d.querySelector('[data-close]:not(.dlg-x)').click();
+    return T.wait(30).then(function () {
+      eq(D.registrations.filter(function (r) { return r.name === 'Walt Z.'; }).length, 0, 'Go back adds nobody');
+      bar = box.querySelector('.walkbar'); submitWalk(bar, 'Walt Z.', bar.querySelector('button[value="over"]'));
+      dlgOf().querySelector('[data-ok]').click();
+      return T.wait(30);
+    }).then(function () {
+      var w = D.registrations.filter(function (r) { return r.name === 'Walt Z.'; })[0];
+      ok(w && w.status === 'in' && w.checkedIn, 'seated and checked in');
+      eq(R.counts(A.regs(A.occByKey('fnm-draft@2026-10-30'))).in, 29);
+      c.destroy(); closeDlgs();
+    });
+  });
+  T.test('Enter in the name field of a full event adds to the waitlist, not a seat', function () {
+    fresh();
+    var c = mount('fnm-draft@2026-10-30'), bar = box.querySelector('.walkbar');
+    submitWalk(bar, 'Eve W.', null);
+    var w = D.registrations.filter(function (r) { return r.name === 'Eve W.'; })[0];
+    ok(w && w.status === 'waitlist', 'waitlisted');
+    eq(R.counts(A.regs(A.occByKey('fnm-draft@2026-10-30'))).in, 28);
+    c.destroy();
+  });
+  T.async('a hostile walk-in name shows as text in the Seat anyway confirm', function () {
+    fresh(); closeDlgs();
+    var c = mount('fnm-draft@2026-10-30'), bar = box.querySelector('.walkbar');
+    submitWalk(bar, XSS_IMG, bar.querySelector('button[value="over"]'));
+    var d = dlgOf(); ok(d.textContent.indexOf(XSS_IMG) !== -1, 'the text is shown');
+    eq(d.querySelectorAll('img[src="x"]').length, 0, 'no injected img'); eq(window.__xss, 0, 'nothing ran');
+    d.querySelector('[data-close]:not(.dlg-x)').click(); c.destroy();
+    return T.wait(30).then(closeDlgs);
+  });
+  T.test('R19: before the start "Needs N more" shows; after it "Started with" with Run it, which clears it', function () {
+    fresh();
+    MG.now = function () { return new Date(2026, 9, 30, 17, 0); };
+    var c = mount('chaos-draft-oct30@2026-10-30');
+    ok(/Needs 3 more to run/.test(box.textContent), 'before the start'); ok(!/Started with/.test(box.textContent) && !box.querySelector('[data-act="runit"]'), 'no started text yet');
+    c.destroy();
+    MG.now = function () { return new Date(2026, 9, 30, 18, 50); };
+    c = mount('chaos-draft-oct30@2026-10-30');
+    ok(/Started with 0 \(min 8\)/.test(box.textContent), box.textContent); ok(!/Needs/.test(box.textContent), 'no "Needs" after the start');
+    ok(box.querySelector('[data-act="cancel-date"]'), 'Cancel this date is offered');
+    click(box.querySelector('[data-act="runit"]'));
+    ok(!/Started with/.test(box.textContent) && !box.querySelector('[data-act="runit"]'), 'cleared for that date');
+    c.destroy();
+  });
+  T.test('R13: the Unpaid segment is an outline with no fill class until a payment is chosen', function () {
+    fresh();
+    var c = mount('pauper@2026-10-28'), id = box.querySelector('.rrow[data-status="in"]').getAttribute('data-reg'), row = box.querySelector('[data-reg="' + id + '"]');
+    var u = row.querySelector('.pay-b[data-v="unpaid"]'); ok(u.getAttribute('aria-pressed') === 'true' && !row.querySelector('.pay-fill'), 'unpaid chosen, nothing filled');
+    click(row.querySelector('[data-v="door"]'));
+    row = box.querySelector('[data-reg="' + id + '"]'); ok(row.querySelector('.pay-b[data-v="door"]').classList.contains('pay-fill'), 'door filled'); ok(!row.querySelector('.pay-unpaid.pay-fill'), 'unpaid not filled');
+    c.destroy();
+  });
+  T.test('R12: the waitlist chip is a jump link to the waitlist; the check button has a visible "In" label and its accessible name', function () {
+    fresh();
+    var c = mount('fnm-draft@2026-10-30'), a = box.querySelector('a.rstat-a[href^="#wait-"]');
+    ok(a && /on the waitlist/.test(a.textContent), 'chip link'); ok(document.getElementById(a.getAttribute('href').slice(1)), 'its target exists');
+    var chk = box.querySelector('.chk56'); ok(chk.getAttribute('aria-label') && chk.querySelector('.chk-s').textContent === 'In', 'In label, name kept');
     c.destroy();
   });
   T.test('a walk-in-only night shows the headcount counter, and the number goes into the results', function () {
@@ -316,7 +383,7 @@
     ok(w.MG.data.preorders.some(function (o) { return o.customer === 'Dee D.' && o.status === 'waiting'; }), 'added');
   });
   pageTest('the front page still loads and shows this week', 'index.html?' + N, function (w, d) {
-    ok(d.querySelectorAll('.ev').length > 10, 'cards'); ok(d.querySelectorAll('.daycard').length === 7, 'deck');
+    ok(d.querySelectorAll('.ev, .day-line').length > 10, 'cards and compact rows'); ok(d.querySelectorAll('.daycard').length === 7, 'deck');
   });
   T.async('(clean up) put the demo data back the way it was', function () {
     try { if (SAVE == null) localStorage.removeItem('mg-demo-v1'); else localStorage.setItem('mg-demo-v1', SAVE); } catch (err) { /* ignore */ }

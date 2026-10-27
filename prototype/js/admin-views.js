@@ -29,7 +29,7 @@
     var pay = '';
     if (o.fee !== 0 && r.status === 'in') {
       pay = '<div class="pay" role="group" aria-label="Payment for ' + nm + '">' + R.PAYMENTS.map(function (p) {
-        return '<button type="button" class="pay-b" data-act="pay" data-v="' + p + '" aria-pressed="' + (r.payment === p) + '" title="' + e(R.PAYMENT_LABEL[p]) + '">' + e(R.PAYMENT_SHORT[p]) + '</button>';
+        return '<button type="button" class="pay-b' + (p !== 'unpaid' && r.payment === p ? ' pay-fill' : '') + (p === 'unpaid' ? ' pay-unpaid' : '') + '" data-act="pay" data-v="' + p + '" aria-pressed="' + (r.payment === p) + '" title="' + e(R.PAYMENT_LABEL[p]) + '">' + e(R.PAYMENT_SHORT[p]) + '</button>';
       }).join('') + '</div>' +
         '<label class="pay-sel"><span class="vh">Payment for ' + nm + '</span><select data-act="paysel">' + R.PAYMENTS.map(function (p) {
           return '<option value="' + p + '"' + (r.payment === p ? ' selected' : '') + '>' + e(R.PAYMENT_LABEL[p]) + '</option>';
@@ -37,7 +37,7 @@
     } else if (r.status === 'in') pay = '<span class="tag pay-free">Free entry</span>';
     return '<li class="rrow" data-reg="' + e(r.id) + '" data-status="' + e(r.status) + '"' + (checked ? ' data-checked' : '') + (o.flash ? ' data-flash' : '') + '>' +
       '<button type="button" class="chk56" data-act="checkin" aria-pressed="' + checked + '" aria-label="' + (checked ? 'Undo check-in for ' : 'Check in ') + nm + '">' +
-        MG.icon('check') + '<span class="chk-t">' + (checked ? 'Checked in' : 'Check in') + '</span></button>' +
+        MG.icon('check') + '<span class="chk-s" aria-hidden="true">In</span><span class="chk-t">' + (checked ? 'Checked in' : 'Check in') + '</span></button>' +
       '<div class="rr-who"><strong class="rr-name">' + nm + '</strong>' + idLine + when + contact + (o.promoted ? '<span class="tag tag-ok">Moved in from the waitlist</span>' : '') + '</div>' +
       pay + V.rowMenu(r, o) + '</li>';
   };

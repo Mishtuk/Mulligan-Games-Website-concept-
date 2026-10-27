@@ -68,10 +68,30 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ---------- concept demo bar (not part of the real site) ---------- */
 .demo { background: var(--surface-2); border-bottom: 2px dashed var(--line-strong); font-size: var(--t-sm); }
-.demo-in { display: flex; flex-wrap: wrap; gap: 0 var(--s5); align-items: center; padding-block: var(--s2); }
+.demo-in { display: flex; flex-wrap: wrap; gap: 0 var(--s5); align-items: center; padding-block: var(--s1); }
 .demo p { margin: 0; }
-.demo-times a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--s2); font-weight: 700; }
-.demo-times a[aria-current] { background: var(--ink); color: var(--paper); border-radius: var(--r-box); text-decoration: none; }
+.demo-times { display: flex; align-items: center; gap: var(--s2); font-weight: 700; }
+.demo-sel { min-height: 44px; padding: 0 var(--s2); border: 2px solid var(--line-strong); border-radius: var(--r-ctl); background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; }
+.demo-owners a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+.demo-reset { margin: 0 0 0 auto !important; }
+.demo-btn { min-height: 44px; padding: 0 0.9rem; border-radius: var(--r-ctl); border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; }
+.demo-btn:hover { border-color: var(--ink); }
+@media (min-width: 600px) { .demo-in { flex-wrap: nowrap; } .demo-msg { flex: 1 1 0; min-width: 0; } .demo-times, .demo-reset, .demo-owners { flex: none; } .demo-reset { margin-left: auto !important; } }
+@media (max-width: 599px) {
+  .demo { font-size: var(--t-xs); }
+  .demo-in { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--s3); }
+  .demo-note { display: none; }
+  .demo-msg { grid-column: 1 / -1; grid-row: 1; }
+  .has-owners .demo-msg { grid-column: 1; }
+  .demo-times { min-width: 0; gap: var(--s1); }
+  .demo-times label { white-space: nowrap; }
+  .demo-sel { flex: 1 1 0; min-width: 8.25rem; padding: 0 var(--s1); font-size: var(--t-xs); }
+  .demo .demo-btn { padding: 0 0.6rem; font-size: var(--t-xs); white-space: nowrap; }
+  .demo-in { gap: 0 var(--s2); }
+  .demo-owners { grid-column: 2; grid-row: 1; }
+  .demo-times { grid-column: 1; grid-row: 2; }
+  .demo-reset { grid-column: 2; grid-row: 2; justify-self: end; margin: 0 !important; }
+}
 
 /* ---------- 1. open-now strip ---------- */
 .openbar { background: var(--band); color: var(--on-band); font-size: var(--t-sm); color-scheme: dark; }
@@ -103,14 +123,16 @@ img { max-width: 100%; height: auto; display: block; }
 .plate img { width: 10.5rem; height: auto; }
 .plate:focus-visible { outline-offset: 4px; }
 .site-nav { order: 3; width: calc(100% + 2 * var(--gutter)); margin-inline: calc(-1 * var(--gutter)); overflow-x: auto; scrollbar-width: none; }
-.site-nav ul { display: flex; list-style: none; margin: 0; padding: 0 var(--gutter); gap: 0.15rem; }
+.site-nav ul { display: flex; list-style: none; margin: 0; padding: 0 2.5rem 0 var(--gutter); gap: 0.15rem; }
+/* D34: a static fade at the right edge shows that the row scrolls sideways (no motion) */
+.site-nav { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent); }
 .site-nav a { display: flex; align-items: center; min-height: var(--tap); padding: 0 0.7rem; color: var(--ink); font-weight: 700; text-decoration: none; white-space: nowrap; border-radius: var(--r-ctl); }
 .site-nav a:hover { background: color-mix(in oklab, var(--ink) 10%, transparent); text-decoration: underline; }
 .site-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 0.14em; text-underline-offset: 0.35em; }
 .site-nav li:first-child a { padding-left: 0; }
 @media (min-width: 900px) {
   .head-in { flex-wrap: nowrap; padding-block: var(--s3); }
-  .site-nav { order: 0; width: auto; margin: 0 0 0 auto; overflow: visible; }
+  .site-nav { order: 0; width: auto; margin: 0 0 0 auto; overflow: visible; -webkit-mask-image: none; mask-image: none; }
   .site-nav ul { padding: 0; }
   .site-nav li:first-child a { padding-left: 0.7rem; }
   .plate { margin-right: 0; }
@@ -123,7 +145,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .scheme-k { padding: 0 var(--s2) 0 var(--s3); font-size: var(--t-xs); font-weight: 750; color: var(--ink-2); }
 .scheme button {
-  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0 0.8rem; border: 0; border-radius: var(--r-pill);
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0 0.8rem; border: 0; border-radius: var(--r-pill);
   background: transparent; color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer;
 }
 .scheme button .ic { width: 1.05rem; height: 1.05rem; }
@@ -395,3 +417,46 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .empty-photo > img { width: 6.5rem; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: var(--r-box); }
 .empty-photo .empty-in { display: grid; gap: var(--s2); justify-items: start; }
 @media (min-width: 600px) { .empty-photo { grid-template-columns: 10rem minmax(0, 1fr); padding: var(--s5); } .empty-photo > img { width: 10rem; } }
+
+/* ---------- D33: phone quick-action bar (public pages, static: no slide, no transition) ---------- */
+.mobile-bar { display: none; }
+@media (max-width: 899px) {
+  .mobile-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom); background: var(--charcoal); color: var(--on-band); color-scheme: dark;
+    border-top: 1px solid #FFFFFF22;
+  }
+  .mobile-bar a {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; min-width: 48px;
+    color: var(--on-band); font-size: var(--t-xs); font-weight: 750; text-decoration: none;
+  }
+  .mobile-bar a .ic { width: 1.25rem; height: 1.25rem; }
+  .mobile-bar a:hover { background: #FFFFFF14; }
+  .mobile-bar a[aria-current="page"] { background: color-mix(in oklab, var(--act) 30%, transparent); box-shadow: inset 0 3px 0 var(--act); }
+  .mobile-bar a:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+  body:has(.mobile-bar) { padding-bottom: calc(56px + env(safe-area-inset-bottom)); --toast-bottom: calc(56px + 1rem); }
+}
+
+/* ---------- print: the schedule on the counter window (black on white, no controls) ---------- */
+.print-only { display: none; }
+@media print {
+  :root, header, footer, .openbar, .site-head, .site-foot, [class*="band"] { color-scheme: light !important; }
+  html, body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+  body { padding-bottom: 0 !important; }
+  *, *::before, *::after { color: #000 !important; background-color: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+  .skip, .demo, .demo-host, .site-nav, .scheme, .chips, .btn, .no-print, .mobile-bar, .toast, video, .phero-media, .media-cap, .empty-photo > img, .site-foot img:not(.keep) { display: none !important; }
+  /* boss D35: the events page photo, the filter controls, the live open-now status and the Tonight repeat stay off paper */
+  .ep-photo, .ep-format, .cal-menu, .ob-status, #today-wrap, .site-foot .foot-plate { display: none !important; }
+  .site-head, .openbar, [class*="band"] { background-image: none !important; }
+  .plate, .foot-plate { background: #fff !important; box-shadow: none !important; border: 1px solid #000; }
+  .plate img, .foot-plate img { display: block !important; }
+  .print-only { display: block !important; margin-top: 1rem; }
+  .day, .daycard, .ev, article, li { break-inside: avoid; }
+  .ev, .daycard { border: 1px solid #000 !important; }
+  a { text-decoration: underline; }
+}
+
+/* safety net for any future motion; the targeted rules above stay */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

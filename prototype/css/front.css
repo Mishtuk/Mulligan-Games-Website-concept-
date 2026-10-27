@@ -5,12 +5,12 @@
 /* ---------- hero: the room, then what's on ---------- */
 .phero { background: var(--paper); color: var(--ink); }
 .phero-in {
-  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "media" "copy" "deck";
-  gap: var(--s5); padding-block: 0 var(--s6);
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "deck" "media";
+  gap: var(--s5); padding-block: var(--s5) var(--s6);
 }
 .phero-media {
   grid-area: media; position: relative; overflow: hidden; margin: 0 calc(-1 * var(--gutter));
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
   /* the poster is also the box background, so the frame is never empty or black while the image decodes */
   background: var(--surface-2) url("../media/video/cedh-players-tables-loop-poster.webp") 50% 28% / cover no-repeat;
 }
@@ -69,6 +69,7 @@
 .wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); transform: none; animation: none; }
 
 @media (min-width: 768px) {
+  .phero-in { grid-template-areas: "media" "copy" "deck"; padding-block-start: 0; }
   .phero-media { margin: var(--s5) 0 0; border-radius: var(--r-photo); aspect-ratio: 16 / 9; }
   .phero-in { padding-block: 0 var(--s7); }
   .wdeck ol { margin-inline: 0; padding-inline: 0; overflow: visible; }
@@ -126,3 +127,39 @@
 @media (min-width: 1024px) { .visit-pics { grid-column: auto; } .vp-front { aspect-ratio: 3 / 4; } }
 
 @media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } }
+
+/* ---------- compact week (R5): later days are one line per event ---------- */
+.day-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.day-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.6rem; padding-block: 0.55rem; border-top: 1px solid var(--line); min-height: var(--tap); }
+.day-line:first-child { border-top: 0; }
+.dl-dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--gc, var(--g-other)); flex: none; align-self: center; }
+.dl-time { font-weight: 800; white-space: nowrap; }
+.dl-title { font-weight: 750; }
+.dl-title a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.dl-bits { color: var(--ink-2); font-size: var(--t-sm); font-weight: 600; }
+.day-line[data-state="cancelled"] .dl-title a { text-decoration: line-through; color: var(--ink-2); }
+.day-more { margin: var(--s4) 0 0; font-weight: 750; }
+.day-more a { display: inline-flex; align-items: center; min-height: var(--tap); }
+@media (min-width: 1024px) { .slot-cards[data-one] { grid-template-columns: minmax(0, 1fr); } }
+/* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
+@media (max-width: 1023px) {
+  .dl-bits { flex-basis: 100%; padding-left: 1.25rem; }
+  #days .day-closed, #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
+  #days .day-closed .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+  #days .day-closed .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
+  #days .day-closed .day-meta, #days .day:has(> .day-lines) .day-meta { padding-left: 3rem; margin-top: -0.4rem; }
+  #days .day-closed .day-skip { display: none; } /* the header already says "closed" */
+}
+/* a wide single card keeps its text readable */
+.slot-cards[data-one] .ev-text { max-width: 60ch; }
+
+/* ---------- a real photo beside New and preorders (R27) ---------- */
+.rel-photo { margin: 0 0 var(--s4); max-height: 220px; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
+.rel-photo img { display: block; width: 100%; height: 220px; object-fit: cover; object-position: 50% 50%; }
+@media (min-width: 1024px) {
+  .new .wrap { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 0 var(--s6); align-items: start; }
+  .new .sec-head { grid-column: 1 / -1; }
+  .rel-photo { max-height: none; grid-row: 2; }
+  .rel-photo img { height: 20rem; }
+  .rel-list { grid-column: 2; grid-row: 2; }
+}

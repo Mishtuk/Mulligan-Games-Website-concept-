@@ -366,3 +366,55 @@ walk-in), G10 `headcount` table (one integer per slot, walk-in-only events, 0-99
 sits behind session + origin + 1200/hour; JSON fields are type-checked; SQL `?` only; names stay text.
 **Why:** the No-show rule already decides who goes back, so cancel Undo reuses it; the old way could give a seat to
 the wrong person. Boss overrule: G6 bump rule changed from "the people this cancel promoted".
+
+### D32. Laptop round 2 scope: live review (R1-R27) + reference-sites crossref (2026-10-27)
+Plan: `docs/review/laptop-round-2-plan.md` (packages A players, B counter, C shared; disjoint files).
+(1) **The concept opens on a busy moment.** No `?now=` means Friday Oct 30, 6:50 PM (sample `demoNow`); `?now=real`
+gives the real clock. The plain shared link no longer lands on "Closed today" (R3).
+(2) **Full event at the counter: "Add to waitlist" is the primary; "Seat anyway (29 of 28)" is secondary behind a
+confirm** (R10). D31's server `anyway` stands; only the screen changes.
+(3) **Adopted from the crossref now:** print CSS + "Print the schedule" on the events page (counter-window schedule),
+font preload, the reduced-motion safety net, a 404 with Hours / Call / Directions. **Cut:** view transitions (DESIGN
+2.4 "no load animation", D27 calm), eyebrow rule, underline-grow, card line-clamp (would hide a change note),
+`viewport-fit=cover` (no edge-to-edge content; letterboxing is safer). Printable flyer page stays "Not now".
+(4) **Media:** delete the files no page uses from `prototype/` (13.6 MB of video, unused logo PNGs, sign photos,
+flyers, identical -800 twins). `source/` is untouched and the encodes stay in git history (838e144). Keep
+`logo-512.png` (build manifest), the loop `.webm` (still a source) and the posters in use.
+(5) **New prototype code follows D20's client rule** (createElement + textContent for data), including lines rewritten
+in old escaped templates. Test files are owned like code: B owns `tests-ui.js`, A adds `tests-front.js`, C adds
+`tests-shared.js` and owns `tests.html`.
+(6) Phone: (215) 789-3299 (pub l.20), already on every page; the crossref's open question is closed.
+(7) To the mediator: a phone bottom action bar, and strip vs menu sheet for the phone nav. "All events" moves first in
+the nav either way.
+**Why:** the owners judge the concept from the shared link on a phone and from the counter screen; these are the
+fixes that change what they see there. Decoration and motion the spec already ruled out stay out.
+
+### D33. Phone bottom action bar on public pages: adopt, static (2026-10-27, mediator)
+- **Question:** add the owner's MobileBar (advisor) or keep phone chrome to admin only with no sliding bar (designer)?
+- **Ruling:** Adopt, as a **static** bar: no hide-on-scroll, no transform or transition. Public pages only, under 900px,
+  fixed to the bottom with `env(safe-area-inset-bottom)`, 56px tall, four items in this order: Events (`events.html`),
+  Hours (the open-now strip), Directions (the existing link), Call (`tel:+12157893299`). Current page gets the `--act`
+  tint. `body` gets `padding-bottom` for the bar; anchor and sticky targets get `scroll-padding-bottom`. Hidden in print.
+  Admin keeps its own tab bar (DESIGN 12) and is not touched.
+- **Why:** the designer's motion objection is about the slide, and a static bar removes it. Owners' sites prove the
+  pattern, and Call and Directions are what a player on a phone needs at any scroll depth. The header is not sticky on
+  Mulligan, so the bar is the one always-visible action and does not duplicate a sticky header. Its Events duplicates
+  the nav's "All events" under 900px; accepted, because the nav is the desktop menu too. Cost accepted: 56px of a phone
+  screen; R1 still holds because the bar sits below the content, not above it. Call is not in the open-now strip today
+  (only Directions is), so the bar carries it.
+- **Next:** **A** adds the markup (`<nav class="mobile-bar" aria-label="Quick actions">`, four links) to
+  `index.html` and `events.html` only. **C** adds the `.mobile-bar` CSS to `site.css` (under 900px, no transition, print
+  hidden) and the `body` padding. DESIGN.md 2.5 and 12 get one line for the public bar (C owns DESIGN.md).
+
+### D34. Phone nav: keep the sideways strip, "All events" first, with an edge fade (2026-10-27, mediator)
+- **Question:** a sideways nav strip (designer, R6) or a `<details>` menu sheet (advisor: 6 links is past the 4-link rule)?
+- **Ruling:** Keep the strip. "All events" first (A4), plus an edge fade on the strip's right side (C). No menu sheet
+  now. The crossref's "4 or fewer" rule is superseded for this strip: a sheet becomes the answer only if the nav grows
+  past 6 links.
+- **Why:** D33 now puts Events, Hours, Directions and Call in the bottom bar, so the strip needs only the page link and
+  the in-page jumps. Five of the six links are in-page jumps on a page the reader scrolls anyway. A sheet adds a new
+  widget, a JS focus trap and a tap, against the brief's "simpler". The one link that matters most for players is
+  now first and visible.
+- **Next:** **A** keeps the `index.html` nav order (All events first) and adds nothing else. **C** adds the edge fade
+  to `.site-nav` in `site.css` (a `mask-image` or pseudo-element gradient on the right, under 900px, hidden when the
+  strip is at its end, no motion). Test at 360px: "All events" visible without scrolling.

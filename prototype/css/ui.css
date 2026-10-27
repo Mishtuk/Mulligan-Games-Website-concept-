@@ -14,11 +14,6 @@
 .struck { text-decoration: line-through; }
 .code { font-family: ui-monospace, Consolas, monospace; font-size: 1.05em; letter-spacing: 0.02em; }
 
-/* ---------- the concept bar (events page and admin) ---------- */
-.demo-reset { margin: 0 0 0 auto !important; }
-.demo-btn { min-height: 40px; padding: 0 0.9rem; border-radius: var(--r-ctl); border: 2px solid var(--line-strong); background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; }
-.demo-btn:hover { border-color: var(--ink); }
-
 /* ---------- form fields: labels above, errors under ---------- */
 .fld { display: grid; gap: 0.3rem; margin: 0 0 var(--s3); font-weight: 650; }
 .fld > span { font-size: var(--t-sm); }
@@ -53,13 +48,13 @@
 /* ---------- toast with Undo (DESIGN.md 9.1) ---------- */
 .toast {
   position: fixed; left: 50%; bottom: calc(var(--toast-bottom, 1rem) + env(safe-area-inset-bottom)); z-index: 100; transform: translate(-50%, 1.5rem);
-  display: flex; align-items: center; gap: var(--s3); max-width: min(calc(100% - 1.5rem), 38rem); padding: 0.4rem 0.4rem 0.4rem 1rem; border-radius: var(--r-ctl);
+  display: flex; align-items: center; gap: var(--s3); width: max-content; max-width: min(calc(100% - 1.5rem), 38rem); padding: 0.4rem 0.4rem 0.4rem 1rem; border-radius: var(--r-ctl);
   background: var(--charcoal); color: var(--on-band); border: 1px solid #FFFFFF33; box-shadow: 0 10px 30px -10px #000a; font-weight: 650; opacity: 0; pointer-events: none;
   transition: opacity 160ms, transform 160ms; color-scheme: dark;
 }
 .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .toast-msg { padding-block: 0.35rem; overflow-wrap: anywhere; }
-.toast-btn { flex: none; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.9rem; border: 0; border-radius: var(--r-box); background: var(--highlight); color: var(--on-highlight); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; }
+.toast-btn { flex: none; display: inline-flex; align-items: center; min-height: 3rem; padding: 0 0.9rem; border: 0; border-radius: var(--r-box); background: var(--highlight); color: var(--on-highlight); font: inherit; font-weight: 800; text-decoration: none; cursor: pointer; }
 .toast-btn:hover { filter: brightness(1.05); }
 
 /* ---------- sign-up form and result ---------- */
@@ -90,11 +85,4 @@
 .det-where { margin: 0; padding: 0 1rem var(--s4); font-size: var(--t-sm); color: var(--ink-2); }
 @media (max-width: 480px) { .det-list > div { grid-template-columns: 1fr; gap: 0; } }
 
-/* concept bar: stays small on phones (the times scroll sideways) */
-@media (max-width: 599px) {
-  .demo-in { display: grid; gap: var(--s1); }
-  .demo-times { display: flex; align-items: center; gap: var(--s2); min-width: 0; white-space: nowrap; }
-  .demo-times > span { display: inline-flex; gap: var(--s1); overflow-x: auto; white-space: nowrap; position: relative; scrollbar-width: none; }
-  .demo-reset { margin: 0 !important; }
-}
 .fld .hint-s { font-size: var(--t-xs); font-weight: 500; color: var(--ink-2); }

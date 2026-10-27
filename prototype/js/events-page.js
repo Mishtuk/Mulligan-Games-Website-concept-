@@ -119,6 +119,17 @@
     $('#weekly-wrap').hidden = !count;
     return count;
   }
+  /* R16: everything on today's date first, specials and weekly nights together, in time order */
+  function renderToday() {
+    var occs = MG.allOccurrences(today, today).filter(function (o) { return passes(o.series) && o.endAt > now; });
+    var host = $('#today'), wrap = $('#today-wrap');
+    host.textContent = '';
+    var block = V.todayBlock(occs, now, { href: 'events.html' });
+    wrap.hidden = !block;
+    if (!block) return;
+    $('#today-h').textContent = now.getHours() >= 17 ? 'Tonight' : 'Today';
+    host.appendChild(block);
+  }
   function renderEmpty(total) {
     var host = $('#ep-empty');
     if (total) { host.innerHTML = ''; host.hidden = true; return; }
@@ -136,6 +147,7 @@
   function render() {
     renderChips(); renderFormats(); calLabels();
     var total = renderSpecial() + renderWeekly();
+    renderToday();
     renderEmpty(total);
     U.announce((game === 'all' ? 'Showing all games' : 'Showing ' + MG.game(game).short) + (format ? ', ' + format : '') + ': ' + total + (total === 1 ? ' event.' : ' events.'));
     var open = $('#det-dlg[open]');
@@ -143,24 +155,28 @@
   }
 
   /* ---------- event detail dialog ---------- */
-  var detKey = null;
+  var detKey = null, detMode = 'detail', baseTitle = document.title;
   function fillDetail() {
+    if (detMode !== 'detail') return; // the sign-up form or its confirmation is showing: leave it alone
     var occ = detKey && window.MG.act.occByKey(detKey), body = $('#det-body');
     if (!occ) { body.innerHTML = '<div class="empty" role="note"><p class="empty-h">We couldn’t find that event.</p><p>It may have been changed. Pick another from the list.</p></div>'; return; }
     body.innerHTML = V.detail(occ, now);
   }
   function openDetail(key, push) {
     var dlg = $('#det-dlg');
-    detKey = key;
+    detKey = key; detMode = 'detail';
     fillDetail();
+    var occ = MG.act.occByKey(key);
+    if (occ) document.title = occ.series.title + ', ' + MG.dayShort(MG.parseYmd(occ.date)) + ' ' + MG.fmtDate(MG.parseYmd(occ.date)) + ', ' + MG.fmtTime(occ.start) + ' · Mulligan Games';
     if (!dlg.open) dlg.showModal();
     if (push) history.replaceState(null, '', location.pathname + location.search + '#e-' + encodeURIComponent(key));
     $('#det-x').focus();
   }
-  function closeDetail() { history.replaceState(null, '', location.pathname + location.search); detKey = null; }
+  function closeDetail() { document.title = baseTitle; history.replaceState(null, '', location.pathname + location.search); detKey = null; detMode = 'detail'; }
   function fromHash() {
-    var m = /^#e-(.+)$/.exec(location.hash);
-    if (m) { try { openDetail(decodeURIComponent(m[1]), false); } catch (err) { /* bad hash: ignore */ } }
+    var m = /^#e-(.+)$/.exec(location.hash), su = /^#su-(.+)$/.exec(location.hash);
+    if (su) { try { openSignup(decodeURIComponent(su[1]), false); } catch (err) { /* bad hash: ignore */ } }
+    else if (m) { try { openDetail(decodeURIComponent(m[1]), false); } catch (err) { /* bad hash: ignore */ } }
     else if ($('#det-dlg').open) { $('#det-dlg').close(); }
   }
 
@@ -185,13 +201,25 @@
   }
 
   /* ---------- sign-up dialog ---------- */
-  function openSignup(key) {
+  // inDetail: the form replaces the detail dialog's body (Back to details returns); otherwise it opens by itself (#su-<key> or a card button)
+  function openSignup(key, inDetail) {
     var occ = MG.act.occByKey(key); if (!occ) return;
     var st = MG.seatState(occ, MG.now());
     if (['open', 'few', 'needs', 'waitlist'].indexOf(st.state) === -1) { U.toast('Sign-ups are closed for this one.'); return; }
-    var dlg = U.dialog(st.state === 'waitlist' ? 'Join the waitlist' : 'Sign up', V.signupForm(occ, st), { cls: 'dlg-su' });
-    dlg.querySelector('input[name="name"]').focus();
-    var form = dlg.querySelector('form');
+    var title = st.state === 'waitlist' ? 'Join the waitlist' : 'Sign up', dlg, form;
+    if (inDetail) {
+      dlg = $('#det-dlg'); detMode = 'form';
+      dlg.querySelector('.dlg-h').textContent = title;
+      var body = $('#det-body'); body.textContent = '';
+      var back = document.createElement('button'); back.type = 'button'; back.className = 'btn btn-2'; back.setAttribute('data-back', ''); back.textContent = 'Back to details';
+      var p = document.createElement('p'); p.className = 'su-back'; p.appendChild(back); body.appendChild(p);
+      var tpl = document.createElement('template'); tpl.innerHTML = V.signupForm(occ, st); body.appendChild(tpl.content);
+    } else {
+      if ($('#det-dlg').open) $('#det-dlg').close();
+      dlg = U.dialog(title, V.signupForm(occ, st), { cls: 'dlg-su', onClose: function () { if (/^#su-/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } });
+    }
+    form = dlg.querySelector('form');
+    form.querySelector('input[name="name"]').focus();
     form.addEventListener('submit', function (ev) { ev.preventDefault(); submitSignup(dlg, form, occ); });
   }
   function fieldErr(form, name, msg) {
@@ -227,7 +255,8 @@
       }
       var occNow = MG.act.occByKey(form.dataset.key) || occ;
       dlg.querySelector('.dlg-h').textContent = res.status === 'in' ? 'You’re in' : 'You’re on the waitlist';
-      dlg.querySelector('.dlg-body').innerHTML = V.signupDone(occNow, res);
+      if (dlg.id === 'det-dlg') detMode = 'done';
+      var bd = dlg.querySelector('.dlg-body'); bd.textContent = ''; bd.appendChild(V.signupDone(occNow, res, { email: data.email }));
       var done = dlg.querySelector('.su-done'); if (done) done.focus();
     }, 450);
   }
@@ -243,7 +272,12 @@
         var cur = document.querySelector('.chip[aria-current="true"]'); if (cur) cur.focus();
         return;
       }
-      var su = t.closest('[data-signup]'); if (su) { openSignup(su.getAttribute('data-signup')); return; }
+      var su = t.closest('[data-signup]'); if (su) { openSignup(su.getAttribute('data-signup'), !!t.closest('#det-dlg')); return; }
+      if (t.closest('[data-back]')) { detMode = 'detail'; fillDetail(); $('#det-x').focus(); return; }
+      var cl = t.closest('[data-copy-link]');
+      if (cl) { U.copy(cl.getAttribute('data-copy-link'), function (ok) { U.toast(ok ? 'Link copied.' : 'Couldn’t copy. Select the link and copy it.'); }); return; }
+      var suLink = t.closest('a[href*="#su-"]');
+      if (suLink && /^events.html/.test(suLink.getAttribute('href'))) { ev.preventDefault(); openSignup(decodeURIComponent(suLink.getAttribute('href').split('#su-')[1]), false); return; }
       var ics = t.closest('[data-ics-one]'); if (ics) { downloadOne(ics.getAttribute('data-ics-one')); return; }
       var cp = t.closest('[data-copy]');
       if (cp) { U.copy(cp.getAttribute('data-copy'), function (ok) { U.toast(ok ? 'Event code copied.' : 'Couldn’t copy. Select the code and copy it.'); }); return; }
@@ -255,7 +289,7 @@
     });
     $('#fmt').addEventListener('change', function () { format = this.value; history.replaceState(null, '', url({ format: format || null })); render(); });
     var dlg = $('#det-dlg');
-    dlg.addEventListener('click', function (ev) { if (ev.target === dlg || ev.target.closest('#det-x')) dlg.close(); });
+    dlg.addEventListener('click', function (ev) { if (ev.target === dlg || ev.target.closest('#det-x') || ev.target.closest('[data-close]')) { document.title = baseTitle; dlg.close(); } });
     dlg.addEventListener('close', closeDetail);
     window.addEventListener('hashchange', fromHash);
     MG.scheme.wire();
@@ -264,7 +298,11 @@
   }
 
   function init() {
-    U.demoBar($('#demo'), { note: 'Sign up for a night, then open the admin Today screen to find your name. Your clicks are saved in this browser only.' });
+    U.demoBar($('#demo'), { note: 'Sign up for a night, then open the admin Today screen to find your name. Your clicks are saved in this browser only.',
+      owners: { href: U.href('admin/index.html'), label: 'Owners: open the counter screen' } });
+    U.mobileBar();
+    Array.prototype.forEach.call(document.querySelectorAll('.site-head a[href], .site-foot a[href]'), function (a) { var h = a.getAttribute('href'); if (/^[\w\/-]+\.html(#.*)?$/.test(h)) a.setAttribute('href', U.href(h)); }); // keep ?now= like the front page
+    var pb = $('#print-btn'); if (pb) pb.addEventListener('click', function () { window.print(); });
     $('#loading').remove();
     openbar(); render(); wire(); fromHash();
     // the admin link keeps the demo clock

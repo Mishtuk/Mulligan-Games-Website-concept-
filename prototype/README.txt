@@ -5,12 +5,16 @@ Players
   index.html          Front page: open-now strip, this week, cEDH, preorders, visit
   events.html         All events: game chips, format filter, event details, sign up / waitlist, add to calendar
 
+Other
+  404.html            The page shown for a wrong address (GitHub Pages serves it)
+
 Staff (counter)
   admin/index.html    Today: check in, paid, walk-ins, cancel (waitlist moves up), reminders
   admin/events.html   Events: new event from a template, repeats, cancel one date, roster and results
   admin/inventory.html  Stock: low stock, reserved for events, receive; #preorders for preorders
 
 Tips
-  Add ?now=2026-10-30T19:30 to any address to see a busy Friday night.
-  "Reset demo data" (bottom of each page) puts everything back.
-  tests.html runs the 89 rule checks.
+  The pages open on a pretend Friday 6:50 PM (ten minutes before the 7 PM draft). Add ?now=real to any address
+  for the real clock, or ?now=2026-10-30T19:30 for another moment. The bar at the top has a "Pretend it's" menu.
+  "Reset demo data" (in the bar at the top of each page) puts everything back.
+  tests.html runs the rule and page checks (see its summary line for the count).

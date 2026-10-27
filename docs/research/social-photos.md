@@ -11,11 +11,11 @@ Colours (sampled, approx): fill #70C0E0, outline #581060, inner accent ~#F0905C;
 
 | File | Source | Notes |
 |---|---|---|
-| prototype/img/logo/logo-native-340.png | crop of Instagram raffle flyer (instagram.com/mulligangames, "Raffle Prizes List Sheet") | 340x120, white bg, tiny yellow star fragment lower-left |
-| prototype/img/logo/logo-large-1020.png | same, upscaled 3x | soft, 1020x360 |
+| prototype/img/logo/logo-native-340.png | crop of Instagram raffle flyer (instagram.com/mulligangames, "Raffle Prizes List Sheet") | 340x120, white bg, tiny yellow star fragment lower-left   (removed in round 2) |
+| prototype/img/logo/logo-large-1020.png | same, upscaled 3x | soft, 1020x360   (removed in round 2) |
 | prototype/img/logo/logo-512.png, logo-180.png, favicon-32.png | same, padded square, white bg | not transparent |
-| prototype/img/logo/sign-photo-brick-720.jpg | Facebook profile photo (facebook.com/profile.php?id=100085975454414) | photo of the real sign on brick, 720x719 |
-| prototype/img/logo/sign-photo-roof-398.jpg | TikTok @mulligangames avatar (same photo as IG and X avatars) | 398x398 |
+| prototype/img/logo/sign-photo-brick-720.jpg | Facebook profile photo (facebook.com/profile.php?id=100085975454414) | photo of the real sign on brick, 720x719   (removed in round 2) |
+| prototype/img/logo/sign-photo-roof-398.jpg | TikTok @mulligangames avatar (same photo as IG and X avatars) | 398x398   (removed in round 2) |
 
 ## Photos (web copies in prototype/img/social/, each also as *-800.webp)
 | File | Source URL | Shows | Orig size | Good for | Quality |
@@ -44,3 +44,5 @@ Not used: IG reel DTHcsxqjNDL (360p, UI screenshots of standings with player nam
 - prototype/img/logo/*: see Logo table above.
 - prototype/img/social/{interior-welcome-banner, staff-corgi-interior, staff-group, singles-display-case, storefront-sign-roof, flyer-anniversary-4yr, flyer-anniversary-buildabattle}.webp and -800.webp: Photos table above.
 - prototype/media/video/{storefront-exterior, cedh-players-tables, cedh-monthly-event, sealed-packs-counter}.{mp4,webm} and -poster.webp: Videos table above.
+
+Removed from prototype/ in round 2 (originals in source/social/, encodes in git history at 838e144): img/logo/{logo-native-340.png, logo-large-1020.png, sign-photo-brick-720.jpg, sign-photo-roof-398.jpg}; img/social/{flyer-anniversary-4yr, flyer-anniversary-buildabattle}.webp and their -800 copies; img/social/{singles-display-case, staff-group, storefront-sign-roof}-800.webp; media/video/{cedh-monthly-event, storefront-exterior, sealed-packs-counter}.{mp4,webm}; media/video/cedh-players-tables.{mp4,webm} and -poster.webp. Posters of cedh-monthly-event, storefront-exterior and sealed-packs-counter stay.

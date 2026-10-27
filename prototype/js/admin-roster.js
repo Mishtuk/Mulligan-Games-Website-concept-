@@ -6,7 +6,7 @@
   'use strict';
   var MG = window.MG, D = MG.data, R = MG.rules, S = MG.stock, A = MG.act, U = MG.ui, V = MG.views, e = MG.esc;
 
-  function statChip(icon, text, cls) { return '<li class="rstat' + (cls ? ' ' + cls : '') + '">' + MG.icon(icon) + '<span>' + e(text) + '</span></li>'; }
+  function statChip(icon, text, cls, href) { var inner = MG.icon(icon) + '<span>' + e(text) + '</span>'; return '<li class="rstat' + (cls ? ' ' + cls : '') + '">' + (href ? '<a class="rstat-a" href="' + e(href) + '">' + inner + '</a>' : inner) + '</li>'; }
 
   /* ---------- the roster ---------- */
   V.mountRoster = function (host, o) {
@@ -29,12 +29,16 @@
         }).join('') + '</ul>' : '') + '</div>';
     }
 
+    function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
     function walkBar(oc, full) {
       var cap = MG.capOf(oc), c = R.counts(A.regs(oc));
-      var btns = full
-        ? '<button type="submit" class="btn btn-2" value="waitlist">Add to waitlist</button><button type="submit" class="btn btn-act" value="over">Seat anyway (' + (c.in + 1) + ' of ' + cap + ')</button>'
-        : '<button type="submit" class="btn btn-act" value="auto">Add and check in</button>';
-      return '<form class="walkbar" data-act="walkform"><label class="fld walk-fld"><span class="vh">Walk-in name</span><input name="name" autocomplete="off" placeholder="Walk-in name"></label>' + btns + '</form>';
+      var f = el('form', 'walkbar'); f.setAttribute('data-act', 'walkform');
+      var lab = el('label', 'fld walk-fld'), sp = el('span', 'vh', 'Walk-in name'), inp = el('input'); inp.name = 'name'; inp.setAttribute('autocomplete', 'off'); inp.placeholder = 'Walk-in name';
+      lab.appendChild(sp); lab.appendChild(inp); f.appendChild(lab);
+      function sub(cls, val, text) { var b = el('button', 'btn ' + cls, text); b.type = 'submit'; b.value = val; f.appendChild(b); }
+      if (full) { sub('btn-act', 'waitlist', 'Add to waitlist'); sub('btn-2', 'over', 'Seat anyway (' + (c.in + 1) + ' of ' + cap + ')'); }
+      else sub('btn-act', 'auto', 'Add and check in');
+      return f;
     }
 
     function render() {
@@ -50,10 +54,12 @@
         var d = MG.parseYmd(oc.date);
         head = '<div class="roster-head"><h2 class="roster-title">' + e(s.title) + '</h2><p class="roster-sub">' + e(MG.fmtLongDate(d) + ', ' + MG.fmtTime(oc.start) + ', ' + MG.fmtFee(s.fee)) + '</p></div>';
       }
-      var min = R.minToRun(c.in, s.minPlayers);
-      var stats = '<ul class="rstats">' + (rosterMode ? statChip('check', 'Checked in ' + c.checkedIn + ' of ' + c.in) + (fee !== 0 ? statChip('credit', 'Paid ' + c.paid) : '') +
-        (cap ? statChip('seat', c.in + ' of ' + cap + ' seats') : '') + (c.waitlist ? statChip('hourglass', c.waitlist + ' on the waitlist', 'rstat-wait') : '') +
-        (!min.ok && !oc.cancelled ? statChip('alert', 'Needs ' + min.short + ' more to run', 'rstat-warn') : '') : statChip('users', 'Players ' + A.headcountOf(oc))) + '</ul>';
+      var runKey = 'run:' + oc.key, started = MG.now() >= oc.startAt, ran = !!D.headcounts[runKey];
+      var min = R.minToRun(started ? c.checkedIn : c.in, s.minPlayers), lowWarn = !min.ok && !oc.cancelled && !ran;
+      var stats = '<ul class="rstats">' + (rosterMode ? statChip('check', 'Checked in ' + c.checkedIn + ' of ' + c.in, '', '#in-' + oc.key) + (fee !== 0 ? statChip('credit', 'Paid ' + c.paid) : '') +
+        (cap ? statChip('seat', c.in + ' of ' + cap + ' seats') : '') + (c.waitlist ? statChip('hourglass', c.waitlist + ' on the waitlist', 'rstat-wait', '#wait-' + oc.key) : '') +
+        (lowWarn ? statChip('alert', started ? 'Started with ' + min.taken + ' (min ' + min.min + ')' : 'Needs ' + min.short + ' more to run', 'rstat-warn') : '') : statChip('users', 'Players ' + A.headcountOf(oc))) + '</ul>' +
+        (rosterMode && lowWarn && started ? '<p class="rtools rstart-acts">' + V.btn('btn btn-2', 'data-act="runit"', 'Run it') + V.btn('btn btn-2', 'data-act="cancel-date"', 'Cancel this date') + '</p>' : '');
       var tool = '';
       if (o.tool && s.tool && s.tool.name && s.tool.name !== 'another site') {
         tool = '<p class="roster-tool">Official tool: ' + (s.tool.url ? '<a href="' + e(MG.safeUrl(s.tool.url)) + '" target="_blank" rel="noopener">' + e(s.tool.name) + MG.icon('external', 'ic-ext') + '<span class="vh"> (opens ' + e(s.tool.name) + ')</span></a>' : e(s.tool.name)) +
@@ -71,17 +77,18 @@
           '<button type="button" class="tab" data-act="tab" data-v="cancelled" aria-pressed="' + (ui.tab === 'cancelled') + '">Cancelled ' + c.cancelled + '</button></div>' : '';
         var showIn = !o.tabs || ui.tab === 'in', showWl = !o.tabs || ui.tab === 'waitlist', showOff = o.tabs && ui.tab === 'cancelled';
         var rows = '';
-        if (showIn) rows += ins.length ? '<ul class="rlist">' + ins.map(function (r) {
+        if (showIn) rows += ins.length ? '<ul class="rlist" id="in-' + e(oc.key) + '" tabindex="-1">' + ins.map(function (r) {
           return V.regRow(r, { fee: fee, idLabel: idLabel, showContact: ui.shown[r.id], flash: ui.flash[r.id], promoted: ui.flash[r.id] && r.promotedAt });
         }).join('') + '</ul>' : '<p class="hint">' + (q ? 'Nobody by that name.' : 'No sign-ups yet. Share the event link or add a walk-in.') + '</p>';
-        if (showWl && (wl.length || o.tabs)) rows += '<h3 class="rl-h">Waitlist</h3>' + (wl.length ? '<ul class="rlist">' + wl.map(function (r) { return V.waitRow(r, { showContact: ui.shown[r.id] }); }).join('') + '</ul>' : '<p class="hint">Nobody is waiting.</p>');
+        if (showWl && (wl.length || o.tabs)) rows += '<h3 class="rl-h" id="wait-' + e(oc.key) + '" tabindex="-1">Waitlist</h3>' + (wl.length ? '<ul class="rlist">' + wl.map(function (r) { return V.waitRow(r, { showContact: ui.shown[r.id] }); }).join('') + '</ul>' : '<p class="hint">Nobody is waiting.</p>');
         if (showOff) rows += off.length ? '<ul class="rlist">' + off.map(V.cancelledRow).join('') + '</ul>' : '<p class="hint">Nobody has cancelled.</p>';
         body = '<div class="rtools"><label class="fld rsearch"><span class="vh">Find a name</span><input type="search" data-act="search" placeholder="Find a name..." value="' + e(ui.q) + '" autocomplete="off"></label>' +
           V.btn('btn btn-2', 'data-act="results"', MG.icon('pencil') + 'Enter results') + '</div>' + tabs + rows;
-        body += walkBar(oc, !!cap && c.in >= cap);
+        body += '<div data-walkslot></div>';
       }
       if (!rosterMode && !oc.cancelled) body += '<p class="rtools rtools-end">' + V.btn('btn btn-2', 'data-act="results"', MG.icon('pencil') + 'Enter results') + '</p>';
       host.innerHTML = head + tool + stats + body;
+      var slot = host.querySelector('[data-walkslot]'); if (slot) slot.replaceWith(walkBar(oc, !!cap && c.in >= cap));
       // put focus back where the person was working
       if (ui.refocus) {
         var el = ui.refocus.q === 'search' ? host.querySelector('[data-act="search"]') : host.querySelector('[data-reg="' + ui.refocus.id + '"] [data-act="' + ui.refocus.act + '"]') || (ui.refocus.q && host.querySelector(ui.refocus.q));
@@ -92,6 +99,19 @@
       if (flashing.length) setTimeout(function () { ui.flash = {}; U.$$('[data-flash]', host).forEach(function (n) { n.removeAttribute('data-flash'); }); }, 1700);
     }
 
+    function runIt() {
+      var oc = occ(); if (!oc) return;
+      var before = MG.state.snapshot(); D.headcounts['run:' + oc.key] = true; MG.state.save(); MG.state.notify();
+      U.toast(oc.series.title + ' will run.', { undo: before });
+    }
+    function cancelThisDate() {
+      var oc = occ(); if (!oc) return;
+      var c = R.counts(A.regs(oc)), n = c.in + c.waitlist;
+      U.confirm({ title: 'Cancel ' + oc.series.title + ' on ' + MG.fmtDate(MG.parseYmd(oc.date)) + '?', body: n + (n === 1 ? ' person' : ' people') + ' signed up. They won’t be told automatically; their contacts are in the roster.',
+        ok: 'Cancel this date', cancel: 'Keep it', danger: true, note: 'Note for the website (optional), for example "Closed for the holiday."' }).then(function (ans) {
+        if (ans) U.say(A.cancelDate(oc.series.id, oc.date, ans.note));
+      });
+    }
     function regIdOf(t) { var li = t.closest('[data-reg]'); return li && li.getAttribute('data-reg'); }
     // the action has already run (and redrawn the list through the state subscription); say what happened
     function run(res) {
@@ -102,6 +122,14 @@
 
     host.addEventListener('click', function (ev) {
       var t = ev.target.closest ? ev.target : ev.target.parentElement, b = t.closest('[data-act]');
+      var jump = t.closest('a.rstat-a');
+      if (jump) { // stat chips jump to their lists; the page hash belongs to Today / the events router
+        ev.preventDefault();
+        var tid = jump.getAttribute('href').slice(1);
+        if (o.tabs) { var want = tid.indexOf('wait-') === 0 ? 'waitlist' : 'in'; if (ui.tab !== want) { ui.tab = want; render(); } }
+        var tg = document.getElementById(tid); if (tg) { tg.scrollIntoView({ block: 'start' }); tg.focus({ preventScroll: true }); }
+        return;
+      }
       if (!b || b.tagName === 'FORM' || b.tagName === 'INPUT' || b.tagName === 'SELECT') return;
       var act = b.getAttribute('data-act'), id = regIdOf(b), reg = id && A.regById(id);
       var menu = b.closest('details.menu'); if (menu) menu.open = false;
@@ -116,6 +144,8 @@
         case 'contact': ui.shown[id] = !ui.shown[id]; render(); break;
         case 'edit': editDialog(reg); break;
         case 'tab': ui.tab = b.getAttribute('data-v'); render(); break;
+        case 'runit': runIt(); break;
+        case 'cancel-date': cancelThisDate(); break;
         case 'results': if (o.onResults) o.onResults(o.getKey()); break;
         case 'cnt-plus': ui.refocus = { q: '[data-act="cnt-plus"]' }; run(A.headcount(o.getKey(), A.headcountOf(occ()) + 1)); break;
         case 'cnt-minus': ui.refocus = { q: '[data-act="cnt-minus"]' }; run(A.headcount(o.getKey(), A.headcountOf(occ()) - 1)); break;
@@ -135,6 +165,18 @@
       ev.preventDefault();
       var mode = (ev.submitter && ev.submitter.value) || 'auto', name = f.elements.name.value, oc = occ();
       if (!name.trim()) { U.toast('Type a name first.'); f.elements.name.focus(); return; }
+      var cap = oc && MG.capOf(oc), full = !!cap && R.counts(A.regs(oc)).in >= cap;
+      if (mode === 'auto' && full) mode = 'waitlist'; // Enter in the name field: the safe choice
+      if (mode === 'over') {
+        var n = R.counts(A.regs(oc)).in + 1;
+        U.confirm({ title: 'Seat anyway?', body: name.trim() + ' takes seat ' + n + ' of ' + cap + '. The event is over its limit.', ok: 'Seat anyway', cancel: 'Go back' }).then(function (yes) {
+          if (yes) walk(f, name, 'over'); else { var i = host.querySelector('.walkbar input[name="name"]'); if (i) i.focus(); }
+        });
+        return;
+      }
+      walk(f, name, mode);
+    });
+    function walk(f, name, mode) {
       ui.refocus = { q: '.walkbar input[name="name"]' };
       var res = A.walkIn(o.getKey(), name, mode);
       if (res.ok) { ui.refocus = { q: '.walkbar input[name="name"]' }; }
@@ -142,7 +184,7 @@
       else if (res.error === 'dup' && res.existing) { U.toast(res.msg); ui.q = res.existing.name; render(); return; }
       U.say(res);
       if (res.ok) { var ni = host.querySelector('.walkbar input[name="name"]'); if (ni) ni.focus(); }
-    });
+    }
     document.addEventListener('click', function (ev) { // close other open row menus
       U.$$('details.menu[open]', host).forEach(function (m) { if (!m.contains(ev.target)) m.open = false; });
     });
