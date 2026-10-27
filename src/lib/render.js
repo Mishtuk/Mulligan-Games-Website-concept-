@@ -222,7 +222,7 @@ function deck(ctx, week) {
   for (let i = 0; i < 7; i++) {
     const ymd = addDays(now.ymd, i), hrs = hoursFor(store, ymd), evs = week.filter((o) => o.date === ymd && live(o)), closed = hrs.known && hrs.closed && !evs.length;
     const cap = closed ? 'Closed' : `${evs.length} ${evs.length === 1 ? 'event' : 'events'}`;
-    items.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${dayName(ymd)} ${fmtDate(ymd)}${i === 0 ? ', today' : ''}, ${cap.toLowerCase()}`}"><span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span><span class="dc-num">${dayNum(ymd)}</span><span class="dc-pips" aria-hidden="true">${evs.slice(0, 8).map((o) => h`<i data-game="${o.game}"></i>`)}</span></a><span class="dc-cap" aria-hidden="true">${cap}</span></li>`);
+    items.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${i === 0 ? 'Today' : dayShort(ymd)} ${dayNum(ymd)}: ${dayName(ymd)} ${fmtDate(ymd)}, ${cap.toLowerCase()}`}"><span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span> <span class="dc-num">${dayNum(ymd)}</span><span class="dc-pips" aria-hidden="true">${evs.slice(0, 8).map((o) => h`<i data-game="${o.game}"></i>`)}</span></a><span class="dc-cap" aria-hidden="true">${cap}</span></li>`);
   }
   return h`<nav class="wdeck" aria-labelledby="wdeck-k"><p class="wdeck-k vh" id="wdeck-k">The next seven days</p><ol id="deck">${items}</ol></nav>`;
 }
