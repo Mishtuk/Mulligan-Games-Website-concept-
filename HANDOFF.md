@@ -34,7 +34,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** P1.5 owner click-through pack (`docs/owner-pack.md`); read-only review of P2.3a (`docs/review/p2.3a-laptop-review.md`).
-- **Desktop:** P2.3 done; next P2.4 sign-ups, waitlist, check-in (claim before starting); store videos (`docs/research/store-videos.md`, `tools/enhance-video.sh`, `media/` gitignored).
+- **Desktop:** #11 P2.3a send-back fixes (`server.js`, `src/lib/*`, `src/pages/admin.astro`, `test/*`); then P2.4 sign-ups, waitlist, check-in (claim before starting); store videos (`docs/research/store-videos.md`, `tools/enhance-video.sh`, `media/` gitignored).
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported, the design is signed off (P1.3, 2026-10-26). P2.2 can start;
