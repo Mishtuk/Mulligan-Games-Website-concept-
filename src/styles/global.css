@@ -790,3 +790,15 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   .nh-body { grid-column: 2; }
 }
 .nh-body .later-list li { background: none; }
+
+/* sign-up form and the player's own page (P2.4a; DESIGN.md 8). Fields reuse .fld / .err / .hint / .hp above. */
+.su { display: grid; gap: var(--s2); }
+.su-h { margin: 0; font-size: var(--t-lg); font-stretch: var(--wdth-display); font-weight: 900; }
+.su .fld { margin: 0; }
+.su .btn { justify-self: start; }
+.su-msg { padding: var(--s3); border-left: 3px solid var(--bad); border-radius: var(--r-box); background: var(--bad-bg); color: var(--ink); font-weight: 650; }
+.su-page { display: grid; gap: var(--s4); max-width: 40rem; align-content: start; }
+.su-page h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); margin: 0; }
+.su-page p { margin: 0; }
+.su-keep { display: grid; gap: var(--s2); padding: var(--s4); border: 2px solid var(--line-strong); border-radius: var(--r-card); background: var(--surface); }
+.su-link { overflow-wrap: anywhere; font-weight: 650; }

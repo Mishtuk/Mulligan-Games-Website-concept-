@@ -1,5 +1,5 @@
 // One SQLite file (node:sqlite, no dependency) in DATA_DIR.
-// Admin-edited site content is one JSON document under kv key "state"; the rest are small tables.
+// Admin-edited site content is one JSON document under kv key "state"; the rest are small tables. registrations: src/lib/registrations.js owns the rules.
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -18,7 +18,13 @@ export function openDb(dir) {
     CREATE TABLE IF NOT EXISTS security_events (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, type TEXT NOT NULL, who TEXT NOT NULL DEFAULT '',
       ip TEXT NOT NULL DEFAULT '', detail TEXT NOT NULL DEFAULT '');
     CREATE TABLE IF NOT EXISTS series (id TEXT PRIMARY KEY, data TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS exceptions (series TEXT NOT NULL, date TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (series, date));`);
+    CREATE TABLE IF NOT EXISTS exceptions (series TEXT NOT NULL, date TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (series, date));
+    CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY, series TEXT NOT NULL, slot TEXT NOT NULL, event_day TEXT NOT NULL, name TEXT NOT NULL,
+      email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', player_id TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL CHECK (status IN ('in', 'waitlist', 'cancelled', 'noshow')), wait_pos INTEGER, checked_in INTEGER NOT NULL DEFAULT 0,
+      payment TEXT NOT NULL DEFAULT 'unpaid' CHECK (payment IN ('unpaid', 'door', 'online', 'comped', 'credit')), walk_in INTEGER NOT NULL DEFAULT 0,
+      token_hash TEXT UNIQUE, created_at INTEGER NOT NULL, promoted_at INTEGER, purged INTEGER NOT NULL DEFAULT 0);
+    CREATE INDEX IF NOT EXISTS registrations_slot ON registrations (series, slot);`);
   return db;
 }
 

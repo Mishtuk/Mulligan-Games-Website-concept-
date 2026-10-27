@@ -7,6 +7,7 @@ import { addDays, dayMin, dow, hmOf, realDay, toMin } from './clock.js';
 import { expand, occurrences, safeUrl } from './events.js';
 import { endM, seatState, startM } from './seats.js';
 import { hoursFor, openStatus } from './store-hours.js';
+import { MAX, RETENTION_DAYS, playerIdLabel } from './registrations.js';
 
 // ---------- the escaping template tag ----------
 class Html { constructor(s) { this.s = s; } toString() { return this.s; } }
@@ -64,6 +65,8 @@ const eventHref = (ctx, o) => (ctx.keepNow ? `${eventPath(o)}&now=${encodeURICom
 const idKey = (o) => `${o.seriesId}-${o.slot}`.replace(/[^A-Za-z0-9-]/g, '');
 export const mapsUrl = (store) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address.street} ${store.address.city} ${store.address.region} ${store.address.zip}`)}`;
 const live = (o) => !o.cancelled;
+/** Seats taken and people waiting for one occurrence, from ctx.counts (registrations.js countsMap); none when nobody has signed up. */
+const regsOf = (ctx, o) => ctx.counts?.get(`${o.seriesId}|${o.slot}`) ?? {};
 
 /** Occurrences between two dates that have not ended yet, earliest first. */
 export function upcoming(ctx, from, to) {
@@ -135,7 +138,7 @@ function actionArea(ctx, o, st, href) {
 // ---------- the event card ----------
 /** opts: { compact } hide the description; { every } collapsed weekly card: "Every Friday, 7 PM" + "Next: ..." line (nextNote). */
 export function card(ctx, o, opts = {}) {
-  const st = seatState(o, ctx.now.m), href = eventHref(ctx, o), key = idKey(o), g = gameOf(ctx, o.game);
+  const st = seatState(o, ctx.now.m, regsOf(ctx, o)), href = eventHref(ctx, o), key = idKey(o), g = gameOf(ctx, o.game);
   const time = opts.every ? `Every ${DAYS[o.recurrence?.day ?? dow(o.originalDate)]}, ${fmtTime(o.baseStart ?? o.start)}${o.end ? ` to ${fmtTime(o.end)}` : ''}` : timeLine(o);
   let body = '';
   if (o.cancelled) body = h`<p class="ev-note">${o.note || 'This date is cancelled.'} ${updatedWords(o.updated, ctx.now.ymd)}</p>`;
@@ -298,7 +301,7 @@ export function cedh(ctx) {
   const rows = upcoming(ctx, ctx.now.ymd, addDays(ctx.now.ymd, 60)).filter((o) => live(o) && o.game === 'cedh' && o.cedhSeries).slice(0, 3);
   if (!rows.length) return h`<p class="cedh-last">No cEDH dates are on the calendar yet.${circuit ? h` Watch <a href="${circuit}" target="_blank" rel="noopener">TopDeck<span class="vh"> (opens TopDeck)</span></a>.` : ''}</p>`;
   return h`<ol class="cedh-list">${rows.map((o) => {
-    const st = seatState(o, ctx.now.m), tool = o.tool ?? {}, url = safeUrl(tool.url);
+    const st = seatState(o, ctx.now.m, regsOf(ctx, o)), tool = o.tool ?? {}, url = safeUrl(tool.url);
     const act = o.inviteOnly ? h`<p class="ev-how">${icon('lock')}Invite only. Seats come from the Championship Series.</p>`
       : url ? h`<a class="btn btn-act" href="${url}" target="_blank" rel="noopener">${tool.name ? `Sign up on ${tool.name}` : 'Sign up online'}${ext(tool.name)}</a>` : h`<a class="btn btn-2" href="${eventHref(ctx, o)}">Event details</a>`;
     return h`<li class="tix"><p class="tix-date" aria-hidden="true">${dayShort(o.date)}<b>${dayNum(o.date)}</b>${monthShort(o.date)}</p><div class="tix-what"><h4><a href="${eventHref(ctx, o)}">${o.title}</a></h4><p>${fmtLong(o.date)}${o.start ? `, ${fmtTime(o.start)}` : ''}${Number.isInteger(o.fee) && o.fee ? `. Entry ${fmtFee(o.fee)}` : ''}.</p></div><div class="tix-acts">${act}${st.count ? statBox(st.count, 'registered', tool.name ? `on ${tool.name}` : '', 'users') : ''}</div></li>`;
@@ -424,8 +427,27 @@ export function findOccurrence(ctx, s, dateParam, timeParam) {
 }
 export const nextDate = (ctx, s) => occurrences(s, ctx.now.ymd, addDays(ctx.now.ymd, 400), ctx.exceptions).find((o) => live(o) && endM(o) > ctx.now.m) ?? null;
 
-export function eventPage(ctx, o) {
-  const st = seatState(o, ctx.now.m), store = ctx.store, key = idKey(o), g = gameOf(ctx, o.game), href = eventHref(ctx, o);
+/** D17: "Arrive by 6:50 PM or your seat goes to the next person on the waitlist." */
+const arriveText = (o) => `Arrive by ${fmtTime(o.arriveBy)} or your seat ${o.waitlist ? 'goes to the next person on the waitlist' : 'may go to a walk-in'}.`;
+const feeLine = (o) => (o.fee === 0 ? 'Free.' : Number.isInteger(o.fee) ? `Pay $${o.fee} at the store when you arrive.` : '');
+
+/** The sign-up form (DESIGN.md 8). Works with no JavaScript. form = { values, errors, message } after a refused post. */
+function signupForm(ctx, o, st, form) {
+  const v = form.values ?? {}, e = form.errors ?? {}, wait = st.state === 'waitlist', idLabel = playerIdLabel(o.tool);
+  const fld = (name, label, type, auto, hint = '', more = {}) => h`<label class="fld" for="su-${name}"><span>${label}</span><input id="su-${name}" name="${name}" type="${type}" value="${v[name] ?? ''}" autocomplete="${auto}" maxlength="${MAX[name]}"${more.required ? ' required' : ''}${more.inputmode ? h` inputmode="${more.inputmode}"` : ''}${e[name] ? h` aria-invalid="true" aria-describedby="su-${name}-err"` : ''}>${hint ? h`<small>${hint}</small>` : ''}${e[name] ? h`<em class="err" id="su-${name}-err">${e[name]}</em>` : ''}</label>`;
+  return h`<form class="su" id="signup" method="post" action="${ctx.keepNow ? `/api/signup?now=${encodeURIComponent(ctx.keepNow)}` : '/api/signup'}">
+<h2 class="su-h">${wait ? 'Join the waitlist' : 'Hold your seat'}</h2>
+${wait ? h`<p class="hint">The event is full. Join the waitlist and you move in automatically if a seat opens.</p>` : ''}
+${fld('name', 'Your name', 'text', 'name', '', { required: true })}${fld('email', 'Email', 'email', 'email')}${fld('phone', 'Phone', 'tel', 'tel', 'One is enough. We only use it about this event.')}${idLabel ? fld('playerId', `${idLabel} (optional)`, 'text', 'off', '', { inputmode: 'numeric' }) : ''}
+<div class="hp" aria-hidden="true"><label>Leave this empty<input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+<input type="hidden" name="series" value="${o.seriesId}"><input type="hidden" name="slot" value="${o.slot}"><input type="hidden" name="expected" value="${wait ? 'waitlist' : 'in'}"><input type="hidden" name="_page" value="/events/">
+${feeLine(o) ? h`<p class="hint">${feeLine(o)}</p>` : ''}<button class="btn btn-act" type="submit">${wait ? 'Join the waitlist' : 'Hold my seat'}</button>
+<p class="hint">We delete your contact details ${RETENTION_DAYS} days after the event. <a href="/privacy/">Privacy</a></p>
+</form>`;
+}
+
+export function eventPage(ctx, o, form = {}) {
+  const st = seatState(o, ctx.now.m, regsOf(ctx, o)), store = ctx.store, key = idKey(o), g = gameOf(ctx, o.game), href = eventHref(ctx, o);
   const s = ctx.series.find((x) => x.id === o.seriesId);
   const others = occurrences(s, ctx.now.ymd, addDays(ctx.now.ymd, 180), ctx.exceptions).filter((x) => x.slot !== o.slot && endM(x) > ctx.now.m).slice(0, 6);
   const next = !o.cancelled && !st.past ? null : nextDate(ctx, s);
@@ -441,10 +463,10 @@ export function eventPage(ctx, o) {
   const row = (k, v) => (v && v.toString() ? h`<div><dt>${k}</dt><dd>${v}</dd></div>` : '');
   const wh = [o.points && `${o.points} points`, o.roundMinutes && `${o.roundMinutes} minute rounds`, o.listDeadline && `lists due ${o.listDeadline}`].filter(Boolean);
   const facts = h`${row('Prizes', o.prize)}${row('Bring', o.bring)}${row('Ages', o.kidsWelcome ? 'All ages. Kids welcome.' : o.ageNote)}${row('Play style', o.playStyle === 'casual' ? 'Casual' : o.playStyle === 'competitive' ? 'Competitive' : '')}${row('Warhammer', wh.join(', '))}${row('About', o.description)}${tool.name || toolUrl ? row('Official tool', h`${toolUrl ? h`<a href="${toolUrl}" target="_blank" rel="noopener">${tool.name || 'Link'}${ext(tool.name)}</a>` : tool.name}${tool.code ? h` Event code: <strong class="code">${tool.code}</strong>` : ''}`) : ''}${others.length ? row('Other dates', h`<ul class="det-dates">${others.map((x) => h`<li><a href="${eventHref(ctx, x)}"${x.cancelled ? h` class="struck"` : ''}>${dayShort(x.date)} ${fmtDate(x.date)}${s.recurrence?.type === 'dates' && x.start ? `, ${fmtTime(x.start)}` : ''}</a>${x.cancelled ? h` <span class="tag tag-bad">cancelled</span>` : x.changed || x.moved ? h` <span class="tag tag-upd">changed</span>` : ''}</li>`)}</ul>`) : ''}`;
-  const foot = o.cancelled || st.past ? '' : actionArea(ctx, o, st, href);
-  const signupNote = ['open', 'few', 'needs', 'waitlist'].includes(st.state) && !o.cancelled && !st.past
-    ? h`<p class="pg-signup">Online sign-up isn’t open yet. Call the shop at ${safeUrl(store.phoneHref) ? h`<a href="${safeUrl(store.phoneHref)}">${store.phone}</a>` : store.phone} to hold a seat.</p>` : '';
-  const arrive = !o.cancelled && !st.past && o.arriveBy && ['here', 'counter'].includes(o.signup) ? h`<p class="ev-arrive">${icon('clock')}Arrive by ${fmtTime(o.arriveBy)} or your seat ${o.waitlist ? 'goes to the next person on the waitlist' : 'may go to a walk-in'}.</p>` : '';
+  const foot = o.cancelled || st.past ? '' : actionArea(ctx, o, st, `${href}#signup`);
+  const formOpen = o.signup === 'here' && !o.inviteOnly && !o.cancelled && !st.past && ['open', 'few', 'needs', 'waitlist'].includes(st.state);
+  const signupNote = h`${form.message ? h`<p class="su-msg" role="alert">${form.message}</p>` : ''}${formOpen ? signupForm(ctx, o, st, form) : ''}`;
+  const arrive = !o.cancelled && !st.past && o.arriveBy && ['here', 'counter'].includes(o.signup) ? h`<p class="ev-arrive">${icon('clock')}${arriveText(o)}</p>` : '';
   return h`<div class="wrap dp-wrap"><p class="dp-back"><a href="${keep(ctx, '/events/', {})}">${icon('chevron', 'ic-back')}All events</a></p>
 <article class="dp" aria-labelledby="t-${key}">
 <div class="dp-head ev" data-game="${o.game}" data-state="${st.state}"><div class="ev-bar"><h1 class="ev-title" id="t-${key}">${o.title}</h1><p class="ev-cost"><span class="vh">Entry: </span>${fmtFee(o.fee)}</p></div>
@@ -461,4 +483,27 @@ ${o.beginnerFriendly ? h`<p class="det-where">First time at Mulligan? <a href="/
 export function eventMissing(ctx, s) {
   const n = s ? nextDate(ctx, s) : null;
   return h`<div class="wrap dp-wrap"><div class="empty lattice" role="note"><h1 class="empty-h">We couldn’t find that event date.</h1>${n ? h`<p><a href="${eventHref(ctx, n)}">Next one: ${fmtLong(n.date)}</a></p>` : ''}<a class="btn btn-2" href="${keep(ctx, '/events/', {})}">See all events</a></div></div>`;
+}
+
+// ---------- a player's own sign-up page, reached by the private link (D26) ----------
+/** reg = registrations.byToken(); taken = seats taken now. flags: { isNew (just signed up: show the keep-this-link box), raced, link (full URL) }. */
+export function signupPage(ctx, o, reg, { taken = 0, isNew = false, raced = false, link = '' } = {}) {
+  const when = `${o.title}, ${fmtLong(o.date)}${o.start ? ` at ${fmtTime(o.start)}` : ''}`, cap = o.capacity, active = ['in', 'waitlist'].includes(reg.status);
+  const banner = reg.status === 'in' ? h`<strong>You\u2019re in.</strong> ${cap ? `${taken} of ${cap} seats are taken for ` : 'Your seat is held for '}${when}. ${feeLine(o)}`
+    : reg.status === 'waitlist' ? h`${raced ? 'That seat just went. ' : ''}<strong>You\u2019re on the waitlist (#${reg.waitlistPos})${raced ? ' instead' : ''}.</strong> If a seat opens, you move in automatically. Check this page or ask at the counter.`
+      : reg.status === 'cancelled' ? h`<strong>Your sign-up is cancelled.</strong> Your seat went to the next person.`
+        : h`<strong>You were marked as not arrived,</strong> so your seat was released. Ask at the counter.`;
+  return h`<div class="wrap dp-wrap"><p class="dp-back"><a href="${eventHref(ctx, o)}">${icon('chevron', 'ic-back')}${o.title}</a></p>
+<article class="su-page" aria-labelledby="su-t"><h1 id="su-t">Your sign-up</h1>
+<div class="pg-banner ${reg.status === 'in' ? '' : reg.status === 'waitlist' ? 'pg-warn' : 'pg-bad'}" role="status">${icon(reg.status === 'in' ? 'check' : reg.status === 'waitlist' ? 'hourglass' : 'cancel')}<div><p>${banner}</p></div></div>
+<p>${reg.name}</p>
+${reg.status === 'in' && o.arriveBy ? h`<p class="ev-arrive">${icon('clock')}${arriveText(o)}</p>` : ''}
+${isNew ? h`<div class="su-keep"><p><strong>Keep this link.</strong> It is the only way to cancel or check your place online. We can\u2019t email it. Anyone who has it can cancel your sign-up.</p><p class="su-link"><a href="${link}">${link}</a></p></div>` : ''}
+${active ? h`<p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics?date=${encodeURIComponent(o.slot)}`}">${icon('calendar')}Add to calendar</a></p>` : ''}
+${active ? h`<form method="post" action="/api/signup/cancel"><input type="hidden" name="token" value="${reg.token}"><p class="hint">${reg.status === 'in' ? 'Cancelling frees your seat for the next person.' : 'Leaving frees your place for the next person.'} You can sign up again if there is room.</p><button class="btn btn-bad" type="submit">${reg.status === 'in' ? 'Cancel my seat' : 'Leave the waitlist'}</button></form>` : ''}
+<p class="hint">We delete your contact details ${RETENTION_DAYS} days after the event. <a href="/privacy/">Privacy</a></p></article></div>`;
+}
+/** A plain message page (a sign-up link that is wrong or finished). */
+export function signupGone(ctx, title, body) {
+  return h`<div class="wrap dp-wrap"><div class="empty lattice" role="note"><h1 class="empty-h">${title}</h1><p>${body}</p><a class="btn btn-2" href="${keep(ctx, '/events/', {})}">See all events</a></div></div>`;
 }

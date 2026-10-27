@@ -1,0 +1,57 @@
+---
+// Privacy (P2.4a). Adapted from the Warminster VFW privacy page; every statement here comes from the code, so change this page when the code changes:
+//   Sign-up form          src/lib/registrations.js (fields, RETENTION_DAYS, purgeContacts), server.js runPurge (daily, on the hourly timer)
+//   Personal sign-up link src/lib/registrations.js register / byToken (random link, only its SHA-256 is stored), server.js mySignup (noindex, no Referer)
+//   Visitor counting      src/stats/index.js (cookieless, daily totals, salt kept in memory for one day)
+//   Security log          src/audit.js (no player details)
+//   Backups               src/db.js backup (7 daily copies)
+//   Cookies               server.js sessionCookie (staff sign-in only); theme choice in localStorage (Base.astro)
+//   Payments              D3: no online payment; staff mark how you paid by hand
+import Base from '../components/Base.astro';
+import store from '../content/store.json';
+import { RETENTION_DAYS } from '../lib/registrations.js';
+import { safeUrl } from '../lib/events.js';
+
+const tel = safeUrl(store.phoneHref);
+---
+<Base title="Privacy | Mulligan Games" description="What the event sign-up form collects, why, how long it is kept and how to have it removed." skip="#main" skipLabel="Skip to the page">
+  <main id="main">
+    <div class="wrap nh">
+      <h1>Privacy</h1>
+      <p class="nh-lede">What this website collects when you sign up for an event, who can see it, how long we keep it and how to have it removed.</p>
+      <div class="nh-body">
+        <section aria-labelledby="short">
+          <h2 id="short">The short version</h2>
+          <p>We collect only what you type into the sign-up form. We use it to hold your seat and to reach you about that event. We do not sell it or share it with anyone.</p>
+        </section>
+        <section aria-labelledby="signup">
+          <h2 id="signup">Event sign-up</h2>
+          <dl class="det-list">
+            <div><dt>What we collect</dt><dd>Your name, an email or a phone number (one is enough), and a player ID if you choose to give one. The page also keeps your seat or waitlist place, and staff note whether you checked in and how you paid.</dd></div>
+            <div><dt>Why</dt><dd>To hold your seat, run the waitlist and find you at the counter.</dd></div>
+            <div><dt>Who sees it</dt><dd>Mulligan Games staff, in the staff area. Nobody else.</dd></div>
+            <div><dt>How long</dt><dd>{RETENTION_DAYS} days after the event. Then your email, phone, player ID and personal link are deleted, and your name is cut down to initials. We keep only totals and statuses, such as how many seats were taken and how many people did not show up. The shop keeps up to 7 daily backup copies, so a deleted detail can sit in a backup for up to 7 more days.</dd></div>
+            <div><dt>Your private link</dt><dd>After you sign up, the page gives you a private link. It is the only way to cancel your seat or check your waitlist place online. We do not email it. Keep it. Anyone who has the link can cancel your sign-up. The link stops working when the event ends. It is not listed in search engines.</dd></div>
+          </dl>
+          <p>The form also has a hidden field that catches automated spam. Anything caught that way is not stored. Our security log notes the network (IP) address of a spam or blocked post, never what was typed in it, and keeps only the latest 500 entries.</p>
+        </section>
+        <section aria-labelledby="visitors">
+          <h2 id="visitors">Counting visitors</h2>
+          <p>We count page views without cookies. The count uses a code that can’t be traced back to you and changes every day, so it can’t follow you from one day to the next. Only daily totals are kept. Your private sign-up page is not counted.</p>
+        </section>
+        <section aria-labelledby="cookies">
+          <h2 id="cookies">Cookies and your device</h2>
+          <p>Visitors get no cookies. Only the staff sign-in uses one. If you pick a light or dark theme, your browser remembers it on your device. We don’t see it.</p>
+        </section>
+        <section aria-labelledby="payments">
+          <h2 id="payments">Payments</h2>
+          <p>This website takes no payment. You pay at the store, and staff note how you paid.</p>
+        </section>
+        <section aria-labelledby="remove">
+          <h2 id="remove">Ask us to remove your details</h2>
+          <p>Cancelling with your private link frees your seat, but your details are still kept until {RETENTION_DAYS} days after the event. To have them deleted sooner, ask at the counter and staff will delete them straight away.{tel ? <> Or call <a href={tel}>{store.phone}</a>.</> : null} Say the name and the event you signed up for.</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</Base>

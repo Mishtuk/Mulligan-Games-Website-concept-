@@ -38,7 +38,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** #13 + owner redesign (calmer palette, photos, visible light/dark switch): `prototype/`, `DESIGN.md`, `docs/review/live-concept-review.md`, `source/social/` (local).
-- **Desktop:** P2.4a sign-ups data + public form + waitlist + API (`src/lib/registrations.js`, `src/db.js`, `server.js`, `src/lib/render.js` event-page form, `src/pages/privacy*`, `test/registrations.test.js`); P2.4b admin Today/roster/shell after.
+- **Desktop:** P2.4a done; next P2.4b admin Today / roster / check-in / No-show / 9.1 shell (claim before starting).
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;

@@ -4,9 +4,9 @@ import { clientIp } from './auth.js';
 
 export const HONEYPOT = 'website'; // hidden field real people leave empty
 
-/** handle(fields, ip) => { status, body } runs only for clean posts and does its own validation and rate limit (allow() in auth.js).
+/** handle(fields, ip) => { status, body, location?, html? } runs only for clean posts and does its own validation and rate limit (allow() in auth.js).
  *  pages = { __proto__: null, '/events': '/events/' }: the _page values a no-JS form may return to; the first is the default.
- *  onSpam(ip) is called instead of handle when the honeypot is filled (log it with audit.event). */
+ *  A plain form post gets `location` (303) or `html` (the page itself) when handle gives one, else the allow-listed page below. onSpam(ip) is called instead of handle when the honeypot is filled (log it with audit.event). */
 export async function publicForm(req, { origins, handle, pages, anchor = '', onSpam = () => {} }) {
   const origin = req.headers.get('origin');
   if (origin && !origins.includes(origin)) return Response.json({ error: 'origin' }, { status: 403, headers: { 'Cache-Control': 'no-store' } });
@@ -16,6 +16,8 @@ export async function publicForm(req, { origins, handle, pages, anchor = '', onS
   const ip = clientIp(req);
   const r = String(fields[HONEYPOT] ?? '').trim() ? (onSpam(ip), { status: 200, body: { ok: true } }) : await handle(fields, ip);
   if (isJson || (req.headers.get('accept') ?? '').includes('application/json')) return Response.json(r.body, { status: r.status, headers: { 'Cache-Control': 'no-store' } });
+  if (r.location) return new Response(null, { status: 303, headers: { Location: r.location, 'Cache-Control': 'no-store' } }); // a reply page of its own (sign-up: the player's private page)
+  if (r.html) return new Response(r.html, { status: r.status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }); // the form again, with its errors
   const page = pages[fields._page] ?? Object.values(pages)[0];
   return new Response(null, { status: 303, headers: { Location: r.status === 200 ? `${page}?sent=1${anchor}` : `${page}?error=${r.body.error}${anchor}`, 'Cache-Control': 'no-store' } });
 }

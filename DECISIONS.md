@@ -309,3 +309,34 @@ Revisit if the owners run late nights.
 `outerHTML` / `insertAdjacentHTML` / `document.write` / `srcdoc`, and any `set:html` that is not a constant.
 **Why:** the smallest fixes that close a decode-bomb gap and a data-loss order; the rest don't change what owners or
 players see. Boss overrule: none.
+
+### D30. P2.4a review calls: first public form with personal data (2026-10-27)
+(1) **Retention N = 30 days after the event** (the day it really happens, after a move), accepted. Then email, phone,
+player ID and the private link are wiped and the name shrinks to initials; status, check-in, payment and counts stay;
+backups hold the rows up to 7 more days (privacy page says so). A policy call, so Q22 asks Mish to confirm or change it.
+Boss fix: the purge read `max(event_day, slot day)`, so a date moved earlier kept contacts past the stated 30 days; it
+now uses the real day only (tested).
+(2) **Duplicate rule (G3): same name AND same email or phone** (name folded for case and spaces; email exact ignoring
+case; phone by digits). Name alone refused two different "Chris Smith"s; contact alone refused a parent signing up two
+kids. The reply's "as Chris S." can then only echo a name the sender already typed. Staff walk-ins stay name-only (the
+counter sees the person); a "Seat anyway" on a name match is P2.4b.
+(3) **G4 fixed now: a series edit or delete that would drop an upcoming date holding a seat or a waitlist place is
+refused (409 `signed_up`, dates and counts listed, no override).** The message says how: set a last date after them and
+make a new event, or move one date with "Change this date" (a moved date keeps its key, D23). Carrying people over to a
+new slot was rejected: which new date they wanted is a guess. Past dates are not checked. Tested over HTTP.
+(4) Boss fixes: CSP for the form shown again with errors was hashed from the filled page (undoing D24 (2)); it now
+hashes the built template (tested: same header as the GET page). The server error log redacts `/signup/<token>`.
+The privacy page no longer implies cancelling deletes details (it doesn't until N days; the counter erases at once)
+and states that the security log keeps the IP of spam or blocked posts (newest 500).
+(5) Accepted as built: 192-bit token, only its SHA-256 stored and looked up by index (D26's "constant time": nothing
+compares the secret in JS, and a hash lookup leaks nothing usable); `noindex` meta + `X-Robots-Tag`, `no-referrer`,
+`no-store`, not counted in stats; link dead after the event ends and wiped by the purge; cancel touches only the token's
+row. Public POST: origin check (a missing Origin passes, as VFW), honeypot gives the normal 303 and stores nothing
+(G13), 30 per hour per address, 8 KB body, field lengths and shapes; every value goes back through `h`. Every change is
+one `BEGIN IMMEDIATE` transaction; the last-seat and double-cancel races are tested. Roster API: session + origin on
+every write, 1200 per hour, ids numeric and scoped to the slot, `erase` keeps only initials and the row's status.
+Seats left, cards and JSON-LD availability read the real counts.
+(6) Moved to P2.4b: G6 cancel Undo (inverse with a precondition), G1 "Add a pre-registration" at the counter, G10
+per-slot headcount row, walk-in "Seat anyway" on a name match, and emailing the link (needs mail set up and the owner's OK).
+**Why:** the smallest changes that keep the privacy page true and stop a routine edit from silently losing seats.
+Boss overrule: G3 changed from the coder's name OR contact rule.

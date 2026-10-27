@@ -22,7 +22,9 @@ import { etNow, NOW_TEST, realDay } from './src/lib/clock.js';
 import * as view from './src/lib/render.js';
 import { calendar, feedOccurrences } from './src/lib/ics.js';
 import { eventLd, ldScript, shopLd } from './src/lib/jsonld.js';
-import { seatState } from './src/lib/seats.js';
+import { endM, seatState } from './src/lib/seats.js';
+import { publicForm } from './src/forms.js';
+import * as regs from './src/lib/registrations.js';
 import { sitemap } from './src/lib/sitemap.js';
 import { createStats } from './src/stats/index.js';
 
@@ -72,8 +74,19 @@ const first = seedAdmin(db, { allowDefault: env.ALLOW_DEFAULT_ADMIN === '1', pas
 if (first) log(first.generated ? `Created the admin account. Username: ${first.username}  Password: ${first.password}  (shown once; change it in Admin > Account)` : `Created the admin account: ${first.username} (${env.ALLOW_DEFAULT_ADMIN === '1' ? 'password admin, testing only' : 'password from ADMIN_PASSWORD'}).`);
 if (defaultInUse(db)) log('Warning: the default admin/admin password is in use (ALLOW_DEFAULT_ADMIN=1). Change it before launch.');
 const runBackup = () => { try { backup(db, DATA); } catch (e) { log('backup failed', e.message); } };
+/** Retention (P2.4a): once a day, wipe contact details of sign-ups whose event was RETENTION_DAYS or more days ago. Counts and statuses stay. */
+function runPurge() {
+  try {
+    const today = etDay();
+    if (db.prepare("SELECT value FROM kv WHERE key = 'purged_day'").get()?.value === today) return;
+    const n = regs.purgeContacts(db, today);
+    db.prepare("INSERT INTO kv (key, value) VALUES ('purged_day', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(today);
+    if (n) log(`retention: wiped the contact details of ${n} sign-ups`);
+  } catch (e) { log('retention purge failed', e.message); }
+}
 runBackup();
-setInterval(runBackup, 3600e3).unref();
+runPurge();
+setInterval(() => { runBackup(); runPurge(); }, 3600e3).unref();
 
 // ---------- responses ----------
 const json = (data, status = 200, headers = {}) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
@@ -110,11 +123,11 @@ function compress(nreq, buf, type, headers) {
   return buf;
 }
 async function send(nreq, nres, url, r) {
-  const headers = baseHeaders(url);
+  let body = r.body ? Buffer.from(await r.arrayBuffer()) : null;
+  const headers = baseHeaders(url, r.tpl); // a page answered here (the sign-up form shown again) hashes its built template, never the filled page (D24 (2))
   r.headers.forEach((v, k) => { if (k !== 'set-cookie') headers[k] = v; });
   const cookies = r.headers.getSetCookie();
   if (cookies.length) headers['Set-Cookie'] = cookies;
-  let body = r.body ? Buffer.from(await r.arrayBuffer()) : null;
   if (body) body = compress(nreq, body, headers['content-type'] ?? '', headers);
   nres.writeHead(r.status, headers);
   nres.end(nreq.method === 'HEAD' ? undefined : body);
@@ -201,7 +214,7 @@ const FAMILY = Object.fromEntries(GAMES.map((g) => [g.id, g.family]));
 /** The data the renderers read. ?now=YYYY-MM-DDTHH:MM (store time) sets the clock outside production, for screenshots and tests. */
 function publicCtx(url) {
   const t = url.searchParams.get('now'), keepNow = !PROD && NOW_TEST.test(t ?? '') && realDay(t.slice(0, 10)) ? t : null;
-  return { store: facts(), series: listSeries(db), exceptions: listExceptions(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL };
+  return { store: facts(), series: listSeries(db), exceptions: listExceptions(db), counts: regs.countsMap(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL };
 }
 /** Marker name -> function, for injectMarkers(); the database is read only when a page actually has a marker. */
 function liveParts(url, more = {}) {
@@ -215,11 +228,11 @@ function liveParts(url, more = {}) {
     ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
 }
 /** tpl = the built page before injectMarkers(): only its inline scripts get CSP hashes. */
-function sendHtml(nreq, nres, url, html, tpl, status = 200) {
-  const headers = { ...baseHeaders(url, tpl), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' };
+function sendHtml(nreq, nres, url, html, tpl, status = 200, extra = null) {
+  const headers = { ...baseHeaders(url, tpl), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', ...extra };
   const body = compress(nreq, Buffer.from(html), 'text/html; charset=utf-8', headers);
   nres.writeHead(status, headers);
-  if (status === 200) stats.record(nreq, nres);
+  if (status === 200 && !extra) stats.record(nreq, nres); // private pages (extra headers) are not counted: their path holds a secret
   nres.end(nreq.method === 'HEAD' ? undefined : body);
 }
 function sendText(nreq, nres, url, body, type, extra = {}) {
@@ -230,29 +243,90 @@ function sendText(nreq, nres, url, body, type, extra = {}) {
 }
 const template = (name) => { try { return readFileSync(join(DIST, name, 'index.html'), 'utf8'); } catch { return null; } };
 
-/** One event date: /events/<id>?date=<slot> (D16). No date: 302 to the next date that is not cancelled. */
-function eventPage(nreq, nres, url, id) {
+/** One event date as a page: { status, html, tpl } | { redirect } | null (no template). dateParam null = the series' next date (D16). form = the sign-up form's state after a refused post. */
+function eventDoc(url, id, dateParam, timeParam, form = {}) {
   const tpl = template('event-page');
-  if (!tpl) return notFound(nreq, nres, url);
+  if (!tpl) return null;
   const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === id && x.enabled !== false), store = ctx.store;
   const page = (status, body, head = view.h`<title>Event not found | ${store.name}</title>`) => {
     let out = injectMarkers(tpl, getState(db), etDay(), { ...liveParts(url), head: () => head, event: () => body });
     if (status !== 200) out = out.replace('</head>', '<meta name="robots" content="noindex"></head>');
-    return sendHtml(nreq, nres, url, out, tpl, status);
+    return { status, html: out, tpl };
   };
   if (!s) return page(404, view.eventMissing(ctx, null));
-  if (!url.searchParams.has('date')) {
+  if (dateParam === null) {
     const next = view.nextDate(ctx, s);
     if (!next) return page(404, view.eventMissing(ctx, s));
-    nres.writeHead(302, { ...baseHeaders(url), Location: ctx.keepNow ? `${view.eventPath(next)}&now=${encodeURIComponent(ctx.keepNow)}` : view.eventPath(next) });
-    return nres.end();
+    return { redirect: ctx.keepNow ? `${view.eventPath(next)}&now=${encodeURIComponent(ctx.keepNow)}` : view.eventPath(next) };
   }
-  const o = view.findOccurrence(ctx, s, url.searchParams.get('date'), url.searchParams.get('time'));
+  const o = view.findOccurrence(ctx, s, dateParam, timeParam);
   if (!o) return page(404, view.eventMissing(ctx, s));
-  const st = seatState(o, ctx.now.m), abs = PUBLIC_URL + view.eventPath(o), ld = eventLd(o, st, store, abs);
+  const st = seatState(o, ctx.now.m, ctx.counts.get(`${o.seriesId}|${o.slot}`)), abs = PUBLIC_URL + view.eventPath(o), ld = eventLd(o, st, store, abs);
   const desc = `${o.title} at ${store.name} in ${store.address.city}, ${store.address.region} on ${view.fmtLong(o.date)}. ${view.timeLine(o)}.`;
   const head = view.h`<title>${`${o.title}, ${view.fmtLong(o.date)}${o.cancelled ? ' (cancelled)' : ''} | ${store.name}`}</title><meta name="description" content="${desc}"><link rel="canonical" href="${abs}">${ld ? view.h`<script type="application/ld+json">${view.safe(ldScript(ld))}</script>` : ''}`;
-  return page(200, view.eventPage(ctx, o), head);
+  return page(200, view.eventPage(ctx, o, form), head);
+}
+function eventPage(nreq, nres, url, id) {
+  const d = eventDoc(url, id, url.searchParams.get('date'), url.searchParams.get('time'));
+  if (!d) return notFound(nreq, nres, url);
+  if (d.redirect) { nres.writeHead(302, { ...baseHeaders(url), Location: d.redirect }); return nres.end(); }
+  return sendHtml(nreq, nres, url, d.html, d.tpl, d.status);
+}
+
+// ---------- sign-ups (P2.4a): the public form, the player's private page and the player's own cancel ----------
+const ipOf = (nreq) => clientIp({ headers: { get: (k) => (k === 'x-mg-peer' ? nreq.socket.remoteAddress : nreq.headers[k]) } });
+const SIGNUP_PAGES = { __proto__: null, '/events/': '/events/' };
+const occurrenceOf = (ctx, series, slot) => { const s = ctx.series.find((x) => x.id === series); const o = s && view.findOccurrence(ctx, s, slot, null); return o && o.slot === slot ? o : null; };
+const typed = (f) => Object.fromEntries(['name', 'email', 'phone', 'playerId'].map((k) => [k, regs.line(f[k], 200)])); // what the form shows again after a refusal
+/** POST /api/signup: behind publicForm() (origin check, honeypot, 303 for a plain form). JSON callers get { ok, status, position, link }. */
+async function signupApi(req, url) {
+  let tpl;
+  const res = await publicForm(req, { origins: origins(url), pages: SIGNUP_PAGES, onSpam: (ip) => audit.event('signup_spam', '', ip, 'honeypot filled, nothing stored'), handle: (f, ip) => {
+    const again = (status, error, message, errors = {}) => { // the event page again, form filled in, for a browser without JavaScript
+      const d = eventDoc(url, String(f.series ?? ''), String(f.slot ?? ''), null, { values: typed(f), errors, message });
+      tpl = d?.tpl;
+      return { status: d?.status && d.status !== 200 ? d.status : status, body: { error, message, errors }, html: d?.html };
+    };
+    if (!allow(`su:${ip}`, 30)) return again(429, 'rate', 'Too many tries. Wait a minute and try again.');
+    const ctx = publicCtx(url), o = occurrenceOf(ctx, String(f.series ?? ''), String(f.slot ?? ''));
+    if (!o) return again(404, 'not_found', 'We couldn’t find that event date.');
+    const r = regs.register(db, o, f, { nowM: ctx.now.m });
+    if (r.ok) {
+      const q = `?new=1${r.raced ? '&raced=1' : ''}${ctx.keepNow ? `&now=${encodeURIComponent(ctx.keepNow)}` : ''}`;
+      return { status: 200, body: { ok: true, status: r.status, position: r.position, taken: r.taken, raced: r.raced, link: `${PUBLIC_URL}/signup/${r.token}` }, location: `/signup/${r.token}${q}` };
+    }
+    if (r.error === 'invalid') return again(422, 'invalid', 'Check the form and try again.', r.errors);
+    if (r.error === 'closed') return again(409, 'closed', `Sign-ups closed at ${view.fmtTime(r.cutoffHm)}. Walk in if seats are left.`);
+    if (r.error === 'dup') return again(409, 'dup', `You’re already signed up for this one, as ${r.existing}. Use your private link to check or cancel, or ask at the counter.`);
+    if (r.error === 'full') return again(409, 'full', 'This one is full. Ask at the counter about open seats.');
+    if (r.error === 'past') return again(409, 'past', 'This date has passed.');
+    return again(409, 'nosignup', 'You can’t sign up for this one here. Ask at the counter.');
+  } });
+  return Object.assign(res, { tpl });
+}
+/** POST /api/signup/cancel {token}: the player frees their own seat; the next on the waitlist moves in. Only the one registration behind the token is touched. */
+function signupCancelApi(req, url) {
+  return publicForm(req, { origins: origins(url), pages: SIGNUP_PAGES, handle: (f, ip) => {
+    if (!allow(`tok:${ip}`, 120)) return { status: 429, body: { error: 'rate' } };
+    const token = String(f.token ?? ''), reg = regs.byToken(db, token), ctx = publicCtx(url), o = reg && occurrenceOf(ctx, reg.series, reg.slot);
+    if (!o || endM(o) <= ctx.now.m) return { status: 404, body: { error: 'not_found' } };
+    const r = regs.cancel(db, o, reg.id);
+    return { status: r.ok ? 200 : 409, body: r.ok ? { ok: true } : { error: r.error }, location: `/signup/${token}${ctx.keepNow ? `?now=${encodeURIComponent(ctx.keepNow)}` : ''}` };
+  } });
+}
+/** GET /signup/<token>: the player's own page (D26): seat or waitlist place, Cancel. noindex, no Referer, not counted in the stats. */
+function mySignup(nreq, nres, url, token) {
+  const tpl = template('event-page');
+  if (!tpl) return notFound(nreq, nres, url);
+  const ctx = publicCtx(url), priv = { 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'no-store' };
+  const page = (status, body, title) => sendHtml(nreq, nres, url, injectMarkers(tpl, getState(db), etDay(), { ...liveParts(url), head: () => view.h`<title>${title} | ${ctx.store.name}</title><meta name="robots" content="noindex">`, event: () => body }), tpl, status, priv);
+  const gone = (why) => page(404, view.signupGone(ctx, 'We couldn’t find that sign-up.', why), 'Sign-up not found');
+  if (!allow(`tok:${ipOf(nreq)}`, 120)) return page(429, view.signupGone(ctx, 'Too many tries.', 'Wait a minute and try again.'), 'Too many tries');
+  const reg = regs.byToken(db, token), o = reg && occurrenceOf(ctx, reg.series, reg.slot);
+  if (!reg) return gone('The link may be wrong, or the event is over and your details were deleted.');
+  if (!o || endM(o) <= ctx.now.m) return gone('That event is over, so this link has stopped working.');
+  const q = url.searchParams;
+  return page(200, view.signupPage(ctx, o, { ...reg, token }, { taken: regs.counts(db, reg.series, reg.slot).in, isNew: q.has('new'), raced: q.has('raced'), link: `${PUBLIC_URL}/signup/${token}` }), 'Your sign-up');
 }
 
 /** Server-made public routes: the calendar feed, one-date calendar files, sitemap.xml and the event date pages. Returns true when it answered. */
@@ -275,6 +349,8 @@ async function publicRoute(nreq, nres, url) {
   }
   m = /^\/events\/([a-z0-9][a-z0-9-]{0,59})\/?$/.exec(p);
   if (m) { eventPage(nreq, nres, url, m[1]); return true; }
+  m = /^\/signup\/([A-Za-z0-9_-]{20,64})\/?$/.exec(p);
+  if (m) { mySignup(nreq, nres, url, m[1]); return true; }
   return false;
 }
 
@@ -310,6 +386,8 @@ async function login(req, url) {
 async function route(req, url) {
   const p = url.pathname;
   if (p === '/api/login' && req.method === 'POST') return login(req, url);
+  if (p === '/api/signup' && req.method === 'POST') return signupApi(req, url);
+  if (p === '/api/signup/cancel' && req.method === 'POST') return signupCancelApi(req, url);
   if (p === '/api/logout' && req.method === 'POST') {
     if (!sameOrigin(req, ...origins(url))) return bad('origin', 403);
     const who = signedIn(req, url);
@@ -404,17 +482,24 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
   if (!cur) return bad('not_found', 404);
   if (!sub) {
     if (m === 'GET') return json({ series: cur, exceptions: listExceptions(db, id) });
-    if (m === 'DELETE') { deleteSeries(db, id); note('series_delete', id); return json({ ok: true }); }
+    if (m === 'DELETE') {
+      if (regs.heldSlots(db, id, publicCtx(url).now.ymd).length) return json({ error: 'signed_up', message: 'People are signed up for upcoming dates of this event. Hide it instead, or cancel their sign-ups first.' }, 409); // G4
+      deleteSeries(db, id); note('series_delete', id); return json({ ok: true });
+    }
     if (m !== 'PUT') return bad('not_found', 404);
     if (!plain) return bad('body');
     const errors = validateSeries({ ...body, id });
     if (Object.keys(errors).length) return invalid(errors);
     const s = cleanSeries({ ...body, id });
+    // G4: an edit that makes a date with sign-ups disappear (weekday, one-off date, slot time or last date changed) would lose those seats: refused, no override.
+    const lost = regs.heldSlots(db, id, publicCtx(url).now.ymd).filter((x) => hasSlot(cur, x.slot) && !hasSlot(s, x.slot));
+    if (lost.length) return json({ error: 'signed_up', slots: lost, message: `People are signed up for ${lost.map((x) => `${view.fmtDate(x.slot.slice(0, 10))}${x.slot.length > 10 ? ` ${view.fmtTime(x.slot.slice(11))}` : ''} (${x.n})`).join(', ')}, and this change would take those dates away. Keep them: set this event's last date after them and make a new event for the change, or move a single date with Change this date.` }, 409);
     // Stored one-date changes whose slot this edit makes disappear (time or weekday moved): the editor must confirm, then they are removed.
     const orphans = listExceptions(db, id).filter((x) => hasSlot(cur, x.date) && !hasSlot(s, x.date));
     if (orphans.length && body.confirmOrphans !== true) return json({ error: 'orphans', orphans }, 409);
     putSeries(db, s); // save first: a failed save must not have removed the cancellations already
     for (const x of orphans) deleteException(db, id, x.date);
+    repromote(url);
     note('series_update', orphans.length ? `${id} (removed ${orphans.length} one-date changes)` : id);
     return json({ series: s });
   }
@@ -425,11 +510,15 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     if (Object.keys(errors).length) return invalid(errors);
     const x = cleanException(id, body, publicCtx(url).now.ymd); // the test clock (?now=) outside production
     putException(db, x);
+    regs.setEventDay(db, id, x.date, x.movedTo || x.date.slice(0, 10)); // a moved date: contacts are kept until N days after the day it really happens
+    repromote(url);
     note('exception_set', `${id} ${x.date} ${x.type}`);
     return json({ exception: x });
   }
   if (sub === 'exceptions' && m === 'DELETE') {
     if (!deleteException(db, id, date ?? '')) return bad('not_found', 404);
+    regs.setEventDay(db, id, date, date.slice(0, 10));
+    repromote(url);
     note('exception_clear', `${id} ${date}`);
     return json({ ok: true });
   }
@@ -488,10 +577,47 @@ function templatesApi(req, body, [id], ip, note) {
   return bad('not_found', 404);
 }
 
+// ---------- roster (admin): GET roster/:series/:slot | POST roster/:series/:slot/walkin | POST roster/:series/:slot/:id/<action> ----------
+// actions: checkin {on}, payment {payment}, erase, cancel, noshow {on}, movein, move {dir: -1|1}. Session + origin check come from route(). Every reply is the whole roster again.
+function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
+  const m = req.method;
+  if (m !== 'GET' && !allow(`ro:${ip}`, 1200)) { note('roster_blocked', 'rate limit'); return bad('rate', 429); }
+  const o = occurrenceOf(publicCtx(url), series ?? '', slot ?? '');
+  if (!o) return bad('not_found', 404);
+  const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null },
+    counts: regs.counts(db, o.seriesId, o.slot), regs: regs.roster(db, o.seriesId, o.slot) });
+  if (m === 'GET' && !id) return full();
+  if (m !== 'POST') return bad('not_found', 404);
+  const b = body && typeof body === 'object' && !Array.isArray(body) ? body : {};
+  const done = (r, what) => { if (!r.ok) return json({ error: r.error ?? 'state', result: r }, 409); note(what, `${o.seriesId} ${o.slot} #${id}`); return full(r); };
+  if (id === 'walkin') {
+    const r = regs.walkIn(db, o, { name: b.name, mode: b.mode, payment: b.payment });
+    if (!r.ok && ['name', 'name_long', 'bad_input'].includes(r.error)) return json({ error: 'invalid', errors: { name: r.error === 'name' ? 'Type a name first.' : 'Check the name and options.' } }, 422);
+    if (!r.ok) return json({ error: r.error, result: r }, 409);
+    note('roster_walkin', `${o.seriesId} ${o.slot} ${r.status}`);
+    return full(r);
+  }
+  const rid = /^\d{1,9}$/.test(id ?? '') ? Number(id) : null;
+  if (rid === null) return bad('not_found', 404);
+  if (action === 'checkin') return done(regs.checkIn(db, o, rid, b.on !== false), b.on === false ? 'roster_uncheck' : 'roster_checkin');
+  if (action === 'payment') return done(regs.setPayment(db, o, rid, b.payment), 'roster_payment');
+  if (action === 'cancel') return done(regs.cancel(db, o, rid), 'roster_cancel');
+  if (action === 'noshow') return done(b.on === false ? regs.undoNoShow(db, o, rid) : regs.noShow(db, o, rid), b.on === false ? 'roster_noshow_undo' : 'roster_noshow');
+  if (action === 'erase') return done(regs.erase(db, o, rid), 'roster_erase'); // "remove my details" at the counter
+  if (action === 'movein') return done(regs.moveIn(db, o, rid), 'roster_movein');
+  if (action === 'move') return done(regs.moveWaitlist(db, o, rid, b.dir), 'roster_move');
+  return bad('not_found', 404);
+}
+/** After a series or one-date edit changed the seats: people waiting move in while a seat is free (lowering the seats bumps nobody). */
+function repromote(url) {
+  const ctx = publicCtx(url);
+  for (const w of regs.waitingSlots(db)) { const o = occurrenceOf(ctx, w.series, w.slot); if (o) regs.promoteSlot(db, o); }
+}
+
 async function adminApi(req, url, user) {
   let segs;
   try { segs = url.pathname.slice('/api/admin/'.length).split('/').map(decodeURIComponent); } catch { return bad('bad_path', 400); } // %3A in a slot key (2026-11-08T15%3A00) must reach the database as ':'
-  const [section, a1, a2, a3] = segs;
+  const [section, a1, a2, a3, a4] = segs;
   const key = `${req.method} ${section}`;
   const body = ['POST', 'PUT'].includes(req.method) ? await req.json().catch(() => null) : null;
   const ip = clientIp(req);
@@ -509,6 +635,7 @@ async function adminApi(req, url, user) {
     note('photo_delete', a1);
     return json({ ok: true, photos: photoList() });
   }
+  if (section === 'roster') return rosterApi(req, url, body, [a1, a2, a3, a4], ip, note);
   if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
   if (section === 'store') return storeApi(req, url, body, ip, note, photoFiles);
   if (section === 'templates') return templatesApi(req, body, [a1], ip, note);
@@ -526,7 +653,7 @@ async function adminApi(req, url, user) {
 }
 
 // ---------- HTTP ----------
-const MAX_BODY = 256 * 1024, MAX_PHOTO_BODY = 2 * 1024 * 1024;
+const MAX_BODY = 256 * 1024, MAX_PHOTO_BODY = 2 * 1024 * 1024, MAX_SMALL_BODY = 8 * 1024; // sign-up and roster bodies are a few short fields
 function readBody(nreq, max = MAX_BODY) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -553,12 +680,12 @@ const server = createServer(async (nreq, nres) => {
     for (const [k, v] of Object.entries(nreq.headers)) for (const x of [v].flat()) headers.append(k, x);
     headers.set('x-mg-peer', nreq.socket.remoteAddress ?? ''); // overwrites any copy the client sent; see clientIp()
     // Only a signed-in admin posting a picture may send up to 2 MB; everyone else gets 256 KB, checked before anything is buffered.
-    const max = nreq.method === 'POST' && url.pathname === '/api/admin/photos' && signedIn({ headers: { get: (k) => nreq.headers[k] } }, url) ? MAX_PHOTO_BODY : MAX_BODY;
+    const max = nreq.method === 'POST' && url.pathname === '/api/admin/photos' && signedIn({ headers: { get: (k) => nreq.headers[k] } }, url) ? MAX_PHOTO_BODY : /^\/api\/(signup|admin\/roster\/)/.test(url.pathname) ? MAX_SMALL_BODY : MAX_BODY;
     if (Number(nreq.headers['content-length']) > max) throw Object.assign(new Error('too large'), { status: 413 });
     const body = ['GET', 'HEAD'].includes(nreq.method) ? undefined : await readBody(nreq, max);
     await send(nreq, nres, url, await route(new Request(url, { method: nreq.method, headers, body }), url));
   } catch (e) {
-    if (e.status !== 413) log('error', clean(nreq.method, 10), clean(url.pathname, 200), clean(e.stack ?? e, 2000));
+    if (e.status !== 413) log('error', clean(nreq.method, 10), clean(url.pathname.replace(/^\/signup\/[^/]+/, '/signup/<link>'), 200), clean(e.stack ?? e, 2000));
     if (!nres.headersSent) { nres.writeHead(e.status ?? 500, { ...baseHeaders(url), 'Content-Type': 'application/json' }); nres.end(JSON.stringify({ error: e.status === 413 ? 'too_large' : 'server' })); }
   }
 });

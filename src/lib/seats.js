@@ -1,5 +1,5 @@
 // The event card state machine (DESIGN.md 5.3, "Event card: states"): exactly one state per occurrence, first match wins.
-// Registrations do not exist yet (P2.4); pass { taken, waiting } as `regs` once they do. Until then every pre-register event shows all its seats.
+// `regs` = { taken, waiting } from the registrations table (render.js regsOf); with none given, an event shows all its seats.
 import { dayMin, toMin } from './clock.js';
 
 /** Store-clock minutes (see clock.js) of an occurrence's start, or null when no start time is set. */

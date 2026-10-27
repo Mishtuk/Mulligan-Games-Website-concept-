@@ -229,17 +229,24 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Owner:** Desktop coder. **Files:** `src/lib/registrations.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`
   (Today + roster views), event detail form, `test/registrations.test.js`.
 - **Needs:** P2.3, P1.3b counter bullet (No-show).
+- **Status:** P2.4a (public form, private link D26, rules, roster API, retention, privacy page) reviewed and accepted by
+  the boss 2026-10-27 (D30). P2.4b: the admin Today and roster screens on that API, plus the items listed at the end.
 - **Done when:**
-  - [ ] Public form (no account): name, email or phone, optional player ID; honeypot, rate limit, origin check as VFW.
-  - [ ] Capacity, cutoff, waitlist with auto-promote on cancel or staff removal; "You're on the waitlist (#n)" reply.
-  - [ ] Admin Today: check-in, walk-in add, payment status (at door / online elsewhere / comped / store credit).
+  - [x] Public form (no account): name, email or phone, optional player ID; honeypot, rate limit, origin check as VFW.
+  - [x] Capacity, cutoff, waitlist with auto-promote on cancel or staff removal; "You're on the waitlist (#n)" reply.
+  - [ ] Admin Today: check-in, walk-in add, payment status (at door / online elsewhere / comped / store credit). (API
+        done in P2.4a; screens P2.4b.)
   - [ ] Today: one-tap "No-show" (with Undo) frees the seat and promotes the waitlist; no-shows counted per date.
-  - [ ] The sign-up reply states the seat-release time when set (D17): "Arrive by 6:50 PM or your seat goes to the
+  - [x] The sign-up reply states the seat-release time when set (D17): "Arrive by 6:50 PM or your seat goes to the
         waitlist."
-  - [ ] Contact details deleted N days after the event (N decided in `DECISIONS.md`); counts kept; privacy page says so.
+  - [x] Contact details deleted N days after the event (N decided in `DECISIONS.md`); counts kept; privacy page says so.
   - [ ] Roster header "Copy post text" (15.3) and the 9.1 admin shell replacing the provisional sidebar (moved from
         P2.2b, D23).
-  - [ ] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, no-show, retention purge.
+  - [x] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, no-show, retention purge.
+  - [ ] (P2.4b, D30 (6)) Cancel Undo as an inverse with a precondition (G6, designer spec first); "Add a
+        pre-registration" for counter events (G1, designer spec first); a per-slot `headcount` row that P2.6 reads and
+        edits (G10); walk-in "Seat anyway" on a name match.
+  - [ ] (Later, needs mail set up and Mish's OK) Email the private link when the player gave an email (D26).
 
 ### P2.5 Inventory
 - **Owner:** Desktop coder. **Files:** `src/lib/inventory.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`
