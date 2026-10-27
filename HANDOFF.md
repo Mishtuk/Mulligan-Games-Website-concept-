@@ -33,7 +33,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** P1.5 owner click-through pack (`docs/owner-pack.md`); read-only review of P2.3a (`docs/review/p2.3a-laptop-review.md`).
+- **Laptop:** #12 (`DESIGN.md` hero video section, `docs/owner-pack.md`, `docs/review/p2.3b-laptop-review.md`, `docs/review/p2.4-prep.md`).
 - **Desktop:** out of usage (2026-10-26, claims released). Resumes with #11 (needs Node), then P2.4. Laptop: #12.
 
 ## Status (handoff, 2026-10-26)
