@@ -536,3 +536,12 @@ appear only on admin routes, never in logs; backups hold them up to 7 more days;
 Columns name, category, game, sku, on_hand, low_at, shown. Cells starting with = + - @ tab or CR get a leading ';
 cells with , " CR LF are quoted. text/csv attachment `mulligan-products.csv`, no-store; each export is logged as
 `inventory_export` with no customer data. Import waits on Q4 (POS).
+
+### D46. Light/dark: the VFW round button, bottom-right (2026-10-27, owner)
+- **Owner (Mish):** "reuse the one you made for the warminster VFW website and put it in the bottom right of the website".
+- **Ruling:** `src/components/ThemeFab.astro` is the VFW site's ThemeFab (same markup, icons, behaviour, styles), on
+  every public page and the admin. Moon in light mode, sun in dark mode, aria-label "Switch to dark/light mode", 44px,
+  hidden in print and without JS. Mulligan differences only: the theme stays in `<meta name="color-scheme">` with the
+  `mg-scheme` key (switching back to the system's scheme follows the system again), colours use this site's tokens,
+  and on phones it sits above the quick-actions bar (D33) and the admin tab bar. Replaces the labelled Light | Dark pill
+  in the header (D28/D37 wording) everywhere.

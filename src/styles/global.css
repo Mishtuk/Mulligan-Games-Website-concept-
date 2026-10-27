@@ -231,25 +231,8 @@ img { max-width: 100%; height: auto; display: block; }
   .plate { margin-right: 0; }
 }
 
-/* the labelled Light | Dark switch: follows the system until a visitor picks one (MG.scheme, remembered as mg-scheme) */
-.scheme {
-  display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-pill);
-  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
-}
-.scheme button {
-  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0 0.8rem; border: 0; border-radius: var(--r-pill);
-  background: transparent; color: var(--ink); font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer;
-}
-.scheme button .ic { width: 1.05rem; height: 1.05rem; }
-.scheme button:hover { background: var(--surface-2); }
-.scheme button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-/* on the brick header: quieter outline, cream fill for the chosen side (round 4, F16) */
-.site-head .scheme { background: transparent; border-color: rgb(255 255 255 / 0.35); color: var(--on-band); }
-.site-head .scheme button { color: var(--on-band); }
-.site-head .scheme button:hover { background: rgb(255 255 255 / 0.12); }
-.site-head .scheme button[aria-pressed="true"] { background: var(--on-band); color: #2B211C; }
-@media (scripting: none) { .scheme, #print-btn { display: none; } } /* the switch needs site.js; without it the page follows the system */
-@media (max-width: 420px) { .scheme button { padding: 0 0.6rem; } .plate img { width: 8.25rem; } }
+@media (scripting: none) { #print-btn { display: none; } } /* Print needs site.js */
+@media (max-width: 420px) { .plate img { width: 8.25rem; } }
 
 /* the day card (front page week strip) */
 .daycard {
@@ -988,7 +971,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   html, body { background: #fff !important; color: #000 !important; font-size: 11pt; }
   body { padding-bottom: 0 !important; }
   *, *::before, *::after { color: #000 !important; background-color: transparent !important; box-shadow: none !important; text-shadow: none !important; }
-  .skip, .phero-strip, .wdeck, .site-nav, .scheme, .chips, .btn, .no-print, .mobile-bar, .toast, video, .phero-media, .media-cap, .empty-photo > img, .site-foot img:not(.keep) { display: none !important; }
+  .skip, .phero-strip, .wdeck, .site-nav, .chips, .btn, .no-print, .mobile-bar, .toast, video, .phero-media, .media-cap, .empty-photo > img, .site-foot img:not(.keep) { display: none !important; }
   /* boss D35: the events page photo, the filter controls, the live open-now status and the Tonight repeat stay off paper */
   .ep-format, .cal-menu, .ob-status, #today-wrap, .site-foot .foot-plate { display: none !important; }
   .site-head, .openbar, [class*="band"] { background-image: none !important; }

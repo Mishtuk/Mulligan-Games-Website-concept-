@@ -650,7 +650,7 @@ test('P2.4b screens: the roster reply carries what the screens need, hostile tex
   const real = join(import.meta.dirname, '..', 'dist', 'admin', 'index.html');
   if (existsSync(real)) { // needs `npm run build` first, as the rest of the suite does
     const t = readFileSync(real, 'utf8'), scripts = [...t.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
-    assert.ok(t.includes('data-section="today"') && t.includes('data-signout') && t.includes('data-scheme="dark"') && !/\son[a-z]+="/.test(t), 'shell, theme switch, sign-out menu; no inline handlers');
+    assert.ok(t.includes('data-section="today"') && t.includes('data-signout') && t.includes('class="theme-fab"') && !/\son[a-z]+="/.test(t), 'shell, theme switch, sign-out menu; no inline handlers');
     for (const sc of scripts) assert.doesNotThrow(() => new Function(sc), 'every inline admin script parses (a duplicate declaration once stopped the whole page)');
   }
 });

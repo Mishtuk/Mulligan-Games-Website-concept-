@@ -1,27 +1,7 @@
 /* Mulligan Games public pages: JS only enhances (D11). Pages work without it. No innerHTML: everything is textContent / attributes / hidden. */
 (function () {
   'use strict';
-  var meta = document.querySelector('meta[name="color-scheme"]');
-
-  /* Light | Dark switch: follows the system until a visitor picks one; the pick is remembered (mg-scheme), choosing the system's own scheme forgets it */
-  function system() { return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
-  function current() { var c = meta && meta.content; return c === 'light' || c === 'dark' ? c : system(); }
-  function sync() {
-    document.querySelectorAll('button[data-scheme]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-scheme') === current())); });
-  }
-  if (meta) {
-    document.addEventListener('click', function (ev) {
-      var b = ev.target.closest && ev.target.closest('button[data-scheme]');
-      if (!b) return;
-      var target = b.getAttribute('data-scheme');
-      try { if (target === system()) localStorage.removeItem('mg-scheme'); else localStorage.setItem('mg-scheme', target); } catch (e) { /* not saved */ }
-      meta.content = target === system() ? 'light dark' : target;
-      sync();
-    });
-    window.addEventListener('storage', function (ev) { if (ev.key === 'mg-scheme') { meta.content = ev.newValue || 'light dark'; sync(); } });
-    try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync); } catch (e) { /* old browsers */ }
-    sync();
-  }
+  /* the light/dark button is src/components/ThemeFab.astro (reused from the VFW site, D46) */
 
   /* front page hero video: the poster shows until a real frame is painted; held back for reduced motion / Save-Data / slow links */
   var v = document.getElementById('hero-video'), vbtn = document.getElementById('vid-btn'), box = document.getElementById('hero-media');

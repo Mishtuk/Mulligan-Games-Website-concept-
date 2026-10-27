@@ -14,11 +14,12 @@ in=$1 name=$2 h=${3:-1080} secs=${4:-12}
 [ -f "$in" ] || { echo "Input not found: $in" >&2; exit 2; }
 out="$(cd "$(dirname "$0")/.." && pwd)/media"; mkdir -p "$out"
 real_in=$(realpath "$in")
+win() { if command -v cygpath >/dev/null; then cygpath -w "$1"; else echo "$1"; fi; }
 for ext in mp4 webm jpg; do
   [ "$real_in" != "$(realpath -m "$out/$name.$ext")" ] || { echo "The output would overwrite the input ($in). Pick another output name." >&2; exit 2; }
 done
 vf="hqdn3d=1.5:1.5:6:6,scale=-2:${h}:flags=lanczos,unsharp=5:5:0.6:5:5:0,format=yuv420p"
-ffmpeg -hide_banner -loglevel error -y -protocol_whitelist file -f mov -i "file:$in" -t "$secs" -an -vf "$vf" \
+ffmpeg -hide_banner -loglevel error -y -protocol_whitelist file -f mov -i "file:$(win "$in")" -t "$secs" -an -vf "$vf" \
   -c:v libx264 -preset slow -crf 20 -movflags +faststart "$out/$name.mp4"
 ffmpeg -hide_banner -loglevel error -y -i "$out/$name.mp4" -an -c:v libvpx-vp9 -b:v 0 -crf 33 -row-mt 1 "$out/$name.webm"
 ffmpeg -hide_banner -loglevel error -y -i "$out/$name.mp4" -frames:v 1 -q:v 3 "$out/$name.jpg"

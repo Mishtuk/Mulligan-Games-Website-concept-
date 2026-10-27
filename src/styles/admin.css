@@ -32,13 +32,7 @@
 .adm-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: var(--s3); height: 3.5rem; padding-inline: var(--gutter); background: var(--charcoal); color: var(--on-band); color-scheme: dark; border-bottom: 1px solid #FFFFFF14; }
 .plate-sm img { width: 6.25rem; }
 .top-title { margin: 0 auto 0 0; font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 1.6rem; line-height: 1; }
-.top-scheme { display: none; }
-@media (min-width: 600px) { .top-scheme { display: inline-flex; } }
-.top-scheme button { padding: 0 .65rem; } /* keeps the 44px height (R24) */
-.adm-top .scheme, .adm-side .scheme, .adm-top .acct summary, .adm-side .acct summary { color-scheme: dark; border-color: #FFFFFF44; background: transparent; color: var(--on-band); }
-.adm-top .scheme button, .adm-side .scheme button { color: var(--on-band); }
-.adm-top .scheme button:hover, .adm-side .scheme button:hover { background: #FFFFFF1F; }
-.adm-top .scheme button[aria-pressed="true"], .adm-side .scheme button[aria-pressed="true"] { background: var(--on-band); color: var(--charcoal); }
+.adm-top .acct summary, .adm-side .acct summary { color-scheme: dark; border-color: #FFFFFF44; background: transparent; color: var(--on-band); }
 .adm-main { padding: var(--s5) var(--gutter) var(--s8); outline: none; }
 .wrap-adm { max-width: 72rem; margin-inline: auto; }
 .adm-main:has(.ewrap) .wrap-adm { max-width: 82rem; }
@@ -58,9 +52,7 @@
 .adm-tabs :focus-visible, .adm-top :focus-visible, .adm-side :focus-visible { outline-color: #fff; }
 .nb { position: absolute; top: .45rem; left: calc(50% + .55rem); min-width: 1.35rem; padding: 0 .3rem; border-radius: var(--r-pill); background: var(--highlight); color: var(--on-highlight); font-size: .8rem; font-weight: 900; line-height: 1.35rem; text-align: center; }
 .more-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-.more-list .btn, .more-list .scheme { width: 100%; justify-content: flex-start; }
-.more-list .scheme { justify-content: space-between; }
-.more-list .scheme button { flex: 1; justify-content: center; min-height: var(--tap); }
+.more-list .btn { width: 100%; justify-content: flex-start; }
 @media (min-width: 1024px) {
   .adm { --toast-bottom: 1.25rem; }
   .adm-app { grid-template-columns: 16rem minmax(0, 1fr); padding-bottom: 0; }
@@ -76,8 +68,6 @@
   .side-nav a[aria-current="page"] { background: #FFFFFF1F; color: #9DB8F2; box-shadow: inset 4px 0 0 #9DB8F2; }
   .side-nav .nb { position: static; margin-left: auto; }
   .side-foot { margin-top: auto; display: grid; gap: var(--s2); justify-items: start; }
-  .side-foot .scheme { justify-self: stretch; justify-content: space-between; }
-  .side-foot .scheme button { padding: 0 .55rem; } /* fits the 16rem sidebar without a sideways scrollbar */
   .adm-main { padding-top: var(--s6); }
 }
 .adm-warn { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; background: var(--bad-bg); color: var(--bad); font-weight: 700; border-radius: var(--r-ctl); padding: .8rem 1rem; margin-bottom: var(--s4); }
