@@ -98,29 +98,24 @@
     if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
   }
 
-  /* ---------- 1. open-now strip ---------- */
-  function statusText(st) {
-    if (st.open) return { open: true, html: '<strong>Open now</strong> till ' + MG.fmtTime(st.closeHm) };
-    if (!st.next) return { open: false, html: '<strong>Closed</strong>' };
-    var rel = MG.relDay(st.next.date, now), t = MG.fmtTime(st.next.hm);
-    if (rel === 'today') return { open: false, html: '<strong>Closed now.</strong> Opens at ' + t };
-    var lead = st.today.closed ? 'Closed today.' : 'Closed now.';
-    return { open: false, html: '<strong>' + lead + '</strong> Opens ' + rel + ' at ' + t };
-  }
-  function renderOpenbar(st) {
-    var s = statusText(st), el = $('#ob-status');
-    el.innerHTML = '<span class="ob-dot" aria-hidden="true"></span><span>' + s.html + '</span>';
-    if (s.open) el.setAttribute('data-open', ''); else el.removeAttribute('data-open');
-  }
+  /* ---------- 1. open / closed: only the hero chip on this page (D52); the bar above the header keeps the address ---------- */
 
   /* ---------- 2. hero ---------- */
-  function headline(st) {
-    if (st.open) return st.closeHm === '24:00' ? 'Open till midnight tonight.' : 'Open till ' + MG.fmtTime(st.closeHm) + ' tonight.';
-    if (!st.next) return 'Closed this week.';
+  // D51: the status chip above the headline, from the same hours data (never typed): "Open now · till midnight", "Opens 2 PM today",
+  // "Closed today · back Wed 2 PM", "Closed · back tomorrow 2 PM"
+  function chipText(st) {
+    if (st.open) return { open: true, text: 'Open now · till ' + MG.fmtTime(st.closeHm) };
+    if (!st.next) return { open: false, text: 'Closed this week' };
     var rel = MG.relDay(st.next.date, now), t = MG.fmtTime(st.next.hm);
-    if (rel === 'today') return 'Open today from ' + t + '.';
-    if (!st.today.closed) return 'Closed for the night. Back ' + rel + ' at ' + t + '.';
-    return 'Closed today. Back ' + rel + ' at ' + t + '.';
+    if (rel === 'today') return { open: false, text: 'Opens ' + t + ' today' };
+    var when = rel === 'tomorrow' ? rel : MG.dayShort(MG.parseYmd(st.next.date)) + (rel.indexOf(' ') !== -1 ? ' ' + MG.fmtDate(MG.parseYmd(st.next.date)) : '');
+    return { open: false, text: (st.today.closed ? 'Closed today' : 'Closed') + ' · back ' + when + ' ' + t };
+  }
+  function renderChip(st) {
+    var c = chipText(st), el = $('#hero-chip');
+    if (!el) return;
+    $('#hero-chip-t').textContent = c.text;
+    if (c.open) el.setAttribute('data-open', ''); else el.removeAttribute('data-open');
   }
   function groupByStart(list) {
     var out = [];
@@ -131,34 +126,14 @@
     });
     return out;
   }
+  // The welcome line is static; a date override note (for example early closing) is the only thing added, so it stays short.
   function sub() {
-    var todays = week.filter(function (o) { return o.date === today && live(o); });
-    var on = todays.filter(function (o) { return o.startAt <= now; });
-    var later = todays.filter(function (o) { return o.startAt > now; });
-    var parts = [];
-    if (on.length) parts.push('On now: ' + MG.list(on.map(function (o) { return o.series.title; })) + '.');
-    if (later.length) {
-      var g = groupByStart(later).slice(0, 3).map(function (s) {
-        return MG.list(s.items.map(function (o) { return o.series.title; })) + ' at ' + MG.fmtTime(s.start);
-      });
-      parts.push(timeWord(now) + ': ' + g.join('; ') + '.');
-    }
-    if (!parts.length) {
-      var next = week.filter(function (o) { return o.date > today && live(o); })[0];
-      if (next) {
-        var same = week.filter(function (o) { return o.date === next.date && live(o); });
-        var names = same.slice(0, 3).map(function (o) { return o.series.title; });
-        var more = same.length - names.length;
-        parts.push('Next up ' + MG.relDay(next.date, now) + ': ' + names.join(', ') + (more ? ' and ' + more + ' more' : '') + '.');
-      }
-    }
-    var ov = MG.hoursFor(today);
-    if (ov.override && ov.note) parts.push(ov.note);
-    return parts.join(' ');
+    var ov = MG.hoursFor(today), w = 'Free play every day we’re open, big tables, and a crew who knows every format.';
+    return ov.override && ov.note && ov.note.length <= 60 ? w + ' ' + ov.note : w;
   }
   function renderHero(st) {
-    $('#hero-date').textContent = MG.fmtLongDate(now);
-    $('#hero-h').textContent = headline(st);
+    renderChip(st);
+    $('#hero-h').textContent = 'Shuffle up. Everyone’s welcome.';
     $('#hero-sub').textContent = sub();
     // next up: the next start time (or what's on now if nothing else starts tonight)
     var upcoming = week.filter(function (o) { return live(o) && o.startAt > now; });
@@ -192,37 +167,19 @@
     }
     return phCache[ymd];
   }
-  // the strip shows each day's main-event photo, but not the same picture on two tiles while that game's list lasts
-  function stripPh(main, ymd, used) {
-    var p = dayPh(ymd)[main.key], name = p.src.replace(/^img\/social\/|-800\.webp$/g, '') + (p.tint ? ':tint' : ''); // same keys as MG.photoFor
-    if (!used[name]) { used[name] = true; return p; }
-    return MG.photoFor(main.series, used);
-  }
-  // the day's main event for the strip: featured, then sign-up here / external, then the earliest start
-  function mainEvent(evs) {
-    var best = null, bs = -1;
-    evs.forEach(function (o) {
-      var sc = (o.series.featured ? 4 : 0) + (o.series.signup === 'here' || o.series.signup === 'external' ? 2 : 0);
-      if (!best || sc > bs || (sc === bs && o.start < best.start)) { best = o; bs = sc; }
-    });
-    return best;
-  }
   function renderDeck() {
-    var html = '', stripUsed = {};
+    var html = '';
     for (var i = 0; i < 7; i++) {
       var d = MG.addDays(now, i), ymd = MG.ymd(d), h = MG.hoursFor(ymd);
       var evs = week.filter(function (o) { return o.date === ymd && live(o); });
       var closed = h.closed && !evs.length;
       var cap = closed ? 'Closed' : evs.length + (evs.length === 1 ? ' event' : ' events');
-      var main = mainEvent(evs), mp = main ? stripPh(main, ymd, stripUsed) : null;
-      var pips = evs.slice(0, 8).map(function (o) { return '<i data-game="' + e(o.series.game) + '"></i>'; }).join('');
       html += '<li style="--i:' + i + '"' + (i === 0 ? ' data-today' : '') + (closed ? ' data-closed' : '') + '>' +
         '<a class="daycard" style="--i:' + i + '" href="#d-' + ymd + '" aria-label="' + e(MG.dayName(d) + ' ' + MG.fmtDate(d) + (i === 0 ? ', today' : '') + ', ' + cap.toLowerCase()) + '">' +
-          (main ? '<span class="dc-ph ph" aria-hidden="true" data-game="' + e(main.series.game) + '"' + (mp.tint ? ' data-tint' : '') + '>' + MG.photoImg(mp) + '</span>' : '') +
           '<span class="dc-dow">' + (i === 0 ? 'Today' : MG.dayShort(d)) + '</span>' +
           '<span class="dc-num">' + d.getDate() + '</span>' +
-          '<span class="dc-pips" aria-hidden="true">' + pips + '</span>' +
-        '</a><span class="dc-cap" aria-hidden="true">' + cap + '</span></li>';
+          '<span class="dc-cap" aria-hidden="true">' + cap + '</span>' +
+        '</a></li>';
     }
     $('#deck').innerHTML = html;
   }
@@ -481,7 +438,7 @@
     var st = MG.openStatus(now);
     U.demoBar($('#demo'), { note: 'Some seat counts, one cancellation and one change are made up.', owners: { href: keepNow('admin/index.html'), label: 'Owners: open the counter screen' } });
     U.mobileBar();
-    renderOpenbar(st); renderHero(st); renderDeck();
+    renderHero(st); renderDeck();
     renderChips(); renderDays(); renderLater();
     renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips(); keepNowLinks();
   }

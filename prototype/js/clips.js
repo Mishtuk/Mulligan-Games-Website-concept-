@@ -80,7 +80,23 @@
   window.MGClips.open = openClip;
 
   /* ---------- the row ---------- */
+  /* Featured clips in the hero (D51): any link with data-clip-id opens the same dialog. The id must match a valid clip in the
+   * data; otherwise the link is removed (or, if it is the only way in, left as a plain link to the post). */
+  function bindFeatured() {
+    var clips = D.clips || [];
+    Array.prototype.slice.call(document.querySelectorAll('a[data-clip-id]')).forEach(function (a) {
+      var id = a.getAttribute('data-clip-id'), c = null;
+      for (var i = 0; i < clips.length; i++) if (clips[i] && clips[i].id === id) { c = clips[i]; break; }
+      if (!valid(c)) { var li = a.closest('li'); if (li && li.parentNode && li.parentNode.id === 'hero-feat') li.remove(); else a.remove(); return; }
+      a.addEventListener('click', function (ev) {
+        if (ev.defaultPrevented || ev.button || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+        if (openClip(c, a)) ev.preventDefault();
+      });
+    });
+  }
+
   function init() {
+    bindFeatured();
     var sec = document.getElementById('clips'), list = document.getElementById('clips-list');
     if (!sec || !list) return;
     var clips = D.clips || [], left = 0;

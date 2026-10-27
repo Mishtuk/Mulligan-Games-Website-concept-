@@ -9,10 +9,10 @@
   var BASE = location.href.replace(/[^\/]*$/, '').split('?')[0];
   var XSS_IMG = '<img src=x onerror="window.__xss=1">';
 
-  function openPage(path, width) {
+  function openPage(path, width, height) {
     return new Promise(function (resolve, reject) {
       var f = document.createElement('iframe'), errors = [], settled = false;
-      f.style.cssText = 'position:absolute;left:-9999px;width:' + (width || 1280) + 'px;height:900px';
+      f.style.cssText = 'position:absolute;left:-9999px;width:' + (width || 1280) + 'px;height:' + (height || 900) + 'px';
       f.addEventListener('load', function () {
         try {
           var w = f.contentWindow; void w.document.body;
@@ -23,9 +23,9 @@
       document.body.appendChild(f); f.src = BASE + path;
     });
   }
-  function pageTest(name, path, fn, width) {
+  function pageTest(name, path, fn, width, height) {
     T.async(name, function () {
-      return openPage(path, width).then(function (p) {
+      return openPage(path, width, height).then(function (p) {
         return Promise.resolve(fn(p.w, p.d, p)).then(function () {
           eq(p.errors.join(' | '), '', 'console errors'); p.frame.remove();
         }, function (err) { p.frame.remove(); throw err; });
@@ -227,6 +227,12 @@
     var ol = d.querySelector('.wdeck ol'); ok(ol.scrollWidth <= ol.clientWidth + 1, 'the strip does not scroll sideways');
     var bottom = d.querySelector('.phero-strip').getBoundingClientRect().bottom + w.scrollY; ok(bottom <= w.innerHeight - 56, 'hero strip bottom ' + bottom + ' clears the 56 px bar at ' + w.innerHeight);
   }, 390);
+  pageTest('round 7: at 360 px seven compact tiles fit, 44 px or more each way, no page overflow, count line inside the tile', 'index.html', function (w, d) {
+    var tiles = d.querySelectorAll('.wdeck .daycard'); eq(tiles.length, 7);
+    Array.prototype.forEach.call(tiles, function (a) { var r = a.getBoundingClientRect(); ok(r.width >= 44 && r.height >= 44 && r.height <= 64, 'tile ' + r.width + 'x' + r.height); ok(a.querySelector('.dc-cap'), 'count inside tile'); eq(a.querySelectorAll('img').length, 0); });
+    var ol = d.querySelector('.wdeck ol'); ok(ol.scrollWidth <= ol.clientWidth + 1, 'no strip scroll');
+    ok(d.documentElement.scrollWidth <= w.innerWidth + 1, 'no page overflow: ' + d.documentElement.scrollWidth + ' vs ' + w.innerWidth);
+  }, 360);
   pageTest('at 1280 the game chips are one row, and a card has no price circle or stat box unless it needs attention (F1, F6)', 'index.html', function (w, d) {
     var tops = {}; Array.prototype.forEach.call(d.querySelectorAll('.chip'), function (c) { tops[Math.round(c.getBoundingClientRect().top)] = 1; });
     eq(Object.keys(tops).length, 1, 'chip rows: ' + Object.keys(tops).join(','));
@@ -248,6 +254,65 @@
     ok(d.querySelector('#hero-media').getBoundingClientRect().width >= d.documentElement.clientWidth - 1, 'full width');
     eq(w.getComputedStyle(d.querySelector('#hero-h')).color, 'rgb(255, 255, 255)');
   }, 1280);
+
+  /* ---------- D51 round 7: hero headline, status chip, featured TikTok clips ---------- */
+  var chipCase = function (now, expect, open) {
+    pageTest('hero chip at ' + now + ' reads "' + expect + '"', 'index.html?now=' + now, function (w, d) {
+      var c = d.getElementById('hero-chip'); eq(c.textContent.replace(/\s+/g, ' ').trim(), expect);
+      eq(c.hasAttribute('data-open'), !!open, 'green dot only when open');
+      eq(d.getElementById('hero-h').textContent, 'Shuffle up. Everyone’s welcome.');
+    }, 1280);
+  };
+  chipCase('2026-10-30T18:50', 'Open now · till midnight', true);
+  chipCase('2026-10-30T11:00', 'Opens 2 PM today', false);
+  chipCase('2026-11-02T12:00', 'Closed today · back Wed 2 PM', false);
+  pageTest('the headline is the static welcome line and the sub-line is a short welcome', 'index.html', function (w, d) {
+    eq(d.getElementById('hero-h').textContent, 'Shuffle up. Everyone’s welcome.');
+    ok(/^Free play every day we’re open/.test(d.getElementById('hero-sub').textContent), d.getElementById('hero-sub').textContent);
+    ok(!d.getElementById('hero-date'), 'the date line is gone (the chip covers today)');
+    var chip = d.getElementById('hero-chip').getBoundingClientRect(), h = d.getElementById('hero-h').getBoundingClientRect(); ok(chip.bottom <= h.top + 1, 'chip above the headline');
+  }, 1280);
+  [900, 1024, 1280, 1440, 1920].forEach(function (wd) {
+    pageTest('at ' + wd + ' px two featured TikTok cards are real links, on the right and clear of the headline and the next-up ticket', 'index.html', function (w, d) {
+      var cards = d.querySelectorAll('#hero-feat a.fclip'); eq(cards.length, 2);
+      ok(/^https:\/\/www\.tiktok\.com\/@mulligangames\/video\/\d+$/.test(cards[0].href), cards[0].href);
+      var r0 = cards[0].getBoundingClientRect(), r1 = cards[1].getBoundingClientRect(), h = d.getElementById('hero-h').getBoundingClientRect(), n = d.getElementById('nextup').getBoundingClientRect();
+      ok(r0.width >= 130 && r0.width <= 175, 'card width ' + r0.width);
+      ok(r0.right <= r1.left + 1, 'cards side by side');
+      ok(h.right <= r0.left, 'headline right ' + h.right + ' vs card ' + r0.left); ok(n.right <= r0.left, 'next up clears the cards');
+      eq(w.getComputedStyle(d.getElementById('hero-clip')).display, 'none', 'no phone button on wide screens');
+      eq(d.querySelectorAll('iframe').length, 0, 'no iframe before a click');
+    }, wd);
+  });
+  pageTest('at 390 px the hero has one "Watch a clip" button that opens the dialog with exactly one TikTok iframe; no featured cards', 'index.html', function (w, d) {
+    eq(w.getComputedStyle(d.getElementById('hero-feat')).display, 'none');
+    var b = d.getElementById('hero-clip'); ok(/Watch a clip/.test(b.textContent), b.textContent); ok(b.getBoundingClientRect().height >= 44, 'tap target');
+    eq(d.querySelectorAll('iframe').length, 0, 'no iframe before a click');
+    b.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+    var dlg = d.querySelector('dialog.dlg-clip'); ok(dlg && dlg.open, 'dialog open');
+    var fr = dlg.querySelectorAll('iframe'); eq(fr.length, 1); ok(fr[0].src.indexOf('https://www.tiktok.com/player/v1/7456651666096704814?') === 0, fr[0].src);
+    dlg.close();
+  }, 390);
+
+  /* ---------- D52 boss round 7: each fact once, and the phone hero clears the quick-actions bar ---------- */
+  pageTest('D52: the home page says open / closed once (hero chip only) and free play once (sub-line only)', 'index.html?now=2026-10-30T18:50', function (w, d) {
+    ok(!d.getElementById('ob-status'), 'no status in the bar above the header');
+    var ob = d.querySelector('.openbar').textContent; ok(!/open now|closed|till/i.test(ob), 'bar: ' + ob.replace(/s+/g, ' '));
+    ok(/445 York Rd/.test(ob) && d.getElementById('ob-call') && d.getElementById('ob-map'), 'address, Call and Directions stay');
+    var all = d.body.textContent; eq((all.match(/Open now/g) || []).length, 1, '"Open now" once');
+    ok(!/free play/i.test(d.querySelector('.phero-strip').textContent), 'the strip has no free-play line');
+    eq((d.querySelector('.phero').textContent.match(/free play/gi) || []).length, 1, 'free play once in the hero');
+    ok(d.querySelector('.phero-strip .media-cap') && d.querySelector('.phero-strip .clips-link') && d.getElementById('vid-btn'), 'caption, clips link and Pause stay');
+  }, 1280);
+  pageTest('D52: events.html keeps its open / closed status in the bar', 'events.html?now=2026-10-30T18:50', function (w, d) {
+    ok(/Open now/.test(d.getElementById('ob-status').textContent), d.getElementById('ob-status').textContent);
+  }, 1280);
+  pageTest('D52: at 390 x 844 the whole hero (strip and Pause) ends above the quick-actions bar, and the address shows in one line', 'index.html?now=2026-10-30T18:50', function (w, d) {
+    var bar = d.querySelector('.mobile-bar').getBoundingClientRect().top, hero = d.querySelector('.phero').getBoundingClientRect(), p = d.getElementById('vid-btn').getBoundingClientRect();
+    ok(hero.bottom <= bar, 'hero bottom ' + hero.bottom + ' vs bar top ' + bar); ok(p.bottom <= bar, 'pause bottom ' + p.bottom);
+    var s = d.querySelector('.phero-strip').getBoundingClientRect(); ok(s.height <= 54, 'strip height ' + s.height); ok(s.width <= w.innerWidth, 'strip width ' + s.width);
+    var a = d.querySelector('.ob-front .ob-addr').getBoundingClientRect(); ok(a.height > 0 && a.height < 30, 'address one line: ' + a.height);
+  }, 390, 844);
 
   /* ---------- A9 sign-up in one step ---------- */
   pageTest('events.html#su-<key> opens the sign-up form with no detail dialog behind it', 'events.html?now=2026-10-28T16:00#su-pauper%402026-10-28', function (w, d) {
@@ -390,7 +455,7 @@
     var h = document.createElement('template'); h.innerHTML = MG.eventCard(occ, MG.now(), { photo: { src: 'x" onerror="window.__xss=1', pos: '"><img src=x onerror="window.__xss=1">', tint: true } }); inert(h.content, 'photo card');
     MG.state.reset();
   });
-  pageTest('at 1280 each today and tomorrow card has one decorative photo, none repeats within a day, rows have thumbs, strip tiles have photos', 'index.html?now=2026-10-30T19:30', function (w, d) {
+  pageTest('at 1280 each today and tomorrow card has one decorative photo, none repeats within a day, rows have thumbs, strip tiles have none', 'index.html?now=2026-10-30T19:30', function (w, d) {
     var cards = d.querySelectorAll('#days .ev'); ok(cards.length > 0, 'cards');
     Array.prototype.forEach.call(cards, function (c) {
       eq(c.querySelectorAll(':scope > .ev-ph').length, 1, 'one photo band on ' + c.id);
@@ -403,22 +468,17 @@
     });
     var rows = d.querySelectorAll('#days .day-line'); ok(rows.length > 0, 'rows');
     Array.prototype.forEach.call(rows, function (r) { var ph = r.querySelector(':scope > .dl-ph'); ok(ph, 'row thumb'); eq(ph.getAttribute('aria-hidden'), 'true'); eq(ph.querySelector('img').getAttribute('alt'), ''); ok(ph.getBoundingClientRect().width >= 55, 'thumb 56 px at 1280: ' + ph.getBoundingClientRect().width); eq(w.getComputedStyle(r.querySelector('.dl-dot')).display, 'none', 'dot replaced'); });
-    var caps = d.querySelectorAll('.wdeck li:not([data-closed]) .dc-ph'); ok(caps.length >= 3, 'strip photos: ' + caps.length);
-    Array.prototype.forEach.call(caps, function (c) { ok(c.getBoundingClientRect().height >= 38, 'cap shows: ' + c.getBoundingClientRect().height); });
-    eq(d.querySelectorAll('.wdeck li[data-closed] .dc-ph').length, 0, 'closed days have no photo');
+    eq(d.querySelectorAll('.wdeck img, .wdeck .dc-ph').length, 0, 'round 7: no pictures in the week strip at 1280');
+    var tl = d.querySelector('.wdeck .daycard').getBoundingClientRect(); ok(tl.height <= 64 && tl.height >= 44, 'tile height ' + tl.height); ok(d.querySelector('.wdeck ol').getBoundingClientRect().width <= 560, 'strip is capped at 1280');
     var rect = d.querySelector('#days .ev-ph').getBoundingClientRect(); ok(Math.abs(rect.width / rect.height - 2.4) < 0.1, 'band is 12:5 from 768 px: ' + rect.width / rect.height);
   }, 1280);
-  pageTest('boss 6: today and tomorrow cards never repeat a non-tinted photo; strip caps differ while a game has photos left', 'index.html?now=2026-10-30T18:50', function (w, d) {
+  pageTest('boss 6: today and tomorrow cards never repeat a non-tinted photo', 'index.html?now=2026-10-30T18:50', function (w, d) {
     var bands = Array.prototype.map.call(d.querySelectorAll('#days .ev-ph:not([data-tint]) img'), function (i) { return i.getAttribute('src'); });
     var seen = {}; bands.forEach(function (s) { ok(!seen[s] || /pokemon-sealed-shelf|champion|painted/.test(s), 'card photo repeats across today and tomorrow: ' + s); seen[s] = 1; });
-    var caps = Array.prototype.map.call(d.querySelectorAll('.wdeck li:not([data-closed]) .dc-ph img'), function (i) { return i.getAttribute('src'); });
-    var cnt = {}; caps.forEach(function (s) { cnt[s] = (cnt[s] || 0) + 1; });
-    Object.keys(cnt).forEach(function (s) { ok(cnt[s] <= 2, 'strip cap used ' + cnt[s] + ' times: ' + s); });
-    ok(Object.keys(cnt).length >= caps.length - 1, 'strip caps mostly distinct: ' + caps.join(', '));
   }, 1280);
-  pageTest('at 390 the cards have a 3:1 band and the strip tiles show no photo', 'index.html?now=2026-10-30T19:30', function (w, d) {
+  pageTest('at 390 the cards have a 3:1 band and the strip tiles show no photo, fit at 390', 'index.html?now=2026-10-30T19:30', function (w, d) {
     var rect = d.querySelector('#days .ev-ph').getBoundingClientRect(); ok(Math.abs(rect.width / rect.height - 3) < 0.1, 'band is 3:1: ' + rect.width / rect.height);
-    Array.prototype.forEach.call(d.querySelectorAll('.wdeck .dc-ph'), function (c) { eq(w.getComputedStyle(c).display, 'none', 'strip photo hidden on phones'); });
+    eq(d.querySelectorAll('.wdeck img').length, 0, 'no pictures in the strip at 390');
     var r = d.querySelector('#days .dl-ph').getBoundingClientRect(); ok(Math.abs(r.width - 48) < 1, 'thumb 48 px: ' + r.width);
   }, 390);
 

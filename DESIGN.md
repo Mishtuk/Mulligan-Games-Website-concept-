@@ -540,6 +540,9 @@ preference; any identifiable customer needs consent.
 **Added to section 10 (states):** clip missing > the fallback list above; autoplay blocked > poster + "Play video";
 network error mid-play > the current frame stays, no message, the button reads "Play video".
 
+- Round 7: week strip is text-only (day, date, count inside the tile; no photos, no game pips, which only repeated the count): ~3.5rem tiles, 7 across at 360 px, capped at 34rem wide on desktop, left-aligned.
+
+
 ---
 
 ## 7. Events page and event detail (P1.2: `prototype/events.html`)
@@ -1266,3 +1269,8 @@ Built in the prototype: `index.html` section `#clips` (replaces "Inside the shop
 music) unless a clip sets `inline: true`; the dialog is `width: fit-content` and the frame `min(100vw - 3rem,
 (100svh - 10rem) * 9/16, 26rem)`; the clip 3 credit is "by @perky_grn_fairy". Photos: today and the next day with events
 share one "used" set, strip tiles avoid showing the same picture twice, tinted stand-ins are tracked apart.
+
+## 17. Round 7 note: hero (D51)
+- Headline is the static "Shuffle up. Everyone's welcome." (from `docs/research/opening-lines.md`); the sub-line is a static welcome (free play, big tables, every format) and only gains a date-override note when one is short. The date line above the headline is gone.
+- A small pill chip above the headline carries open / closed, built from the hours data: "Open now · till midnight", "Opens 2 PM today", "Closed today · back Wed 2 PM", "Closed · back tomorrow 2 PM", with a green dot only when open. On the home page the bar above the header keeps only the address, Call and Directions (D52: status said once); events.html keeps its status. The hero strip has no free-play line (the sub-line says it): caption left, "Watch clips from the shop" and Pause right; on phones the hero is as tall as its copy (52svh floor) so it ends above the quick-actions bar at 390x844.
+- Two featured TikTok clips (cEDH turnout, monthly cEDH tables): from 900px two 9:16 poster cards (about 140-170px wide) on the right of the photo, with a play badge, a TikTok badge and a two-line caption; the copy column narrows so the headline and the next-up ticket never sit under them. Under 900px one "Watch a clip" secondary button next to "This week's events" opens the first clip. Both are real links to the posts; `js/clips.js` binds any `a[data-clip-id]` to the existing click-to-load dialog (id checked against the data and the strict patterns). Nothing from TikTok loads before a click. The two clips also stay in "Clips from the shop" further down, a screen away from the hero.

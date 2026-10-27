@@ -17,4 +17,4 @@ Tips
   The pages open on a pretend Friday 6:50 PM (ten minutes before the 7 PM draft). Add ?now=real to any address
   for the real clock, or ?now=2026-10-30T19:30 for another moment. The bar at the top has a "Pretend it's" menu.
   "Reset demo data" (in the bar at the top of each page) puts everything back.
-  tests.html runs the rule and page checks (143 passed, 0 failed). Headless: chrome --headless=new --allow-file-access-from-files --virtual-time-budget=60000 --dump-dom file:///.../prototype/tests.html (the budget must be 60000 or the run ends at "running...").
+  tests.html runs the rule and page checks (193 passed, 0 failed). Headless: timeout 400 chrome --headless=new --disable-gpu --allow-file-access-from-files --virtual-time-budget=120000 --dump-dom file:///.../prototype/tests.html | grep -o '<span id="summary"[^<]*<' (the budget must be 120000 or the run ends at "running...").

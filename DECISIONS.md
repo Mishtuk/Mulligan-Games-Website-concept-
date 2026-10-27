@@ -614,3 +614,35 @@ the same), `{on: false}` is its Undo, refused on a cancelled date; every counter
 Routes `POST roster/:series/:slot/:id/movein {undo}`, `/:id/delete {undo}`, `/runit {on}`: session + origin, 1200/hour,
 body cap, JSON types checked, SQL `?` only, one transaction each; unknown date or non-numeric id 404, refused 409/422.
 The coder logged this as "D32" (taken); renumbered.
+### D51. Round 7 (first logged as D49/D50, numbers the Desktop had already used): plain compact week strip, a warm opening line, TikTok videos up top (2026-10-27, owner)
+- **Owner (Mish):** "there shouldn't be pictures in the calendar days. It should only, like today, 30, three events,
+  Saturday, 31st, one event... a little bit more compact. Also, maybe add a couple videos from the [TikTok] on the
+  homepage as well. Also, the front page still just says open till midnight tonight instead of a warm welcoming opening
+  line... do research on other card shops and see what they would say, and then add videos to the front page."
+- **Ruling:** the week strip drops the round-6 photos (D47) and shows only day, date and event count, more compact. The
+  hero headline becomes a warm card-shop welcome (from `docs/research/opening-lines.md`); open/closed moves to a small
+  status chip. Two featured TikTok clips go near the top of the front page (click-to-load, as D47), in addition to
+  "Clips from the shop". Photos stay on the event cards and rows.
+
+### D52. Round 7 review: PASS with boss fixes (2026-10-27, boss)
+**Checked:** week strip is text-only (day, date, count inside the tile; no img, no pips), 7 tiles >= 44px at 360, capped
+34rem at 1280. Headline "Shuffle up. Everyone's welcome." + static sub-line; chip reads right at all five cases
+(Fri 18:50 "Open now · till midnight", Fri 11:00 "Opens 2 PM today", Mon 12:00 "Closed today · back Wed 2 PM",
+Wed 23:30 "Closed · back tomorrow 2 PM", Tue 12:00 "Closed today · back tomorrow 2 PM"), green dot only when open.
+Featured cards clear the headline and next-up ticket at 900-1920 (tests at 900/1024/1280/1440/1920); dark mode fine
+(hero is dark in both themes). Injection: chip and headline are textContent; `bindFeatured` matches `data-clip-id`
+to a data clip by strict equality and re-runs `valid()` before binding; the dialog is createElement; no new data-fed
+innerHTML. Network (real Chrome, 390 and 1280, five times): only our origin before a click, no iframe; one click on a
+featured card / "Watch a clip" = one `www.tiktok.com/player/v1/<id>` iframe. Tests 193/0 (budget 120000).
+**Boss fixes:** (1) open status was said twice on the home page -> index.html's bar drops `#ob-status` (front.js no
+longer renders it); the address now leads the bar on phones too ("445 York Rd", ", Warminster" from 600px); events.html
+keeps its status. (2) free play was said twice -> the hero strip's "Free play all day..." line is gone at every width;
+the strip is caption left, clips link + Pause right, 48px tall on phones (was 56). (3) at 390x844 the hero ended at 792,
+under the quick-actions bar (787) -> phone hero floor 62svh -> 52svh (hero is as tall as its copy, ends ~745) and from
+360-420px the two hero buttons share one row (trimmed padding/gap; they stacked at 375 and with a scrollbar);
+(4) the featured-card captions sat on the light counter/wall -> dark backing, up to 3 lines (2-line clamp cut "monthly
+cEDH" at 1024); (5) the strip could be wider than a 360 screen (nowrap caption as min-content) -> `min-width: 0` +
+ellipsis. +3 tests (each fact once; events.html keeps status; 390x844 hero above the bar). README test command updated.
+**Noted:** with the concept-only demo bar on top, a 360x740 phone or an 820px tablet still puts the hero's end under
+the quick-actions bar; without the demo bar (the real site) both clear it. Port list: `docs/review/round-7-port.md`.
+- **Open (owner to choose):** the build (Desktop D49) opens "Welcome to Mulligan Games." + "A friendly game store in Warminster with a big play room, free play every day we're open, and card nights all week. Come say hi."; the prototype opens "Shuffle up. Everyone's welcome." (from docs/research/opening-lines.md). One line for both once the owner picks.

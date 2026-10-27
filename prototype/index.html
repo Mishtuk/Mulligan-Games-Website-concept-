@@ -44,11 +44,11 @@
   <!-- Concept only: not part of the real site. Lets the owners see the page at different times. -->
   <aside id="demo" class="demo-host"></aside>
 
-  <!-- 1. Open-now strip -->
-  <div class="openbar">
+  <!-- 1. Address strip. Round 7 (D52): on the home page open / closed lives only in the hero chip, so this bar keeps the
+       address, Call and Directions (events.html keeps its status). -->
+  <div class="openbar ob-front">
     <div class="wrap openbar-in">
-      <p class="ob-status" id="ob-status"><span class="ob-dot" aria-hidden="true"></span><span>Hours: Wednesday to Sunday</span></p>
-      <p class="ob-addr">445 York Rd, Warminster</p>
+      <p class="ob-addr">445 York Rd<span class="ob-long">, Warminster</span></p>
       <a class="ob-link" id="ob-call" href="tel:+12157893299"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h3.5l1.5 4.5-2.3 1.5a11 11 0 0 0 6.8 6.8l1.5-2.3 4.5 1.5V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/></svg><span class="ob-long">(215) 789-3299</span><span class="ob-short">Call</span></a>
       <a class="ob-link" id="ob-map" href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions<span class="vh"> (opens Google Maps)</span></a>
     </div>
@@ -88,9 +88,9 @@
       </div>
       <div class="wrap phero-in">
         <div class="phero-copy">
-          <p class="phero-date" id="hero-date">This week at Mulligan Games</p>
-          <h1 class="phero-h" id="hero-h">Card nights five days a week in Warminster.</h1>
-          <p class="phero-sub" id="hero-sub">Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer.</p>
+          <p class="phero-chip" id="hero-chip" role="status"><span class="chip-dot" aria-hidden="true"></span><span id="hero-chip-t">Hours: Wednesday to Sunday</span></p>
+          <h1 class="phero-h" id="hero-h">Shuffle up. Everyone’s welcome.</h1>
+          <p class="phero-sub" id="hero-sub">Free play every day we’re open, big tables, and a crew who knows every format.</p>
           <div class="phero-acts">
             <a class="next" id="nextup" href="#week">
               <span class="next-time" id="nextup-time">Wed</span>
@@ -100,13 +100,24 @@
               </span>
             </a>
             <a class="btn btn-act" href="#week">This week's events</a>
+            <a class="btn btn-clip" id="hero-clip" href="https://www.tiktok.com/@mulligangames/video/7456651666096704814" data-clip-id="7456651666096704814" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Watch a clip<span class="vh"> (TikTok, opens a video)</span></a>
           </div>
         </div>
+        <!-- D51: two featured TikTok clips, from 900px on the right of the photo. Plain links; js/clips.js opens the click-to-load dialog. -->
+        <ul class="phero-feat" id="hero-feat" role="list" aria-label="Clips from the shop">
+          <li><a class="fclip" href="https://www.tiktok.com/@mulligangames/video/7456651666096704814" data-clip-id="7456651666096704814" target="_blank" rel="noopener">
+            <span class="clip-ph"><img src="media/social/tt-7456651666096704814.webp" width="240" height="427" alt="" decoding="async" style="object-position:50% 50%">
+              <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span><span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span></span>
+            <span class="fclip-cap"><span class="vh">Play video: </span>A full room for the monthly cEDH</span></a></li>
+          <li><a class="fclip" href="https://www.tiktok.com/@mulligangames/video/7467024512442289451" data-clip-id="7467024512442289451" target="_blank" rel="noopener">
+            <span class="clip-ph"><img src="media/social/tt-7467024512442289451.webp" width="240" height="427" alt="" decoding="async" style="object-position:50% 50%">
+              <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span><span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span></span>
+            <span class="fclip-cap"><span class="vh">Play video: </span>February’s cEDH night and its prizes</span></a></li>
+        </ul>
       </div>
-      <!-- the strip along the bottom of the photo: one fact, what's on screen, the pause control -->
+      <!-- the strip along the bottom of the photo: what's on screen, the clips link, the pause control (free play is in the sub-line, D52) -->
       <div class="phero-strip">
         <div class="wrap phero-strip-in">
-          <p class="freeplay2">Free play all day, every day we're open</p>
           <p class="media-cap">On screen: <span class="cap-wide">The shop floor at 445 York Rd</span><span class="cap-narrow">cEDH night at the shop</span></p>
           <a class="clips-link" href="#clips">Watch clips from the shop<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
           <button class="vid-btn" id="vid-btn" type="button" data-paused>

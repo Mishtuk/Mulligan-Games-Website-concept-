@@ -166,8 +166,6 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .dc-dow { font-size: 0.8125rem; font-weight: 800; line-height: 1; }
 .dc-num { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.1rem; line-height: 1; }
-.dc-pips { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; max-width: 3.4rem; min-height: 0.5rem; }
-.dc-pips i { width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--gc); }
 .dc-cap { font-size: var(--t-xs); font-weight: 750; white-space: nowrap; line-height: 1.2; }
 
 /* ---------- section heads ---------- */
@@ -235,7 +233,7 @@ img { max-width: 100%; height: auto; display: block; }
 .day-line:has(> .dl-ph) .dl-bits { padding-left: 0; }
 @media (min-width: 1024px) { .day-line:has(> .dl-ph) { grid-template-columns: 3.5rem minmax(0, 1fr); } .dl-ph { width: 3.5rem; height: 3.5rem; } }
 .day-line[data-state="cancelled"] .dl-ph img { filter: grayscale(1); opacity: 0.55; }
-@media print { .dl-ph, .dc-ph { display: none !important; } .day-line:has(> .dl-ph) > .dl-dot { display: block; } }
+@media print { .dl-ph { display: none !important; } .day-line:has(> .dl-ph) > .dl-dot { display: block; } }
 /* consecutive closed days: one quiet line ("Monday and Tuesday · closed"); the empty spans keep each day's #d-YYYY-MM-DD anchor */
 .day-off { padding-block: var(--s3); border-top: 1px solid var(--line); }
 .day-off p { margin: 0; font-size: var(--t-sm); color: var(--ink-2); }
