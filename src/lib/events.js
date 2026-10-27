@@ -57,18 +57,22 @@ function rawDates(s, from, to) {
   return out;
 }
 
+/** True when `key` (a slot: YYYY-MM-DD, or YYYY-MM-DDTHH:MM for "On these dates" series) is one of this series' dates. */
+export const hasSlot = (s, key) => isSlot(key) && occurrences(s, addDays(key.slice(0, 10), -MOVE_DAYS), addDays(key.slice(0, 10), MOVE_DAYS)).some((o) => o.slot === key);
+const isSlot = (k) => typeof k === 'string' && isDate(k.slice(0, 10)) && (k.length === 10 || (k.length === 16 && k[10] === 'T' && isTime(k.slice(11))));
+
 /** Dated occurrences of one series in [from, to] with its one-date exceptions applied (they never change the series).
- *  exceptions: [{series, date, type: 'cancel'|'change', start?, capacity?, note?, movedTo?, updated?}] keyed by the ORIGINAL date.
+ *  exceptions: [{series, date (the slot key), type: 'cancel'|'change', start?, capacity?, note?, movedTo?, updated?}] keyed by the slot (the ORIGINAL date, plus T and the start for "On these dates" series).
  *  A moved date appears on its new date (originalDate keeps the old one). */
 export function occurrences(s, from, to, exceptions = []) {
-  const ex = new Map(exceptions.filter((e) => e.series === s.id).map((e) => [e.date, e]));
+  const ex = new Map(exceptions.filter((e) => e.series === s.id).map((e) => [e.date, e])); // keyed by slot (D23)
   return rawDates(s, addDays(from, -MOVE_DAYS), addDays(to, MOVE_DAYS)).map((x) => {
-    const e = ex.get(x.date), start = e?.start || x.start;
+    const slot = s.recurrence?.type === 'dates' ? `${x.date}T${x.start}` : x.date, e = ex.get(slot), start = e?.start || x.start;
     let end = s.end ?? null;
     if (end && e?.start && x.start) end = hm(mins(end) + mins(e.start) - mins(x.start)); // a moved start keeps the length
     const arriveBy = start && Number.isInteger(s.arriveByMins) ? hm(mins(start) - s.arriveByMins) : null;
     return {
-      ...s, arriveBy, seriesId: s.id, date: e?.movedTo || x.date, originalDate: x.date, start, end, capacity: e?.capacity ?? s.capacity,
+      ...s, arriveBy, seriesId: s.id, slot, date: e?.movedTo || x.date, originalDate: x.date, start, end, capacity: e?.capacity ?? s.capacity,
       cancelled: e?.type === 'cancel', moved: !!e?.movedTo, changed: !!e && e.type !== 'cancel', note: e?.note ?? null, updated: e?.updated ?? null,
     };
   }).filter((o) => o.date >= from && o.date <= to);
@@ -171,16 +175,16 @@ export function newId(title, taken) {
 export function validateException(x) {
   const e = {};
   if (!x || typeof x !== 'object' || Array.isArray(x)) return { form: 'Send the change as an object.' };
-  if (!isDate(x.date)) e.date = 'Pick the date.';
+  if (!isSlot(x.date)) e.date = 'Pick the date.';
   if (!['cancel', 'change'].includes(x.type)) e.type = 'Cancel it or change it.';
   if (!blank(x.start) && !isTime(x.start)) e.start = 'Use a time like 19:00.';
   if (!blank(x.capacity) && !isInt(x.capacity, 1, 9999)) e.capacity = 'Seats must be a whole number, 1 or more.';
   if (!blank(x.note) && typeof x.note !== 'string') e.note = 'Note must be text.';
   if (!blank(x.movedTo)) {
     if (!isDate(x.movedTo)) e.movedTo = 'Pick a real date.';
-    else if (isDate(x.date) && Math.abs(parseDay(x.movedTo) - parseDay(x.date)) > MOVE_DAYS * 864e5) e.movedTo = `Move it by at most ${MOVE_DAYS} days.`;
+    else if (isSlot(x.date) && Math.abs(parseDay(x.movedTo) - parseDay(x.date.slice(0, 10))) > MOVE_DAYS * 864e5) e.movedTo = `Move it by at most ${MOVE_DAYS} days.`;
   }
-  if (x.type === 'change' && !Object.keys(e).length && blank(x.start) && blank(x.capacity) && (blank(x.movedTo) || x.movedTo === x.date) && !text(x.note, 200)) e.type = 'Change the time, seats, date or add a note.';
+  if (x.type === 'change' && !Object.keys(e).length && blank(x.start) && blank(x.capacity) && (blank(x.movedTo) || x.movedTo === x.date.slice(0, 10)) && !text(x.note, 200)) e.type = 'Change the time, seats, date or add a note.';
   return e;
 }
 export function cleanException(seriesId, x, updated) {
@@ -188,7 +192,7 @@ export function cleanException(seriesId, x, updated) {
   if (x.type === 'change') {
     if (!blank(x.start)) o.start = x.start;
     if (!blank(x.capacity)) o.capacity = x.capacity;
-    if (!blank(x.movedTo) && x.movedTo !== x.date) o.movedTo = x.movedTo;
+    if (!blank(x.movedTo) && x.movedTo !== x.date.slice(0, 10)) o.movedTo = x.movedTo;
   }
   const note = text(x.note, 200);
   if (note) o.note = note;
@@ -205,15 +209,18 @@ const SIGNUP_WORDS = { walkin: 'Just show up. No sign-up needed.', here: 'Sign u
 /** Plain-text post for one date (the 15.3 template), ready to paste into Facebook, Discord, Google Business Profile or the Wizards locator.
  *  Never HTML; a missing value leaves its line out. null when the series has no event on that date. exceptions: the stored one-date exceptions. */
 export function copyText(s, date, baseUrl, exceptions = []) {
-  if (!isDate(date)) return null; // a bad ?date= is a 404, not a thrown RangeError
-  const o = occurrences(s, date, date, exceptions)[0];
+  if (!isSlot(date)) return null; // a bad ?date= is a 404, not a thrown RangeError
+  const near = occurrences(s, addDays(date.slice(0, 10), -MOVE_DAYS), addDays(date.slice(0, 10), MOVE_DAYS), exceptions);
+  const o = near.find((x) => x.slot === date) || near.find((x) => x.date === date); // the slot key, or a shown (e.g. moved-to) date
   if (!o) return null;
-  const link = (d) => safeUrl(baseUrl) && `${baseUrl.replace(/\/+$/, '')}/events/${encodeURIComponent(s.id)}?date=${d}`;
+  const key = date;
+  date = o.date;
+  const link = (d) => safeUrl(baseUrl) && `${baseUrl.replace(/\/+$/, '')}/events/${encodeURIComponent(s.id)}?date=${encodeURIComponent(key)}`;
   const lines = [];
   if (o.cancelled) {
     lines.push(`Cancelled: ${s.title}`, dayWords(date));
     if (o.note) lines.push(o.note);
-    const next = occurrences(s, addDays(date, 1), addDays(date, 120), exceptions).find((x) => !x.cancelled);
+    const next = occurrences(s, date, addDays(date, 120), exceptions).find((x) => !x.cancelled && (x.date > date || (x.start || '') > (o.start || '')));
     if (next) lines.push(`Next one: ${dayWords(next.date)}${next.start ? `, ${T12(next.start)}` : ''}`);
     if (link(date)) lines.push(`Details: ${link(date)}`);
     return lines.join('\n');
@@ -222,7 +229,7 @@ export function copyText(s, date, baseUrl, exceptions = []) {
   const times = [o.doors && `doors ${T12(o.doors)}`, o.start && `starts ${T12(o.start)}`].filter(Boolean).join(', ');
   lines.push(`${dayWords(date)}${times ? `, ${times}` : ''}${o.start && o.end ? ` to ${T12(o.end)}` : ''}`);
   if (o.changed || o.moved) {
-    const e = exceptions.find((x) => x.series === s.id && x.date === o.originalDate);
+    const e = exceptions.find((x) => x.series === s.id && x.date === o.slot);
     lines.push(`Changed: ${o.note || (e?.start && o.start ? `Starts at ${T12(o.start)} this week${s.start ? ` (usually ${T12(s.start)})` : ''}.`
       : e?.capacity ? `Seats changed to ${e.capacity} for this date.` : `Moved from ${dayWords(o.originalDate)}.`)}`);
   }
@@ -232,4 +239,77 @@ export function copyText(s, date, baseUrl, exceptions = []) {
   if (signup) lines.push(signup);
   if (link(date)) lines.push(`${s.signup === 'here' ? 'Details and sign-up' : 'Details'}: ${link(date)}`);
   return lines.join('\n');
+}
+
+// ---------- templates (DESIGN.md 9.3 step 2, 15.2 defaults) ----------
+// A template is {id, game, name, fields}; fields is a series body without id and without real dates (the editor fills the first date).
+// Built-ins live here; staff-saved ones ("Yours") are stored server side and checked with validateTemplate() / cleanTemplate().
+// No template sets arriveByMins (store policy, OWNER-QUESTIONS Q8). Learn to play: beginner friendly + kids welcome. cEDH and RCQ: competitive.
+const wk = (day) => ({ type: 'weekly', day });
+const nthDay = (nth, day) => ({ type: 'nth', nth, day });
+const one = { type: 'none' };
+const slots = (...starts) => ({ type: 'dates', dates: starts.map((start) => ({ start })) });
+const tpl = (game, id, name, f) => ({ id, game, name, fields: { game, kind: 'weekly', signup: 'walkin', ...f } });
+const TOPDECK = 'https://topdeck.gg/mulligangames';
+const L2P = { kind: 'learn', fee: 0, kidsWelcome: true, beginnerFriendly: true };
+const EL = { name: 'Wizards EventLink' };
+export const TEMPLATES = [
+  tpl('magic', 't-draft', 'Draft night', { title: 'Draft Night', format: 'Draft', recurrence: wk(5), start: '19:00', end: '23:00', fee: 20, capacity: 28, signup: 'here', waitlist: true, tool: EL, prize: 'Prize packs paid by record.', bring: 'Nothing. Packs are included.' }),
+  tpl('magic', 't-commander', 'Commander night', { title: 'Commander Night', format: 'Commander', kind: 'open', recurrence: wk(4), start: '17:00', end: '22:00', fee: 0, playStyle: 'casual', description: 'Casual pods. Tell the counter your power level and we will seat you.' }),
+  tpl('magic', 't-pauper', 'Pauper', { title: 'Pauper Night', format: 'Pauper', recurrence: wk(3), start: '19:00', end: '22:00', fee: 10, capacity: 28, signup: 'here', waitlist: true, tool: EL, prize: 'Prizes paid by record.', bring: 'A 60-card Pauper deck.' }),
+  tpl('magic', 't-standard', 'Standard Showdown', { title: 'Standard Showdown', format: 'Standard', recurrence: wk(3), start: '19:00', end: '22:00', fee: 10, tool: EL, prize: 'Standard Showdown promo packs.', bring: 'A Standard deck.' }),
+  tpl('magic', 't-premodern', 'Pre-Modern', { title: 'Pre-Modern', format: 'Pre-Modern', recurrence: wk(4), start: '19:00', end: '22:00', fee: 10, tool: EL, bring: 'A Pre-Modern deck (sets from Fourth Edition to Scourge).' }),
+  tpl('magic', 't-prerelease', 'Prerelease', { title: 'Prerelease', format: 'Prerelease', kind: 'prerelease', recurrence: slots('19:00', '15:00', '17:00'), start: '19:00', fee: 50, signup: 'counter', tool: EL, bring: 'Nothing. Your prerelease kit is included.', featured: true }),
+  tpl('magic', 't-rcq', 'RCQ', { title: 'Standard RCQ', format: 'RCQ', kind: 'special', recurrence: one, start: '12:00', doors: '11:00', end: '20:00', fee: 20, capacity: 32, minPlayers: 8, signup: 'here', waitlist: true, playStyle: 'competitive', tool: EL, featured: true, prize: 'Prizing to the winners. 5 rounds Swiss, top 8.' }),
+  tpl('magic', 't-magic-l2p', 'Learn to play', { ...L2P, title: 'Learn to Play Magic', format: 'Learn to play', recurrence: wk(3), start: '18:00', end: '20:00', description: 'Staff teach the game with loaner decks.' }),
+  tpl('cedh', 't-mcs', 'Championship Series', { title: 'Championship Series', format: 'Championship Series', kind: 'cedh', recurrence: nthDay(1, 0), start: '10:00', end: '20:00', fee: 40, signup: 'external', playStyle: 'competitive', tool: { name: 'TopDeck', url: 'https://topdeck.gg/circuit/mulligans' }, cedhSeries: 'mcs', featured: true, prize: 'A guaranteed dual land every month. Each winner gets an invitational seat.', bring: 'A cEDH deck. Up to 10 proxies, judge-approved, with full rules text.' }),
+  tpl('cedh', 't-5k', '5K', { title: '5K cEDH Tournament', format: '5K', kind: 'cedh', recurrence: one, start: '10:00', end: '22:00', fee: 60, signup: 'external', playStyle: 'competitive', tool: { name: 'TopDeck', url: TOPDECK }, cedhSeries: '5k', featured: true }),
+  tpl('cedh', 't-redemption', 'Redemption', { title: 'Redemption', format: 'Redemption', kind: 'cedh', recurrence: one, start: '12:00', end: '20:00', fee: 20, signup: 'external', playStyle: 'competitive', tool: { name: 'TopDeck', url: TOPDECK }, cedhSeries: 'redemption' }),
+  tpl('cedh', 't-cedh-weekly', 'Weekly', { title: 'cEDH Weekly', format: 'Weekly', recurrence: wk(0), start: '14:00', end: '20:00', fee: 10, playStyle: 'competitive', tool: { name: 'TopDeck', url: TOPDECK }, bring: 'A cEDH deck. Up to 10 proxies, judge-approved.' }),
+  tpl('pokemon', 't-pk-league', 'League night', { title: 'Pokemon League Night', format: 'League night', recurrence: wk(6), start: '18:30', end: '21:30', fee: 5, kidsWelcome: true, tool: { name: 'Play! Pokemon' } }),
+  tpl('pokemon', 't-pk-cup', 'League Cup', { title: 'Pokemon League Cup', format: 'League Cup', kind: 'special', recurrence: one, start: '12:00', end: '19:00', fee: 15, capacity: 32, signup: 'here', waitlist: true, tool: { name: 'Play! Pokemon' }, bring: 'A 60-card deck.' }),
+  tpl('pokemon', 't-pk-challenge', 'League Challenge', { title: 'Pokemon League Challenge', format: 'League Challenge', kind: 'special', recurrence: one, start: '12:00', end: '18:00', fee: 10, capacity: 24, signup: 'here', waitlist: true, tool: { name: 'Play! Pokemon' }, bring: 'A 60-card deck.' }),
+  tpl('pokemon', 't-pk-prerelease', 'Prerelease', { title: 'Pokemon Prerelease', format: 'Prerelease', kind: 'prerelease', recurrence: slots('12:00', '15:00'), start: '12:00', fee: 30, signup: 'counter', tool: { name: 'Play! Pokemon' } }),
+  tpl('pokemon', 't-pk-l2p', 'Learn to play', { ...L2P, title: 'Learn to Play Pokemon', format: 'Learn to play', recurrence: wk(3), start: '19:00', end: '21:00', description: 'Staff teach the game with loaner decks. Kids welcome.' }),
+  tpl('onepiece', 't-op-store', 'Store tournament', { title: 'One Piece', format: 'Store tournament', recurrence: wk(4), start: '19:00', end: '22:00', fee: 5, tool: { name: 'Bandai TCG+' } }),
+  tpl('onepiece', 't-op-l2p', 'Learn to play', { ...L2P, title: 'Learn to Play One Piece', format: 'Learn to play', recurrence: one, start: '18:00', end: '20:00' }),
+  tpl('riftbound', 't-rb-nexus', 'Nexus Nights', { title: 'Nexus Nights', format: 'Nexus Nights', recurrence: wk(5), start: '19:00', end: '22:00', fee: 5, tool: { name: 'PlayRiftbound' } }),
+  tpl('riftbound', 't-rb-skirmish', 'Summoner Skirmish', { title: 'Summoner Skirmish', format: 'Summoner Skirmish', kind: 'special', recurrence: nthDay(2, 6), start: '12:00', doors: '11:00', end: '18:00', fee: 10, signup: 'external', tool: { name: 'PlayRiftbound', url: 'https://tinyurl.com/RBMulliganGames' }, prize: 'Paid by record. Winner gets a playmat and a bye; top 8 and participation promos.' }),
+  tpl('riftbound', 't-rb-prerelease', 'Prerelease', { title: 'Riftbound Prerelease', format: 'Prerelease', kind: 'prerelease', recurrence: slots('12:00', '15:00'), start: '12:00', fee: 30, signup: 'counter', tool: { name: 'PlayRiftbound' } }),
+  tpl('hololive', 't-hl-weekly', 'Weekly', { title: 'Hololive OCG', format: 'Weekly', recurrence: wk(4), start: '18:30', end: '21:30', fee: 5, tool: { name: 'Other' } }),
+  tpl('warhammer', 't-wh-open', 'Open tables', { title: 'Tabletop and Warhammer', format: 'Open tables', kind: 'open', recurrence: wk(3), start: '17:00', end: '22:00', fee: 0, description: 'Bring your army or any tabletop game. Tables are first come, first served.', bring: 'Your army, dice and tape measure.' }),
+  tpl('warhammer', 't-wh-40k', '40k event', { title: '40k Tournament', format: '40k', kind: 'special', recurrence: one, start: '10:00', end: '19:00', fee: 25, capacity: 16, minPlayers: 6, signup: 'here', waitlist: true, tool: { name: 'Best Coast Pairings' }, points: 2000, roundMinutes: 150, bring: 'A painted 2000-point army, your list, dice and tape measure.' }),
+  tpl('warhammer', 't-wh-killteam', 'Kill Team', { title: 'Kill Team Night', format: 'Kill Team', recurrence: wk(2), start: '18:00', end: '21:00', fee: 5, tool: { name: 'Best Coast Pairings' }, roundMinutes: 75 }),
+  tpl('warhammer', 't-wh-paint', 'Painting lesson', { title: 'Painting Lesson', format: 'Painting', kind: 'learn', recurrence: one, start: '14:00', end: '16:00', fee: 10, capacity: 8, signup: 'here', waitlist: true, bring: 'Nothing. Paints and brushes are on the table.' }),
+  tpl('other', 't-dnd', 'D&D open play', { title: 'D&D Open Play', format: 'D&D', kind: 'open', recurrence: wk(3), start: '19:00', end: '22:00', fee: 0, description: 'Drop-in tables for new and returning players.' }),
+  tpl('other', 't-trade', 'Trade night', { title: 'Trade Night', format: 'Trade night', kind: 'open', recurrence: one, start: '18:00', end: '21:00', fee: 0 }),
+  tpl('other', 't-charity', 'Charity event', { title: 'Charity Event', format: 'Charity', kind: 'special', recurrence: one, start: '12:00', end: '20:00', fee: 0, description: 'All welcome. Proceeds and donations go to the cause named on the flyer.' }),
+];
+
+/** A series body that is only missing real dates gets a stand-in date, so validate() judges every other field. */
+const PLACEHOLDER = '2000-01-03';
+function probe(f) {
+  const r = f.recurrence;
+  let recurrence = r;
+  if (r?.type === 'none') recurrence = { type: 'none', date: PLACEHOLDER };
+  else if (r?.type === 'dates' && Array.isArray(r.dates)) recurrence = { type: 'dates', dates: r.dates.slice(0, 100).map((d) => ({ date: PLACEHOLDER, start: d?.start })) };
+  else if (r?.type === 'weekly' || r?.type === 'nth') recurrence = { type: r.type, day: r.day, nth: r.nth }; // first and last dates are never part of a template
+  return { ...f, id: undefined, title: text(f.title, 80) ? f.title : 'Template', recurrence };
+}
+/** Errors for a staff-saved template {name, fields}; field errors are keyed like validate() so the editor shows them under the field. */
+export function validateTemplate(t) {
+  if (!t || typeof t !== 'object' || Array.isArray(t)) return { form: 'Send the template as an object.' };
+  const f = t.fields;
+  if (!f || typeof f !== 'object' || Array.isArray(f)) return { form: 'Send the template fields as an object.' };
+  const e = validate(probe(f));
+  if (!text(t.name, 60)) e.name = 'Give the template a name.';
+  return e;
+}
+/** The template as stored: only known fields (clean()), no id, no real dates. Run validateTemplate() first. */
+export function cleanTemplate(t, id) {
+  const s = clean(probe(t.fields)), r = s.recurrence;
+  delete s.id;
+  s.title = text(t.fields.title, 80);
+  s.recurrence = r.type === 'none' ? { type: 'none' } : r.type === 'dates' ? { type: 'dates', dates: r.dates.map((d) => ({ start: d.start })) } : r;
+  return { id, game: s.game, name: text(t.name, 60), fields: s };
 }

@@ -173,23 +173,27 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [x] "Copy post text" on each date in the admin list (D18): plain text with title, day, start and end time, fee,
         sign-up mode and the event page link, ready for Facebook, Discord, Google Business Profile, Wizards (tested).
         (P2.2a: `copyText()` + `GET /api/admin/series/:id/copy?date=`; the button is P2.2b.)
-  - [ ] Templates: picking game + format pre-fills; staff can save their own template.
+  - [x] Templates: picking game + format pre-fills; staff can save their own template. (P2.2b)
   - [x] Recurrence reuses `occurrences()` (rewritten in `events.js` for the nested D15 shape); one date can be cancelled, moved or given a note without touching the series.
   - [x] Tests: recurrence (incl. 5th-weekday and DST weeks), one-date exception, validation rejects.
-  - [ ] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs (left out of P2.1).
+  - [x] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs (left out of P2.1).
+        (P2.2b: events editor + unsaved bar built; photo picker moved to P2.3, D23.)
 
 ### P2.2b Events admin screens
 - **Owner:** Desktop coder. **Files:** `src/pages/admin.astro` (events view), admin client JS, `src/lib/events.js`
   (templates only), `src/lib/state.js`, `test/events.test.js`, `test/state.test.js`.
 - **Needs:** P2.2a (accepted), `DESIGN.md` 9.3, 9.4, 15.2, 15.3. D20 for every client-side update.
 - **Done when:**
-  - [ ] Event editor on the P2.2a API with the D17 fields as 15.2 (Hold seats until + read-back sentence, Who it's
+  - [x] Event editor on the P2.2a API with the D17 fields as 15.2 (Hold seats until + read-back sentence, Who it's
         for: Beginner friendly, Ages radios, Play style), server field errors shown under each field (`markErr`).
-  - [ ] Templates: picking game + format pre-fills (15.2 template defaults); staff can save their own template.
-  - [ ] "Copy post text" on each date row and the roster header with "Copied", toast and the clipboard-fails dialog
-        (15.3).
-  - [ ] Port VFW `renderCrud`, the photo picker and the unsaved-changes bar with Mulligan field defs.
-  - [ ] The old flat-model `occurrences()` / `expand()` (and `addDays` / `daysIn`) are deleted from `state.js` with
+  - [x] Templates: picking game + format pre-fills (15.2 template defaults); staff can save their own template.
+  - [x] "Copy post text" on each date row with "Copied", toast and the clipboard-fails dialog (15.3). Roster header
+        button moved to P2.4 (no roster yet).
+  - [x] Unsaved-changes bar; a series-specific editor replaces the generic `renderCrud` port (D23). Photo picker moved
+        to P2.3 (events have no photo field, D7).
+  - [ ] One-date exceptions keyed by slot, not by day (D23): two prerelease slots on one day (seed Nov 8, 3 PM and
+        5 PM) can each be cancelled, changed and copied on their own. Test: cancel one slot, the other stays.
+  - [x] The old flat-model `occurrences()` / `expand()` (and `addDays` / `daysIn`) are deleted from `state.js` with
         their tests in `test/state.test.js` (D15: one model; nothing else imports them).
 
 ### P2.3 Public front page + events page
@@ -204,6 +208,8 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] Admin edits appear on the public pages without a rebuild (markers), including cancellations.
   - [ ] Open-now strip correct across midnight closes and holiday overrides (tested).
   - [ ] `.ics` feed and per-event files include admin edits and exceptions (tested); JSON-LD validates (tested).
+  - [ ] Admin events (moved from P2.2b, D23): game colour band on each list row, game chips + search on the list,
+        live card preview in the editor (the real P2.3 event card); the photo picker (VFW) for the room photo slot.
   - [ ] Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
         from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2).
   - [ ] Every upcoming date has its own page (D16) with Event JSON-LD: name, start/end with UTC offset, location Place
@@ -229,6 +235,8 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   - [ ] The sign-up reply states the seat-release time when set (D17): "Arrive by 6:50 PM or your seat goes to the
         waitlist."
   - [ ] Contact details deleted N days after the event (N decided in `DECISIONS.md`); counts kept; privacy page says so.
+  - [ ] Roster header "Copy post text" (15.3) and the 9.1 admin shell replacing the provisional sidebar (moved from
+        P2.2b, D23).
   - [ ] Tests: capacity edge (last seat), double sign-up, promote order, cancel after check-in, no-show, retention purge.
 
 ### P2.5 Inventory
@@ -238,7 +246,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Done when:**
   - [ ] Products with on-hand from stock moves (receive, sale, count, event use, prize, adjust); low-stock threshold
         and alert list on the admin home.
-  - [ ] Event product use (fixed or per seat) shows "reserved" for upcoming dates and warns when reserved > on hand.
+  - [ ] Event editor "Stock it uses" group (9.3, moved from P2.2b). Event product use (fixed or per seat) shows "reserved" for upcoming dates and warns when reserved > on hand.
   - [ ] Preorders: customer, qty, deposit, status; "arrived" lists who to call.
   - [ ] CSV export of products; CSV import only if the owner's POS can export (Q4).
   - [ ] Tests: count math, reservation math, low-stock trigger, preorder status flow.

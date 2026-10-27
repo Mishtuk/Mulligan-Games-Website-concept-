@@ -6,7 +6,7 @@ import { extname, join, normalize, sep } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { brotliCompressSync, constants as zc, gzipSync } from 'node:zlib';
 import { openDb, getState, backup, seedSeries, listSeries, getSeries, putSeries, deleteSeries, listExceptions, putException, deleteException } from './src/db.js';
-import { clean as cleanSeries, cleanException, copyText, newId, occurrences, validate as validateSeries, validateException, KINDS, SIGNUPS } from './src/lib/events.js';
+import { clean as cleanSeries, cleanException, cleanTemplate, copyText, hasSlot, newId, occurrences, validate as validateSeries, validateException, validateTemplate, KINDS, SIGNUPS, TEMPLATES } from './src/lib/events.js';
 import { GAMES } from './src/lib/games.js';
 import { clean, createAudit } from './src/audit.js';
 import {
@@ -277,7 +277,11 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
   if (m !== 'GET' && !allow(`ev:${ip}`, 600)) { note('events_blocked', 'rate limit'); return bad('rate', 429); }
   const plain = body && typeof body === 'object' && !Array.isArray(body);
   if (!id) {
-    if (m === 'GET') return json({ series: listSeries(db), exceptions: listExceptions(db), games: GAMES, kinds: KINDS, signups: SIGNUPS });
+    if (m === 'GET') {
+      const series = listSeries(db), exceptions = listExceptions(db), today = etDay(), to = new Date(Date.parse(today) + 400 * 864e5).toISOString().slice(0, 10);
+      const upcoming = Object.fromEntries(series.map((s) => [s.id, occurrences(s, today, to, exceptions).slice(0, 8).map((o) => ({ date: o.date, slot: o.slot, originalDate: o.originalDate, start: o.start, end: o.end, capacity: o.capacity, cancelled: o.cancelled, moved: o.moved, changed: o.changed, note: o.note }))]));
+      return json({ series, exceptions, upcoming, today, games: GAMES, kinds: KINDS, signups: SIGNUPS });
+    }
     if (m !== 'POST') return bad('not_found', 404);
     if (!plain) return bad('body');
     const errors = validateSeries(body);
@@ -305,7 +309,7 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
   if (sub === 'exceptions' && m === 'POST') {
     if (!plain) return bad('body');
     const errors = validateException(body);
-    if (!errors.date && !errors.form && !occurrences(cur, body.date, body.date).length) errors.date = 'The event does not happen on that date.';
+    if (!errors.date && !errors.form && !hasSlot(cur, body.date)) errors.date = 'The event does not happen on that date.';
     if (Object.keys(errors).length) return invalid(errors);
     const x = cleanException(id, body, etDay());
     putException(db, x);
@@ -321,6 +325,36 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     const d = url.searchParams.get('date') ?? '';
     const t = copyText(cur, d, PUBLIC_URL, listExceptions(db, id));
     return t === null ? bad('not_found', 404) : json({ text: t });
+  }
+  return bad('not_found', 404);
+}
+
+// ---------- event templates (admin): the built-ins from events.js plus staff-saved ones in kv key "templates" ----------
+const MAX_TEMPLATES = 40;
+const savedTemplates = () => JSON.parse(db.prepare("SELECT value FROM kv WHERE key = 'templates'").get()?.value ?? '[]');
+const saveTemplates = (list) => db.prepare("INSERT INTO kv (key, value) VALUES ('templates', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(list));
+/** GET templates | POST templates {name, fields} | DELETE templates/:id (staff-saved ones only). Same session, origin and rate-limit rules as series. */
+function templatesApi(req, body, [id], ip, note) {
+  const m = req.method;
+  if (m !== 'GET' && !allow(`ev:${ip}`, 600)) { note('events_blocked', 'rate limit'); return bad('rate', 429); }
+  if (!id && m === 'GET') return json({ builtin: TEMPLATES, yours: savedTemplates() });
+  if (!id && m === 'POST') {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return bad('body');
+    const errors = validateTemplate(body);
+    if (Object.keys(errors).length) return invalid(errors);
+    const list = savedTemplates();
+    if (list.length >= MAX_TEMPLATES) return invalid({ name: 'You have the most templates allowed. Delete one first.' });
+    const t = cleanTemplate(body, 'u-' + randomBytes(4).toString('hex'));
+    saveTemplates([t, ...list]);
+    note('template_create', t.id);
+    return json({ template: t }, 201);
+  }
+  if (id && m === 'DELETE') {
+    const list = savedTemplates();
+    if (!list.some((t) => t.id === id)) return bad('not_found', 404);
+    saveTemplates(list.filter((t) => t.id !== id));
+    note('template_delete', id);
+    return json({ ok: true });
   }
   return bad('not_found', 404);
 }
@@ -345,6 +379,7 @@ async function adminApi(req, url, user) {
     return json({ ok: true, photos: photoList() });
   }
   if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
+  if (section === 'templates') return templatesApi(req, body, [a1], ip, note);
   if (key === 'GET security') return json({ events: audit.recent(500) });
 
   if (key === 'POST password') { // change password: prove it's you first

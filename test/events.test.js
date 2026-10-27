@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { readFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { clean, copyText, expand, occurrences, safeUrl, validate, validateException } from '../src/lib/events.js';
+import { clean, cleanTemplate, copyText, expand, hasSlot, occurrences, safeUrl, TEMPLATES, validate, validateException, validateTemplate } from '../src/lib/events.js';
 import { deleteSeries, getSeries, listExceptions, listSeries, openDb, putException, putSeries, seedSeries } from '../src/db.js';
 
 const S = (o) => ({ id: 't', title: 'Test', game: 'magic', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', end: '22:00', fee: 10, signup: 'walkin', ...o });
@@ -229,4 +229,94 @@ test('API: hostile input is stored and returned as inert text', async () => {
   assert.ok(!/[<>]/.test(copy));
   assert.equal((await api('DELETE', `series/${series.id}`)).status, 200);
   assert.equal((await api('GET', "series/x'%20OR%201=1")).status, 404);
+});
+
+// ---------- templates ----------
+test('templates: every built-in is valid and follows the 15.2 defaults; saving strips dates and tags', () => {
+  assert.ok(TEMPLATES.length >= 25);
+  for (const t of TEMPLATES) {
+    assert.deepEqual(validateTemplate({ name: t.name, fields: t.fields }), {}, t.id);
+    assert.equal(t.fields.game, t.game);
+    assert.equal(t.fields.arriveByMins, undefined, t.id); // store policy is open (Q8)
+    if (t.name === 'Learn to play') assert.deepEqual([t.fields.beginnerFriendly, t.fields.kidsWelcome], [true, true], t.id);
+    if (t.game === 'cedh' || t.id === 't-rcq') assert.equal(t.fields.playStyle, 'competitive', t.id);
+  }
+  assert.equal(TEMPLATES.find((t) => t.id === 't-commander').fields.playStyle, 'casual');
+  const c = cleanTemplate({ name: ' <b>My</b> night ', fields: { ...S({ title: 'X<i>y</i>' }), recurrence: { type: 'weekly', day: 2, startDate: '2026-11-03', until: '2026-12-01' }, evil: 1 } }, 'u-1');
+  assert.equal(c.name, 'My night');
+  assert.equal(c.fields.title, 'Xy');
+  assert.deepEqual(c.fields.recurrence, { type: 'weekly', day: 2 });
+  assert.equal(c.fields.evil, undefined);
+  assert.equal(c.fields.id, undefined);
+  assert.deepEqual(cleanTemplate({ name: 'p', fields: S({ recurrence: { type: 'dates', dates: [{ date: '', start: '19:00' }] } }) }, 'u-2').fields.recurrence, { type: 'dates', dates: [{ start: '19:00' }] });
+  assert.deepEqual(cleanTemplate({ name: 'o', fields: S({ recurrence: { type: 'none', date: '' } }) }, 'u-3').fields.recurrence, { type: 'none' });
+});
+test('templates: validation errors sit under the same field names as a series', () => {
+  assert.ok(validateTemplate(null).form && validateTemplate({ name: 'x' }).form && validateTemplate({ name: 'x', fields: [] }).form);
+  assert.ok(validateTemplate({ name: '  <b></b> ', fields: S() }).name);
+  const e = validateTemplate({ name: 'x', fields: S({ game: 'chess', fee: -1, signup: 'external', recurrence: { type: 'weekly', day: 9 } }) });
+  assert.ok(e.game && e.fee && e.toolUrl && e.recurrence);
+  assert.deepEqual(validateTemplate({ name: 'x', fields: S({ title: '', recurrence: { type: 'none' } }) }), {}); // no title or date needed in a template
+});
+
+const TPL = { name: 'My Friday', fields: { title: 'Friday Night', game: 'magic', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', fee: 5, signup: 'walkin', playStyle: 'casual' } };
+test('API templates: signed-out refused, CSRF refused, create / list / delete', async () => {
+  for (const [m, p] of [['GET', 'templates'], ['POST', 'templates'], ['DELETE', 'templates/u-x']]) assert.equal((await api(m, p, m === 'POST' ? TPL : null, {})).status, 401, `${m} ${p}`);
+  for (const h of [{ Cookie: cookie }, { Cookie: cookie, Origin: 'http://evil.example' }]) {
+    assert.equal((await api('POST', 'templates', TPL, h)).status, 403);
+    assert.equal((await api('DELETE', 'templates/u-x', null, h)).status, 403);
+  }
+  const list0 = await (await api('GET', 'templates')).json();
+  assert.ok(list0.builtin.length >= 25 && Array.isArray(list0.yours));
+  const c = await api('POST', 'templates', TPL);
+  assert.equal(c.status, 201);
+  const { template } = await c.json();
+  assert.match(template.id, /^u-[0-9a-f]{8}$/);
+  assert.equal(template.fields.playStyle, 'casual');
+  assert.equal((await (await api('GET', 'templates')).json()).yours[0].id, template.id);
+  assert.equal((await api('DELETE', `templates/${template.id}`)).status, 200);
+  assert.equal((await api('DELETE', `templates/${template.id}`)).status, 404);
+  assert.equal((await api('DELETE', 'templates/u-x%27%20OR%201=1')).status, 404);
+  assert.equal((await api('POST', 'templates', [1])).status, 400);
+  const bad = await api('POST', 'templates', { name: '', fields: { ...TPL.fields, fee: -5 } });
+  assert.equal(bad.status, 422);
+  const { errors } = await bad.json();
+  assert.ok(errors.name && errors.fee);
+});
+test('API templates: hostile input comes back inert', async () => {
+  const evil = { name: "<script>alert(1)</script>' OR 1=1 --", fields: { ...TPL.fields, title: '<img src=x onerror=alert(1)>', description: "'; DROP TABLE kv; --<script>x</script>", tool: { name: '<b>T</b>', url: 'javascript:alert(1)' } } };
+  assert.ok((await (await api('POST', 'templates', evil)).json()).errors.toolUrl); // javascript: link refused
+  const r = await api('POST', 'templates', { ...evil, fields: { ...evil.fields, tool: { name: '<b>T</b>', url: 'https://topdeck.gg/x?a=1&b=2' } } });
+  assert.equal(r.status, 201);
+  const { template } = await r.json();
+  assert.ok(!/[<>]/.test(JSON.stringify(template)), JSON.stringify(template));
+  assert.ok(template.name.includes("' OR 1=1 --") && template.fields.description.includes('DROP TABLE'));
+  assert.equal(template.fields.tool.url, 'https://topdeck.gg/x?a=1&b=2');
+  assert.ok((await (await api('GET', 'templates')).json()).yours.some((t) => t.id === template.id)); // storage still fine
+  await api('DELETE', `templates/${template.id}`);
+});
+test('API series list: next dates per series, with exceptions applied', async () => {
+  const j = await (await api('GET', 'series')).json();
+  assert.match(j.today, /^\d{4}-\d\d-\d\d$/);
+  const any = j.series.find((s) => s.recurrence.type === 'weekly');
+  assert.ok(j.upcoming[any.id].length > 0 && j.upcoming[any.id].length <= 8);
+  assert.ok(j.upcoming[any.id].every((o) => o.date >= j.today && 'originalDate' in o && 'cancelled' in o));
+});
+
+test('slots (D23): two slots on one day have their own cancel, change and post text', () => {
+  const s = S({ id: 'pre', title: 'Prerelease', start: null, end: null, recurrence: { type: 'dates', dates: [{ date: '2026-11-08', start: '15:00' }, { date: '2026-11-08', start: '17:00' }] } });
+  const ex = [{ series: 'pre', date: '2026-11-08T15:00', type: 'cancel' }];
+  const o = occurrences(s, '2026-11-08', '2026-11-08', ex);
+  assert.deepEqual(o.map((x) => [x.slot, x.start, x.cancelled]), [['2026-11-08T15:00', '15:00', true], ['2026-11-08T17:00', '17:00', false]]);
+  assert.match(copyText(s, '2026-11-08T15:00', 'https://x.example', ex), /^Cancelled: Prerelease\nSunday, November 8\nNext one: Sunday, November 8, 5 PM\nDetails: https:\/\/x\.example\/events\/pre\?date=2026-11-08T15%3A00$/);
+  const t = copyText(s, '2026-11-08T17:00', 'https://x.example', ex);
+  assert.match(t, /^Prerelease\nSunday, November 8, starts 5 PM\n/);
+  assert.match(t, /date=2026-11-08T17%3A00$/);
+  assert.equal(copyText(s, '2026-11-08T18:00', 'https://x.example'), null);
+  assert.deepEqual(validateException({ date: '2026-11-08T17:00', type: 'change', start: '18:00' }), {});
+  assert.ok(validateException({ date: '2026-11-08T25:00', type: 'cancel' }).date);
+  assert.ok(validateException({ date: '2026-11-08T17:00', type: 'change', movedTo: '2027-06-01' }).movedTo);
+  assert.equal(hasSlot(s, '2026-11-08T17:00'), true);
+  assert.equal(hasSlot(s, '2026-11-08'), false);
+  assert.equal(hasSlot(S(), '2026-11-06'), true);
 });

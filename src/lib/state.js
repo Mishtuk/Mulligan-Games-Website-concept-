@@ -1,4 +1,4 @@
-// Admin-edited content: cleaning helpers, recurring-date expansion, and the live markers server.js fills into the static pages.
+// Admin-edited content: cleaning helpers, and the live markers server.js fills into the static pages.
 // Plain JS with no Node-only imports, so the SAME functions run in Astro (build time) and in server.js (live data).
 // Dates are "YYYY-MM-DD" strings, times "HH:MM" (24h). "Today" is always America/New_York (the store is in Warminster, PA).
 
@@ -19,48 +19,6 @@ const parseDay = (s) => new Date(`${s}T00:00:00Z`);
 const fmtDay = (d) => d.toISOString().slice(0, 10);
 export const isDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(+parseDay(s)) && fmtDay(parseDay(s)) === s;
 export const isTime = (s) => typeof s === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
-
-// ---------- recurring events ----------
-const addDays = (ymd, n) => { const d = parseDay(ymd); d.setUTCDate(d.getUTCDate() + n); return fmtDay(d); };
-const daysIn = (y, m) => new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-
-/** Dates (YYYY-MM-DD) an event happens on within [from, to]. One-off: its date. Weekly: every 7 days. Monthly: the same date each
- *  month (a 31st lands on the last day of shorter months). monthly_weekday: the same Nth weekday (a 5th lands on the last one). */
-export function occurrences(e, from, to) {
-  const out = [];
-  const start = e.date;
-  if (e.recurring === 'weekly') {
-    let d = start;
-    if (from > d) d = addDays(d, Math.ceil((parseDay(from) - parseDay(d)) / 864e5 / 7) * 7);
-    for (; d <= to; d = addDays(d, 7)) out.push(d);
-    return out;
-  }
-  if (e.recurring === 'monthly' || e.recurring === 'monthly_weekday') {
-    const s = parseDay(start);
-    const dom = s.getUTCDate(), dow = s.getUTCDay(), nth = Math.ceil(dom / 7);
-    let y = +from.slice(0, 4), m = +from.slice(5, 7) - 1;
-    for (; `${y}-${String(m + 1).padStart(2, '0')}` <= to.slice(0, 7); m === 11 ? (y++, m = 0) : m++) {
-      let day;
-      if (e.recurring === 'monthly') day = Math.min(dom, daysIn(y, m));
-      else {
-        const first = (dow - new Date(Date.UTC(y, m, 1)).getUTCDay() + 7) % 7 + 1; // first such weekday of the month
-        day = first + (nth - 1) * 7;
-        if (day > daysIn(y, m)) day -= 7;
-      }
-      const d = fmtDay(new Date(Date.UTC(y, m, day)));
-      if (d >= start && d >= from && d <= to) out.push(d);
-    }
-    return out;
-  }
-  return start >= from && start <= to ? [start] : [];
-}
-
-/** Every dated occurrence of the enabled events in [from, to], earliest first. */
-export function expand(events = [], from, to) {
-  return events.filter((e) => e.enabled !== false)
-    .flatMap((e) => occurrences(e, from, to).map((date) => ({ ...e, date, eventId: e.id })))
-    .sort((a, b) => a.date.localeCompare(b.date) || (a.start || '').localeCompare(b.start || '') || a.title.localeCompare(b.title));
-}
 
 // ---------- live markers ----------
 /** What visitors may see, as one object. Later tasks add their public sections here (enabled items only, never private data). */

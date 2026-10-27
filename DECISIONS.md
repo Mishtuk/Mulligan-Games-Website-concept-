@@ -209,3 +209,21 @@ delete and the expansion window bounded). (9) The seed loads once, guarded by a 
 back, accepted. (10) Stored text keeps going through the shared `text()` cleaner, which drops anything between `<`
 and `>`; DESIGN.md 15.2 changed to say so (defence in depth on top of D20, not instead of it).
 **Why:** each call either follows the signed-off spec or is the smaller option with no loss for owners or players.
+
+### D23. P2.2b review calls (2026-10-26)
+(1) Exceptions are keyed by day, so two slots on one day (seed prerelease Nov 8, 3 PM and 5 PM) share one cancel,
+one change and one post text: a real data bug. Fix in P2.2b before P2.3/P2.4 build on the key: each occurrence gets
+`slot` = `originalDate` for weekly / nth / one-off series and `originalDate + 'T' + start` (the slot's own start from
+`recurrence.dates`) for "On these dates" series; the exception's `date` field and the DB `date` column hold that key
+(no schema change); `validateException` accepts `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM` (60-day move check on the first 10
+characters); `occurrences()` matches on the key; `/upcoming` returns `slot`; admin cancel / change / bring back /
+copy send `o.slot`; `copyText` and `?date=` accept the key, and the P2.3 per-date page link uses it. Test: cancel the
+3 PM slot, the 5 PM slot stays on and copies its own text. (2) Photo picker moves to P2.3 (events have no photo field,
+D7; the first user is the room photo slot). (3) A series-specific editor replaces the generic `renderCrud` port.
+(4) Game chips + search, colour band and live card preview move to P2.3 (the preview is the real P2.3 card); "Stock it
+uses" to P2.5; roster-header copy and the 9.1 shell to P2.4. (5) Undo after "Cancel this date" only when the date had
+no earlier change, accepted: undoing would mean restoring the old change, and "Change this date" does that by hand.
+(6) Toast overlapping the save bar: fixed by the boss (toast lifts above the bar while it is on screen).
+**Why:** (1) prereleases are the biggest events and the seed already has two slots on one day; the key is cheapest to
+change before sign-ups and public URLs depend on it. The rest is either built on things that don't exist yet or rare.
+Boss overrule: none.

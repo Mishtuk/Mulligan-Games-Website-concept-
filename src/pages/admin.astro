@@ -51,7 +51,7 @@
       .fld > label { display: block; font-weight: 600; }
       .opt { font-size: .85rem; font-weight: 500; color: var(--ink-2); margin-left: .5rem; }
       .hint { display: block; }
-      input[type=text], input[type=password] { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
+      input[type=text], input[type=password], input[type=time], input[type=date], select, textarea { display: block; width: 100%; min-height: 52px; margin-top: .3rem; padding: .55rem .7rem; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; }
       .fld.bad input { border-color: var(--red-ink); }
       .ferr, .err { color: var(--red-ink); font-weight: 700; margin: .3rem 0 0; }
 
@@ -93,6 +93,50 @@
       .toast button { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; min-height: 48px; padding: 0 .75rem; cursor: pointer; text-decoration: underline; }
       dialog.ask { border: 0; border-radius: 6px; padding: 1.5rem; max-width: 28rem; width: calc(100vw - 2rem); background: var(--card); color: var(--ink); }
       dialog.ask::backdrop { background: rgb(22 22 29 / .6); }
+      textarea { resize: vertical; }
+      .lbl { font-weight: 600; margin: 0; }
+      .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+      .chip.bad { background: var(--bad-bg); color: var(--red-ink); } .chip.edit { background: var(--edit-bg); color: var(--edit); }
+      .btn.sm { min-height: 44px; padding: .25rem .8rem; font-size: .95rem; }
+      .btn.off { opacity: .55; cursor: default; border-style: dashed; }
+      .btn.copy { min-width: 11.5rem; } .btn.copy.done { background: var(--ok-bg); color: var(--olive); border-color: var(--olive); }
+      h3 { font-size: 1.05rem; margin: .25rem 0 .5rem; }
+      details.srow { border-top: 1px solid var(--line); } details.srow:first-child { border-top: 0; }
+      details.srow > summary { cursor: pointer; padding: .75rem 0; min-height: 56px; display: flex; gap: .6rem; align-items: flex-start; list-style: none; }
+      details.srow > summary::before { content: '▾'; flex: none; width: 1.2rem; line-height: 1.55; text-align: center; transform: rotate(-90deg); } details.srow[open] > summary::before { transform: none; }
+      .sbody { padding: 0 0 1rem; }
+      ul.dates { list-style: none; margin: 0 0 1rem; padding: 0; }
+      .drow { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; padding: .6rem 0; border-top: 1px solid var(--line); }
+      .drow:first-child { border-top: 0; }
+      .gtiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; margin-bottom: 1.25rem; }
+      .gtile, .tpl { display: flex; flex-direction: column; gap: .2rem; text-align: left; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--field); border-radius: 6px; padding: .8rem 1rem; min-height: 72px; cursor: pointer; width: 100%; }
+      .gtile:hover, .tpl:hover { border-color: var(--night); background: var(--stone); }
+      .tpls { display: grid; gap: .6rem; margin-bottom: 1.25rem; } .tplrow { display: flex; gap: .6rem; align-items: stretch; flex-wrap: wrap; } .tplrow .tpl { flex: 1 1 18rem; width: auto; }
+      .eform { padding-bottom: 5rem; }
+      .fgroup { border: 0; background: var(--card); border-radius: 6px; padding: 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 1px 2px rgb(29 29 38 / .12); min-width: 0; }
+      .fgroup legend { font-weight: 700; font-size: 1.15rem; float: left; width: 100%; padding: 0; margin: 0 0 .75rem; }
+      .fgrid { clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+      .fgrid > .wide, .fgrid .fld.wide { grid-column: 1 / -1; } .fgrid > .say { grid-column: 1 / -1; }
+      .check { display: flex; gap: .75rem; align-items: flex-start; min-height: 48px; padding: .4rem 0; margin: 0 0 .5rem; cursor: pointer; }
+      .check input, .rcard input, .seg1 input { width: 24px; height: 24px; flex: none; margin: 0; accent-color: var(--night); }
+      .rcards { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .3rem; }
+      .rcard { display: grid; grid-template-columns: 24px 1fr; column-gap: .6rem; align-items: start; border: 2px solid var(--field); border-radius: 6px; padding: .7rem .8rem; min-height: 56px; cursor: pointer; background: var(--card); }
+      .rcard small { grid-column: 2; color: var(--ink-2); } .rcard:has(input:checked) { border-color: var(--night); background: var(--stone); }
+      .segr { display: flex; margin-top: .3rem; border: 2px solid var(--night); border-radius: 6px; overflow: hidden; }
+      .seg1 { flex: 1; display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 48px; padding: 0 .5rem; cursor: pointer; font-size: .95rem; background: var(--card); }
+      .seg1 input { position: absolute; opacity: 0; width: 1px; height: 1px; } .seg1:has(input:checked) { background: var(--night); color: var(--on-dark); } .seg1:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: -4px; }
+      .say { background: var(--edit-bg); color: var(--edit); border-radius: 6px; padding: .5rem .8rem; margin: 0 0 1rem; font-weight: 600; }
+      .errsum { background: var(--bad-bg); color: var(--red-ink); border-radius: 6px; padding: .8rem 1rem; margin: 0 0 1.25rem; font-weight: 700; } .errsum ul { margin: .4rem 0 0; padding-left: 1.2rem; } .errsum a { color: inherit; }
+      .savebar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: flex-end; background: var(--card); border-top: 2px solid var(--night); padding: .75rem 1rem; margin: 0 -1.5rem -5rem; }
+      .sb-msg { margin-right: auto; font-weight: 700; color: var(--gold-ink); }
+      dialog.ask.wide { max-width: 34rem; } dialog.ask textarea { margin-top: .5rem; }
+      .drw { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0 .75rem; align-items: end; } .drw .btn { margin-bottom: 1.1rem; }
+      .date-rows { margin-bottom: .5rem; }
+      body:has(.savebar) .toast { bottom: 6rem; }
+      @media (max-width: 800px) {
+        .gtiles { grid-template-columns: 1fr 1fr; } .savebar { margin: 0 -1rem -5rem; } .btn.sm { min-height: 48px; }
+        .fgrid { grid-template-columns: 1fr; } .rcards { grid-template-columns: 1fr; } .drow .dact { width: 100%; } body:has(.savebar) .toast { bottom: 10rem; }
+      }
       @media (max-width: 800px) {
         .wrap { grid-template-columns: minmax(0, 1fr); }
         .side { display: none; }
@@ -139,6 +183,7 @@
       <main class="main" id="main" tabindex="-1">
         <div class="banner" id="default-warning" hidden><span>The password is still the starter password. Please change it now.</span><a class="btn" href="#account">Change the password</a></div>
         <section data-section="dashboard"></section>
+        <section data-section="events" hidden></section>
         <section data-section="security" hidden></section>
         <section data-section="account" hidden></section>
       </main>
@@ -162,7 +207,8 @@
       const IC = { home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>', shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', person: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
         ext: '<path d="M7 17L17 7M9 7h8v8"/>', up: '<path d="M12 19V5M5 12l7-7 7 7"/>', down: '<path d="M12 5v14M5 12l7 7 7-7"/>', check: '<path d="M5 12l5 5 9-10"/>',
         warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.01"/>', bshield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/>',
-        pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>' };
+        pencil: '<path d="M4 20l1-5L16 4l4 4L9 19z"/>', bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', door: '<path d="M5 21V3h10v18M3 21h18M12 12v.01"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        cal: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>', plus: '<path d="M12 5v14M5 12h14"/>', back: '<path d="M15 5l-7 7 7 7"/>' };
       const ico = (n, s = 20) => { const e = h('span', { class: 'ic', 'aria-hidden': 'true' }); e.innerHTML = `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">${IC[n]}</svg>`; return e; };
       const ERR = { signed_out: 'Please sign in again.', origin: 'Reload the page and try again.', current: 'The current password is not right.', too_short: 'The new password needs at least 10 characters.',
         too_easy: 'Pick a harder password.', same: 'That is the same as the old password.', too_long: 'That password is too long.', rate: 'Too many tries. Wait a little and try again.' };
@@ -221,7 +267,7 @@
         f.password.value = '';
         start();
       });
-      const NAV = [['dashboard', 'Dashboard', 'home'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
+      const NAV = [['dashboard', 'Dashboard', 'home'], ['events', 'Events', 'cal'], ['security', 'Security log', 'shield'], ['account', 'Account', 'person']];
       const navLinks = () => NAV.map(([id, t, i]) => h('a', { href: '#' + id, 'data-view': id }, ico(i), h('span', {}, t)));
       const navTail = () => [h('a', { href: '/', target: '_blank', rel: 'noopener' }, ico('ext'), 'View the website'), h('button', { class: 'linkbtn', type: 'button', onclick: signOut }, 'Sign out')];
       async function signOut() { if (!(await leave())) return; guard = null; await api('POST', 'logout'); location.reload(); }
@@ -289,7 +335,9 @@
       const EVT = { login_ok: ['Signed in', 'ok'], logout: ['Signed out', 'muted', 'door'], login_fail: ['Wrong username or password', 'warn'], lockout: ['Locked out after too many wrong tries', 'bad'],
         login_blocked: ['Sign-in refused while locked out', 'bad'], password_change: ['Password changed', 'ok'], password_change_fail: ['Password change refused: current password was wrong', 'warn'],
         password_change_blocked: ['Password changes paused: too many tries', 'bad'], photo_upload: ['Uploaded a picture', 'edit'], photo_delete: ['Deleted a picture', 'edit', 'bin'],
-        photo_upload_blocked: ['Stopped a picture upload that was not allowed', 'warn'] };
+        photo_upload_blocked: ['Stopped a picture upload that was not allowed', 'warn'], series_create: ['Added an event', 'edit'], series_update: ['Changed an event', 'edit'], series_delete: ['Deleted an event', 'edit', 'bin'],
+        exception_set: ['Changed or cancelled one date', 'edit'], exception_clear: ['Put one date back to normal', 'edit'], template_create: ['Saved an event template', 'edit'], template_delete: ['Deleted an event template', 'edit', 'bin'],
+        events_blocked: ['Stopped too many event changes at once', 'warn'] };
       const KIND_ICON = { ok: 'check', warn: 'warn', bad: 'bshield', edit: 'pencil', muted: 'clock' };
       function evInfo(e) {
         let [name, kind, icon] = EVT[e.type] || ['Other activity', 'muted'], detail = e.detail;
@@ -340,8 +388,356 @@
         put(sec, h('h1', {}, 'Account'), h('p', {}, 'Signed in as ' + S.user + '.'), form);
       }
 
+      // ---------- events (D7, D17, D20: every value is shown with textContent / attributes, never innerHTML) ----------
+      const DAYN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], NTHW = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th', '-1': 'last' };
+      const KIND_NAME = { open: 'Open play', weekly: 'Weekly tournament', learn: 'Learn to play', cedh: 'cEDH series', prerelease: 'Prerelease', special: 'Special or charity' };
+      const SIGNUP_WORDS = { walkin: 'walk in', here: 'sign up here', counter: 'at the counter', external: 'sign up on another site' };
+      const SIGNUP_CARDS = [['walkin', 'Walk in, no sign-up', 'Players just show up. Free play and weekly nights.'], ['here', 'Sign up on this site', 'Players hold a seat here. You get a roster, a waitlist and check-in.'],
+        ['counter', 'At the counter only', 'Players pre-register in the shop (prereleases). You add the names.'], ['external', 'On another site', 'Players sign up on TopDeck, Melee or another page. We link to it.']];
+      const TOOLS = ['Wizards EventLink', 'Play! Pokemon', 'Bandai TCG+', 'KONAMI', 'Ravensburger Play Hub', 'PlayRiftbound', 'Melee', 'Best Coast Pairings', 'TopDeck', 'Other'];
+      const HOLD = [['', 'No set time'], ['0', 'The start time'], ['5', '5 minutes before'], ['10', '10 minutes before'], ['15', '15 minutes before'], ['30', '30 minutes before']];
+      const isDay = (d) => /^\d{4}-\d\d-\d\d$/.test(d || '') && !Number.isNaN(Date.parse(d)), addD = (ymd, n) => new Date(Date.parse(ymd) + n * 864e5).toISOString().slice(0, 10);
+      const mins = (t) => +t.slice(0, 2) * 60 + +t.slice(3), hmOf = (m) => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+      const isT = (t) => /^([01]\d|2[0-3]):[0-5]\d$/.test(t || '');
+      const T12 = (t) => (t === '12:00' ? 'noon' : t === '00:00' ? 'midnight' : `${+t.slice(0, 2) % 12 || 12}${t.slice(3) === '00' ? '' : ':' + t.slice(3)} ${+t.slice(0, 2) < 12 ? 'AM' : 'PM'}`);
+      const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1), enc = encodeURIComponent;
+      const gameShort = (id) => EV.games.find((g) => g.id === id)?.short || id;
+      let EV = null;
+      const openSeries = new Set();
+      ERR.not_found = 'That is not there any more. Reload the page and try again.'; ERR.body = 'Something was wrong with what was sent. Reload and try again.'; ERR.in_use = 'That is still in use.';
+      const firstErr = (r) => (r.data.errors ? Object.values(r.data.errors)[0] : say(r));
+
+      function repeatWords(s) {
+        const r = s.recurrence, t = s.start ? ', ' + T12(s.start) : '';
+        if (r.type === 'weekly') return `Every ${DAYN[r.day]}${t}`;
+        if (r.type === 'nth') return `${cap1(NTHW[r.nth])} ${DAYN[r.day]} of the month${t}`;
+        if (r.type === 'none') return `${wd(r.date)}${t}`;
+        return `${r.dates.length} dates: ${r.dates.map((d) => `${md(d.date)} ${T12(d.start)}`).join(', ')}`;
+      }
+      const feeWords = (f) => (f == null ? null : f === 0 ? 'Free' : '$' + f);
+      const tplWords = (f) => cap1([feeWords(f.fee)?.toLowerCase(), f.capacity && f.capacity + ' seats', SIGNUP_WORDS[f.signup], f.waitlist && 'waitlist', f.recurrence?.type === 'dates' && f.recurrence.dates.length + ' slots', f.minPlayers && 'needs ' + f.minPlayers, f.tool?.name && f.tool.name.replace(/^Wizards /, ''),
+        f.kidsWelcome && 'kids welcome', f.beginnerFriendly && 'beginner friendly'].filter(Boolean).join(', '));
+
+      async function loadEv() {
+        const [a, b] = await Promise.all([api('GET', 'admin/series'), api('GET', 'admin/templates')]);
+        if (!a.ok || !b.ok) { toast(say(a.ok ? b : a)); return false; }
+        EV = { ...a.data, templates: b.data };
+        return true;
+      }
+      async function renderEvents() {
+        guard = null;
+        if (await loadEv()) drawEvList();
+      }
+      const refresh = async () => { if (await loadEv()) drawEvList(); };
+
+      // ----- list -----
+      function drawEvList() {
+        guard = null;
+        const up = (s) => EV.upcoming[s.id] || [], coming = EV.series.filter((s) => up(s).length), past = EV.series.filter((s) => !up(s).length);
+        put($('[data-section=events]'), h('div', { class: 'head' }, h('h1', {}, 'Events'), h('button', { class: 'btn', type: 'button', onclick: drawNew }, ico('plus'), 'New event')),
+          EV.series.length ? [h('h2', {}, 'Coming up'), h('div', { class: 'card' }, coming.length ? coming.map(seriesRow) : h('p', { class: 'meta' }, 'Nothing is coming up.')),
+            past.length > 0 && h('details', { class: 'card' }, h('summary', {}, 'Already happened ', h('span', { class: 'chip' }, past.length)), past.map(seriesRow))]
+            : h('div', { class: 'card' }, h('p', { class: 'big' }, 'No events yet.'), h('p', {}, 'Choose New event to make the first one.')));
+      }
+      function seriesRow(s) {
+        const dates = EV.upcoming[s.id] || [], next = dates.find((o) => !o.cancelled);
+        const d = h('details', { class: 'srow', 'data-sid': s.id }, h('summary', {}, h('div', { class: 'sum' }, h('div', {}, h('strong', {}, s.title), ' ', h('span', { class: 'chip' }, gameShort(s.game)), s.enabled === false && h('span', { class: 'chip warn' }, 'Hidden from the website')),
+          h('div', { class: 'meta' }, [repeatWords(s), feeWords(s.fee), s.capacity ? s.capacity + ' seats' : 'No seat limit', cap1(SIGNUP_WORDS[s.signup] || '')].filter(Boolean).join(' · ')),
+          next && h('div', { class: 'meta' }, `Next: ${wd(next.date)}${next.start ? ', ' + T12(next.start) : ''}`))),
+          h('div', { class: 'sbody' }, h('h3', {}, 'Next dates'), dates.length ? h('ul', { class: 'dates' }, dates.map((o) => dateRow(s, o))) : h('p', { class: 'meta' }, 'No dates coming up.'),
+            h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => openEditor(s, false) }, ico('pencil', 18), 'Edit event'),
+              h('button', { class: 'btn alt', type: 'button', onclick: () => setShown(s) }, s.enabled === false ? 'Show on the website' : 'Hide from the website'),
+              h('button', { class: 'btn danger', type: 'button', onclick: () => deleteSeries(s) }, ico('bin', 18), 'Delete'))));
+        d.open = openSeries.has(s.id);
+        d.addEventListener('toggle', () => (d.open ? openSeries.add(s.id) : openSeries.delete(s.id)));
+        return d;
+      }
+      function dateRow(s, o) {
+        const label = `${s.title}, ${md(o.date)}`, sm = (cls, ...k) => h('button', { class: 'btn alt sm ' + cls, type: 'button' }, ...k);
+        const copy = sm('copy', ico('copy', 18), h('span', { class: 'lbl' }, 'Copy post text'), h('span', { class: 'vh' }, ' for ' + label));
+        copy.addEventListener('click', () => copyPost(s, o, copy));
+        const change = sm('', 'Change this date', h('span', { class: 'vh' }, ' for ' + label)), cancel = sm('', 'Cancel this date', h('span', { class: 'vh' }, ' for ' + label)), back = sm('', 'Bring it back', h('span', { class: 'vh' }, ' for ' + label));
+        change.addEventListener('click', () => changeDialog(s, o, change)); cancel.addEventListener('click', () => cancelDate(s, o)); back.addEventListener('click', () => bringBack(s, o, false));
+        return h('li', { class: 'drow' }, h('div', { class: 'dwhen' }, h('strong', {}, wd(o.date)), o.start && ' · ' + T12(o.start), o.end && o.start && ' to ' + T12(o.end), ' ',
+          o.cancelled && h('span', { class: 'chip bad' }, 'Cancelled'), o.moved && h('span', { class: 'chip edit' }, 'Moved from ' + wd(o.originalDate)), o.changed && !o.moved && h('span', { class: 'chip edit' }, 'Changed'),
+          o.note && h('div', { class: 'meta' }, o.note)),
+          h('div', { class: 'row dact' }, h('span', { class: 'btn alt sm off', 'aria-disabled': 'true', title: 'The roster comes with sign-ups' }, 'Roster (soon)'), copy, o.cancelled ? back : [change, cancel]));
+      }
+      async function setShown(s) {
+        const on = s.enabled === false, r = await api('PUT', 'admin/series/' + enc(s.id), { ...s, enabled: on });
+        if (!r.ok) return toast(firstErr(r));
+        await refresh(); toast(on ? 'Showing on the website.' : 'Hidden from the website.', { label: 'Undo', fn: async () => { const u = await api('PUT', 'admin/series/' + enc(s.id), { ...s, enabled: !on }); if (u.ok) refresh(); else toast(firstErr(u)); } });
+      }
+      async function deleteSeries(s) {
+        if (!(await ask(`Delete ${s.title}?`, 'This removes the event and all of its dates. It cannot be undone. Use Hide to keep it but take it off the website.', 'Delete it'))) return;
+        const r = await api('DELETE', 'admin/series/' + enc(s.id));
+        if (!r.ok) return toast(say(r));
+        openSeries.delete(s.id); await refresh(); toast('Deleted.');
+      }
+
+      // ----- one date: copy post text, cancel, bring back, change -----
+      function showCopy(text, opener) {
+        const ta = h('textarea', { readonly: true, rows: 8, 'aria-labelledby': 'cp-t', 'aria-describedby': 'cp-h', value: text });
+        const d = h('dialog', { class: 'ask', 'aria-labelledby': 'cp-t' }, h('h2', { id: 'cp-t' }, 'Copy this text'), ta, h('p', { class: 'hint', id: 'cp-h' }, 'Press and hold the text, then Copy. On a keyboard: Ctrl+C.'),
+          h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => d.close() }, 'Done')));
+        d.addEventListener('close', () => { d.remove(); opener?.focus(); });
+        document.body.append(d); d.showModal(); ta.focus(); ta.select();
+      }
+      async function copyPost(s, o, btn) {
+        const r = await api('GET', `admin/series/${enc(s.id)}/copy?date=${enc(o.slot)}`);
+        if (!r.ok) return toast(say(r));
+        let ok = false;
+        try { await navigator.clipboard.writeText(r.data.text); ok = true; } catch {}
+        if (!ok) return showCopy(r.data.text, btn);
+        const lbl = $('.lbl', btn), was = btn.firstChild;
+        lbl.textContent = 'Copied'; btn.replaceChild(ico('check', 18), was); btn.classList.add('done');
+        setTimeout(() => { if (!btn.isConnected) return; lbl.textContent = 'Copy post text'; btn.replaceChild(ico('copy', 18), btn.firstChild); btn.classList.remove('done'); }, 2000);
+        const extra = s.fee == null ? ' No entry fee is set, so the post leaves it out.' : !o.end ? ' No end time is set. Google shows events without one as all day.' : '';
+        toast(`Post text for ${s.title}, ${md(o.date)} copied. Paste it into Facebook, Discord or Google.${extra}`);
+      }
+      async function cancelDate(s, o) {
+        const r = await api('POST', `admin/series/${enc(s.id)}/exceptions`, { date: o.slot, type: 'cancel' });
+        if (!r.ok) return toast(firstErr(r));
+        await refresh();
+        toast(`Cancelled ${s.title}, ${md(o.date)}.`, o.changed || o.moved ? undefined : { label: 'Undo', fn: () => bringBack(s, o, true) });
+      }
+      async function bringBack(s, o, quiet) {
+        const r = await api('DELETE', `admin/series/${enc(s.id)}/exceptions/${enc(o.slot)}`);
+        if (!r.ok) return toast(say(r));
+        await refresh(); toast(quiet ? 'Put back.' : `${s.title}, ${md(o.date)} is back on.`);
+      }
+      function changeDialog(s, o, opener) {
+        const base = { start: s.recurrence.type === 'dates' ? s.recurrence.dates.find((x) => `${x.date}T${x.start}` === o.slot)?.start || s.start : s.start, capacity: s.capacity };
+        const f = (id, label, ctl, x) => fld(id, label, ctl, { half: true, ...x });
+        const start = h('input', { type: 'time', name: 'start', value: o.start || '' }), cap = h('input', { type: 'text', name: 'capacity', inputmode: 'numeric', value: o.capacity ?? '' }),
+          to = h('input', { type: 'date', name: 'movedTo', value: o.date }), note = h('textarea', { name: 'note', rows: 3, maxlength: 200, value: o.note || '' });
+        const err = h('p', { class: 'err', role: 'alert', hidden: true });
+        const form = h('form', { novalidate: true }, h('h2', { id: 'ch-t' }, `Change ${wd(o.date)}`), h('p', { class: 'meta' }, 'Only this date changes. The rest of the series stays as it is.'),
+          f('c-start', 'Starts', start), f('c-cap', 'Seats', cap, { hint: 'Leave empty for no limit.' }), f('c-to', 'Move it to', to, { hint: 'At most 60 days away.' }),
+          fld('c-note', 'Note for players', note, { optional: true, hint: 'Shows on the website as a Changed tag.' }), err,
+          h('div', { class: 'row' }, h('button', { class: 'btn', type: 'submit' }, 'Save change'), h('button', { class: 'btn alt', type: 'button', onclick: () => d.close() }, 'Cancel'),
+            (o.changed || o.moved) && h('button', { class: 'btn danger', type: 'button', onclick: async () => { d.close(); await bringBack(s, o, true); } }, 'Put back to normal')));
+        const d = h('dialog', { class: 'ask wide', 'aria-labelledby': 'ch-t' }, form);
+        d.addEventListener('close', () => { d.remove(); opener?.isConnected && opener.focus(); });
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); err.hidden = true; form.querySelectorAll('.fld.bad').forEach(clearErr);
+          const body = { date: o.slot, type: 'change' }, c = cap.value.trim();
+          if (start.value && start.value !== base.start) body.start = start.value;
+          if (c !== String(base.capacity ?? '')) body.capacity = c === '' ? null : /^\d+$/.test(c) ? Number(c) : c;
+          if (to.value && to.value !== o.originalDate) body.movedTo = to.value;
+          if (note.value.trim()) body.note = note.value.trim();
+          const r = await api('POST', `admin/series/${enc(s.id)}/exceptions`, body);
+          if (!r.ok) {
+            const errs = r.data.errors || {}, ctl = { start, capacity: cap, movedTo: to, note };
+            let shown = false;
+            for (const [k, c1] of Object.entries(ctl)) if (errs[k]) { markErr(c1, errs[k]); shown = true; }
+            if (!shown) { err.textContent = firstErr(r); err.hidden = false; } else if (errs.type) { err.textContent = errs.type; err.hidden = false; }
+            return;
+          }
+          d.close(); await refresh(); toast('Saved. Only that date changed.');
+        });
+        document.body.append(d); d.showModal(); start.focus();
+      }
+
+      // ----- new event: game, then template -----
+      function drawNew() {
+        guard = null;
+        const sec = $('[data-section=events]'), back = (fn) => h('button', { class: 'btn alt', type: 'button', onclick: fn }, ico('back', 18), fn === drawEvList ? 'Back to the list' : 'Pick another game');
+        const step1 = () => put(sec, back(drawEvList), h('h1', {}, 'New event'), h('h2', {}, 'What game?'),
+          h('div', { class: 'gtiles' }, EV.games.map((g) => h('button', { class: 'gtile', type: 'button', onclick: () => step2(g) }, h('strong', {}, g.short), h('span', { class: 'meta' }, g.name)))));
+        const step2 = (g) => {
+          const list = [...EV.templates.yours.filter((t) => t.game === g.id).map((t) => ({ ...t, yours: true })), ...EV.templates.builtin.filter((t) => t.game === g.id)];
+          put(sec, back(step1), h('h1', {}, 'New event'), h('h2', {}, `What kind of event? (${g.short})`),
+            h('div', { class: 'tpls' }, list.map((t) => h('div', { class: 'tplrow' }, h('button', { class: 'tpl', type: 'button', onclick: () => openEditor(fromTemplate(t), true, t.name) },
+              h('strong', {}, t.name), t.yours && h('span', { class: 'chip ok' }, 'Yours'), h('span', { class: 'meta' }, tplWords(t.fields))),
+              t.yours && h('button', { class: 'btn danger sm', type: 'button', onclick: () => dropTemplate(t, g, step2) }, ico('bin', 18), 'Delete', h('span', { class: 'vh' }, ' the template ' + t.name)))),
+              h('button', { class: 'tpl', type: 'button', onclick: () => openEditor({ game: g.id, kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', signup: 'walkin', enabled: true }, true) }, h('strong', {}, 'Start blank'), h('span', { class: 'meta' }, 'Empty form, every field yours.'))));
+        };
+        step1();
+      }
+      function fromTemplate(t) {
+        const v = JSON.parse(JSON.stringify(t.fields)), r = v.recurrence, today = EV.today;
+        if (r.type === 'none') r.date = addD(today, 7);
+        if (r.type === 'dates') r.dates.forEach((d, i) => (d.date = addD(today, 28 + (i ? 2 : 0))));
+        return { enabled: true, ...v };
+      }
+      async function dropTemplate(t, g, again) {
+        if (!(await ask(`Delete the template ${t.name}?`, 'Events already made from it stay as they are.', 'Delete it'))) return;
+        const r = await api('DELETE', 'admin/templates/' + enc(t.id));
+        if (!r.ok) return toast(say(r));
+        EV.templates.yours = EV.templates.yours.filter((x) => x.id !== t.id); again(g); toast('Template deleted.');
+      }
+
+      // ----- the editor (DESIGN.md 9.3, 15.2) -----
+      function openEditor(v, isNew, tplName) {
+        const sec = $('[data-section=events]'), E = editorForm(v, isNew);
+        const base = JSON.stringify(E.read()), msg = h('span', { class: 'sb-msg', 'aria-live': 'polite' }), discard = h('button', { class: 'btn alt', type: 'button' }, 'Cancel');
+        let dirty = false;
+        const upd = () => { E.sync(); dirty = JSON.stringify(E.read()) !== base; msg.textContent = dirty ? 'You have unsaved changes' : ''; discard.textContent = dirty ? 'Discard' : 'Cancel'; };
+        const close = () => { guard = null; drawEvList(); };
+        discard.addEventListener('click', close);
+        E.form.addEventListener('input', upd); E.form.addEventListener('change', upd); E.form.addEventListener('dates', upd);
+        const tplBtn = h('button', { class: 'btn alt', type: 'button' }, 'Save as a template');
+        tplBtn.addEventListener('click', () => saveTemplate(E, tplBtn));
+        E.form.addEventListener('submit', async (e) => {
+          e.preventDefault(); E.clearAll();
+          if (!E.localCheck()) return;
+          const body = E.read(), r = isNew ? await api('POST', 'admin/series', body) : await api('PUT', 'admin/series/' + enc(v.id), body);
+          if (!r.ok) { if (r.status === 422) E.showErrors(r.data.errors); else toast(say(r)); return; }
+          guard = null; openSeries.add(r.data.series.id); await refresh(); toast('Saved.');
+        });
+        E.form.append(h('div', { class: 'savebar' }, msg, discard, tplBtn, h('button', { class: 'btn', type: 'submit' }, 'Save event')));
+        put(sec, h('button', { class: 'btn alt', type: 'button', onclick: async () => { if (await leave()) close(); } }, ico('back', 18), 'Back to the list'),
+          h('h1', {}, isNew ? 'New event' : 'Edit event'), tplName && h('p', { class: 'say' }, `Filled in from the template "${tplName}". Change anything you like.`), E.form);
+        E.sync();
+        guard = () => dirty && 'What you typed has not been saved.';
+        scrollTo(0, 0); E.form.elements.title.focus();
+      }
+      function saveTemplate(E, opener) {
+        if (EV.templates.yours.length >= 40) return toast('You have the most templates allowed. Delete one first.');
+        const name = h('input', { type: 'text', name: 'tname', maxlength: 60, value: E.form.elements.title.value.trim() }), err = h('p', { class: 'err', role: 'alert', hidden: true });
+        const form = h('form', { novalidate: true }, h('h2', { id: 'tp-t' }, 'Save as a template'),
+          h('p', { class: 'meta' }, 'Keeps everything except the dates. Next time, pick it under New event.'), fld('t-name', 'Template name', name), err,
+          h('div', { class: 'row' }, h('button', { class: 'btn', type: 'submit' }, 'Save template'), h('button', { class: 'btn alt', type: 'button', onclick: () => d.close() }, 'Cancel')));
+        const d = h('dialog', { class: 'ask', 'aria-labelledby': 'tp-t' }, form);
+        d.addEventListener('close', () => { d.remove(); opener.focus(); });
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); form.querySelectorAll('.fld.bad').forEach(clearErr); err.hidden = true;
+          const r = await api('POST', 'admin/templates', { name: name.value, fields: E.read() });
+          if (!r.ok) {
+            if (r.data.errors?.name) return markErr(name, r.data.errors.name);
+            if (r.data.errors) { d.close(); return E.showErrors(r.data.errors); }
+            err.textContent = say(r); err.hidden = false; return;
+          }
+          EV.templates.yours.unshift(r.data.template); d.close(); toast(`Saved as the template "${r.data.template.name}". Find it under New event.`);
+        });
+        document.body.append(d); d.showModal(); name.focus(); name.select();
+      }
+
+      /** Builds the form for series values v. Returns { form, read(), sync(), clearAll(), localCheck(), showErrors(errors) }. */
+      function editorForm(v, isNew) {
+        const rec = v.recurrence || { type: 'weekly', day: 5 }, W = {}, form = h('form', { class: 'eform', novalidate: true, autocomplete: 'off' });
+        const val = (n) => form.elements[n].value.trim(), pick = (n) => form.querySelector(`input[name=${n}]:checked`)?.value ?? '';
+        const num = (n) => { const s = val(n); return s === '' ? null : /^\d+$/.test(s) ? Number(s) : s; };
+        const sel = (name, opts, cur) => h('select', { name }, opts.map(([k, t]) => h('option', { value: String(k), selected: String(cur ?? '') === String(k) }, t)));
+        const inp = (name, cur, x = {}) => h('input', { type: x.type || 'text', name, value: cur ?? '', inputmode: x.mode, placeholder: x.ph, maxlength: x.max, list: x.list, autocomplete: 'off' });
+        const chk = (name, label, on) => h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name, checked: !!on }), h('span', {}, label));
+        const grp = (id, label, body, x = {}) => {
+          const d = h('div', { class: `fld ${x.half ? '' : 'wide'}` }, h('p', { class: 'lbl', id: id + '-l' }, label), x.hint && h('span', { class: 'hint' }, x.hint), body, h('p', { class: 'ferr', role: 'alert', hidden: true }));
+          body.setAttribute('aria-labelledby', id + '-l'); d.addEventListener('change', () => clearErr(d)); return d;
+        };
+        const radios = (name, opts, cur, seg) => h('div', { class: seg ? 'segr' : 'rcards', role: 'radiogroup' }, opts.map(([k, t, sub]) => h('label', { class: seg ? 'seg1' : 'rcard' }, h('input', { type: 'radio', name, value: k, checked: String(cur) === k }), h('strong', {}, t), sub && h('small', {}, sub))));
+        const group = (legend, ...kids) => h('fieldset', { class: 'fgroup' }, h('legend', {}, legend), h('div', { class: 'fgrid' }, kids));
+        const withCur = (list, cur) => (cur && !list.some((x) => x[0] === cur) ? [[cur, cur], ...list] : list);
+        const tools = withCur([['', 'None'], ...TOOLS.map((t) => [t, t])], v.tool?.name);
+        const ages0 = v.kidsWelcome ? 'all' : v.ageNote ? 'rule' : 'none';
+
+        const fmts = h('datalist', { id: 'fmts' });
+        const drows = h('div', { class: 'date-rows' }), say1 = h('p', { class: 'say', 'aria-live': 'polite' }), hold = h('p', { class: 'say', 'aria-live': 'polite' });
+        const addRow = (d = {}) => {
+          const row = h('div', { class: 'drw' }, fld('', 'Day', h('input', { type: 'date', name: 'd-date', value: d.date || '' }), { half: true }), fld('', 'Starts', h('input', { type: 'time', name: 'd-start', value: d.start || '' }), { half: true }),
+            h('button', { class: 'btn alt sm', type: 'button', 'aria-label': 'Remove this date', onclick: () => { row.remove(); form.dispatchEvent(new Event('dates')); } }, ico('bin', 18)));
+          $$('input', row).forEach((i) => i.removeAttribute('id')); drows.append(row);
+        };
+        const $$ = (s, r) => [...r.querySelectorAll(s)];
+        (rec.type === 'dates' ? rec.dates : [{}]).forEach(addRow);
+
+        const first = rec.type === 'none' ? rec.date : rec.startDate;
+        W.date = fld('f-date', 'First date', inp('date', first, { type: 'date' }), { half: true });
+        W.day = fld('f-day', 'On', sel('day', DAYN.map((d, i) => [i, d]), rec.day ?? 5), { half: true });
+        W.nth = fld('f-nth', 'Which one', sel('nth', [1, 2, 3, 4, 5, -1].map((n) => [n, NTHW[n]]), rec.nth ?? 1), { half: true });
+        W.until = fld('f-until', 'Last date', inp('until', rec.until, { type: 'date' }), { half: true, optional: true, hint: 'Leave empty for never.' });
+        W.dates = h('div', { class: 'wide' }, drows, h('button', { class: 'btn alt sm', type: 'button', onclick: () => { addRow(); form.dispatchEvent(new Event('dates')); } }, ico('plus', 18), 'Add a date'));
+        W.start = fld('f-start', 'Starts', inp('start', v.start, { type: 'time' }), { half: true });
+        W.waitlist = chk('waitlist', 'Waitlist when full. The next person moves in automatically when a seat opens.', v.waitlist);
+        W.cutoff = fld('f-cutoff', 'Sign-ups close', sel('cutoff', [['start', 'At the start time'], ['before', 'Hours before the start']], v.cutoff || 'start'), { half: true });
+        const CH = [1, 2, 3, 6, 12, 24, 48, 72];
+        if (v.cutoffHours && !CH.includes(v.cutoffHours)) CH.push(v.cutoffHours);
+        W.cutoffHours = fld('f-cutoffHours', 'How many hours before', sel('cutoffHours', CH.sort((a, b) => a - b).map((n) => [n, n + (n === 1 ? ' hour' : ' hours')]), v.cutoffHours ?? 2), { half: true });
+        W.hold = h('div', { class: 'wide' }, fld('f-arriveByMins', 'Hold seats until', sel('arriveByMins', HOLD, v.arriveByMins ?? ''), { hint: 'After this, a seat nobody has claimed can go to the waitlist or a walk-in. Players see it as "Arrive by".' }), hold);
+        W.ageNote = fld('f-ageNote', 'Age rule', inp('ageNote', v.ageNote, { ph: '13 and up', max: 80 }), { hint: 'Short, in your words. Shown on the card.' });
+        W.cedh = fld('f-cedhSeries', 'cEDH series', sel('cedhSeries', [['', 'Not part of a series'], ['mcs', 'Championship Series'], ['5k', '5K'], ['redemption', 'Redemption']], v.cedhSeries ?? ''), { half: true });
+        W.wh = h('div', { class: 'fgrid wide' }, fld('f-points', 'Army points', inp('points', v.points, { mode: 'numeric' }), { half: true, optional: true }), fld('f-roundMinutes', 'Round length (minutes)', inp('roundMinutes', v.roundMinutes, { mode: 'numeric' }), { half: true, optional: true }),
+          fld('f-listDeadline', 'List deadline', inp('listDeadline', v.listDeadline, { ph: 'Oct 28' }), { half: true, optional: true }));
+
+        put(form, h('div', { class: 'errsum', role: 'alert', tabindex: '-1', hidden: true }),
+          group('Basics', fld('f-title', 'Name', inp('title', v.title, { ph: 'Draft FNM', max: 80 })), fld('f-game', 'Game', sel('game', EV.games.map((g) => [g.id, g.name]), v.game), { half: true }),
+            fld('f-format', 'Format', inp('format', v.format, { list: 'fmts', max: 60, ph: 'Draft, Modern, Commander...' }), { half: true, optional: true }), fmts,
+            fld('f-kind', 'Kind of event', sel('kind', Object.entries(KIND_NAME), v.kind || 'weekly'), { half: true })),
+          group('When', fld('f-rtype', 'Repeats', sel('rtype', [['none', 'Does not repeat'], ['weekly', 'Every week'], ['nth', 'Every month on the 1st, 2nd, 3rd... of a weekday'], ['dates', 'On these dates']], rec.type)),
+            W.day, W.nth, W.date, W.until, W.dates, W.start, fld('f-end', 'Ends', inp('end', v.end, { type: 'time' }), { half: true, optional: true }), fld('f-doors', 'Doors open', inp('doors', v.doors, { type: 'time' }), { half: true, optional: true }), say1),
+          group('Entry and seats', fld('f-fee', 'Entry fee ($)', inp('fee', v.fee, { mode: 'numeric' }), { half: true, hint: '0 means free.' }), fld('f-capacity', 'Seats', inp('capacity', v.capacity, { mode: 'numeric' }), { half: true, hint: 'Leave empty for no limit.' }),
+            fld('f-minPlayers', 'Minimum players to run', inp('minPlayers', v.minPlayers, { mode: 'numeric' }), { half: true, optional: true }),
+            grp('f-signup', 'How players sign up', radios('signup', SIGNUP_CARDS, v.signup || '', false)), W.waitlist, W.cutoff, W.cutoffHours, W.hold),
+          group('Official tool', fld('f-toolName', 'Tool', sel('toolName', tools, v.tool?.name ?? ''), { half: true, hint: 'We link to it. Pairings and results stay there.' }),
+            fld('f-toolUrl', 'Link', inp('toolUrl', v.tool?.url, { ph: 'https://' }), { half: true, hint: 'Needed when players sign up on another site.' }), fld('f-toolCode', 'Event code', inp('toolCode', v.tool?.code, { max: 60 }), { half: true, optional: true })),
+          group('For players', fld('f-prize', 'Prizes', inp('prize', v.prize, { max: 300 }), { optional: true }), fld('f-bring', 'What to bring', inp('bring', v.bring, { max: 300 }), { optional: true }),
+            fld('f-description', 'Description', h('textarea', { name: 'description', rows: 4, maxlength: 2000, value: v.description || '' }), { optional: true, hint: 'Put Commander brackets, house rules and loaner decks here.' }),
+            h('p', { class: 'lbl wide who' }, "Who it's for"), chk('beginnerFriendly', 'Beginner friendly. New players are welcome and someone will help them.', v.beginnerFriendly),
+            grp('f-ages', 'Ages', radios('ages', [['none', 'Not stated'], ['all', 'All ages. Kids welcome.'], ['rule', 'Age rule']], ages0, false)), W.ageNote,
+            grp('f-playStyle', 'Play style', radios('playStyle', [['', 'Not stated'], ['casual', 'Casual'], ['competitive', 'Competitive']], v.playStyle || '', true), { hint: 'Mainly for Commander nights. Put the bracket or house rules in the description.' }),
+            chk('inviteOnly', 'Invite only', v.inviteOnly), W.cedh, W.wh),
+          group('On the website', chk('enabled', 'Show on the website', v.enabled !== false), chk('featured', 'Feature on the front page', v.featured)));
+
+        const fmtList = () => {
+          const g = val('game'), set = new Set([...EV.templates.builtin, ...EV.templates.yours].filter((t) => t.game === g && t.fields.format).map((t) => t.fields.format));
+          put(fmts, [...set].map((f) => h('option', { value: f })));
+        };
+        const sentence = (b) => {
+          const r = b.recurrence, t = b.start ? ` at ${T12(b.start)}` : '', long = (d) => UTC(d, { weekday: 'long', month: 'long', day: 'numeric' });
+          if (r.type === 'none') return isDay(r.date) ? `${long(r.date)}${t}.` : '';
+          if (r.type === 'dates') return r.dates.filter((d) => isDay(d.date)).length ? 'On ' + r.dates.filter((d) => isDay(d.date)).map((d) => `${md(d.date)}${isT(d.start) ? ' at ' + T12(d.start) : ''}`).join(', ') + '.' : '';
+          const when = r.type === 'weekly' ? `Every ${DAYN[r.day]}` : `The ${NTHW[r.nth]} ${DAYN[r.day]} of every month`;
+          return `${when}${t}${isDay(r.startDate) ? `, starting ${md(r.startDate)}` : ''}${isDay(r.until) ? `, until ${md(r.until)}` : ''}.`;
+        };
+        function read() {
+          const rt = val('rtype');
+          const r = rt === 'none' ? { type: 'none', date: val('date') } : rt === 'dates' ? { type: 'dates', dates: $$('.drw', form).map((x) => ({ date: x.querySelector('[name=d-date]').value, start: x.querySelector('[name=d-start]').value })) }
+            : { type: rt, day: +val('day'), ...(rt === 'nth' && { nth: +val('nth') }), ...(val('date') && { startDate: val('date') }), ...(val('until') && { until: val('until') }) };
+          const sg = pick('signup'), here = sg === 'here', holdOk = here || sg === 'counter', ages = pick('ages'), g = val('game'), c = (n) => form.elements[n].checked;
+          const b = { title: val('title'), game: g, format: val('format'), kind: val('kind'), recurrence: r, start: val('start') || null, end: val('end') || null, doors: val('doors') || null,
+            fee: num('fee'), capacity: num('capacity'), minPlayers: num('minPlayers'), signup: sg || null, waitlist: here && c('waitlist'),
+            ...(here && { cutoff: val('cutoff'), ...(val('cutoff') === 'before' && { cutoffHours: num('cutoffHours') }) }), arriveByMins: holdOk ? num('arriveByMins') : null,
+            prize: val('prize'), bring: val('bring'), description: form.elements.description.value, beginnerFriendly: c('beginnerFriendly'), kidsWelcome: ages === 'all', ageNote: ages === 'rule' ? val('ageNote') : null,
+            playStyle: pick('playStyle') || null, inviteOnly: c('inviteOnly'), featured: c('featured'), enabled: c('enabled'),
+            ...(g === 'cedh' && { cedhSeries: val('cedhSeries') }), ...(g === 'warhammer' && { points: num('points'), roundMinutes: num('roundMinutes'), listDeadline: val('listDeadline') }) };
+          const tn = val('toolName'), tu = val('toolUrl'), tc = val('toolCode');
+          if (tn || tu || tc) b.tool = { name: tn, url: tu, code: tc };
+          for (const k of ['todo', 'source', 'externalCount']) if (v[k] !== undefined) b[k] = v[k];
+          return b;
+        }
+        function sync() {
+          const rt = val('rtype'), sg = pick('signup'), g = val('game'), b = read(), vis = (el, on) => { el.hidden = !on; };
+          vis(W.date, rt !== 'dates'); W.date.querySelector('label').firstChild.nodeValue = rt === 'none' ? 'Date' : 'First date';
+          W.date.querySelector('.opt')?.remove(); if (rt !== 'none') W.date.querySelector('label').append(h('span', { class: 'opt' }, 'Optional'));
+          vis(W.day, rt === 'weekly' || rt === 'nth'); vis(W.nth, rt === 'nth'); vis(W.until, rt === 'weekly' || rt === 'nth'); vis(W.dates, rt === 'dates'); vis(W.start, rt !== 'dates');
+          vis(W.waitlist, sg === 'here'); vis(W.cutoff, sg === 'here'); vis(W.cutoffHours, sg === 'here' && val('cutoff') === 'before'); vis(W.hold, sg === 'here' || sg === 'counter');
+          vis(W.ageNote, pick('ages') === 'rule'); vis(W.cedh, g === 'cedh'); vis(W.wh, g === 'warhammer');
+          if (sync.g !== g) { sync.g = g; fmtList(); }
+          say1.textContent = sentence(b); say1.hidden = !say1.textContent;
+          const st = rt === 'dates' ? b.recurrence.dates.find((d) => isT(d.start))?.start : b.start, m = form.elements.arriveByMins.value;
+          hold.textContent = m !== '' && isT(st) ? `Players must arrive by ${T12(hmOf(mins(st) - +m))}. After that you can mark no-shows and the waitlist moves up.` : ''; hold.hidden = !hold.textContent;
+        }
+        const CTL = { recurrence: 'rtype', toolUrl: 'toolUrl', tool: 'toolName', signup: 'signup', playStyle: 'playStyle', ageNote: 'ageNote' };
+        const ctlOf = (k) => { const c = form.elements[CTL[k] || k]; return c instanceof RadioNodeList ? c[0] : c; };
+        const sum = () => $('.errsum', form);
+        function clearAll() { form.querySelectorAll('.fld.bad').forEach(clearErr); sum().hidden = true; }
+        function showErrors(errors) {
+          const items = Object.entries(errors).map(([k, m]) => ({ k, m, c: ctlOf(k) }));
+          for (const { c, m } of items) if (c?.closest('.fld')) markErr(c, m);
+          put(sum(), h('strong', {}, items.length === 1 ? '1 thing needs fixing' : `${items.length} things need fixing`),
+            h('ul', {}, items.map(({ m, c }) => h('li', {}, c ? h('a', { href: '#', onclick: (e) => { e.preventDefault(); c.focus(); } }, m) : m))));
+          sum().hidden = false; sum().scrollIntoView({ block: 'center' }); sum().focus();
+        }
+        function localCheck() {
+          if (pick('ages') === 'rule' && !val('ageNote')) { showErrors({ ageNote: 'Write the age rule, for example "13 and up".' }); return false; }
+          return true;
+        }
+        return { form, read, sync, clearAll, showErrors, localCheck };
+      }
+
       // ---------- navigation ----------
-      const VIEWS = { dashboard: renderDashboard, security: renderSecurity, account: renderAccount };
+      const VIEWS = { dashboard: renderDashboard, events: renderEvents, security: renderSecurity, account: renderAccount };
       let cur = '', restoring = false;
       function show() {
         const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
