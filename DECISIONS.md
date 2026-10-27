@@ -264,3 +264,11 @@ come from the template (D24 (2)) and the parts carry no inline script or style. 
 be one the picker offers (`pickablePhotos`), not any file on disk such as a `-800` thumbnail (boss fix, tested).
 **Why:** each is the smaller option with no loss for owners or players; the test makes the copy safe to keep.
 Boss overrule: none.
+
+### D26. Players manage their own sign-up through a personal link (2026-10-27, owner)
+- **Question:** P2.4 gap G2: how does a player cancel or check their place on the waitlist (`docs/review/p2.4-prep.md`)?
+- **Ruling (Mish):** a personal link. The confirmation shows a private, unguessable link, also emailed when the player
+  gave an email. It shows their seat or waitlist number and has a Cancel button, which frees the seat and promotes the
+  next person on the waitlist. Staff can still cancel anyone in admin. No player accounts (D5 stands).
+- **Build notes:** random token of at least 128 bits, stored hashed, compared in constant time; rate-limited; the page
+  shows only that one sign-up; `noindex` and `Referrer-Policy: no-referrer`; the link stops working after the event.
