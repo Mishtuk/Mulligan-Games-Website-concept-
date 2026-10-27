@@ -92,3 +92,42 @@ Owner to confirm: monthly MCS fee, what TCGplayer lists (games, counts, shipping
 - https://topdeck.gg/circuit/mulligans
 - https://topdeck.gg/event/mulligan-championship-series-february-5k
 - mtgdecks.net search snippets (monthly 2025 results, unfetched)
+
+## Round 5: owner answers research (2026-10-27)
+
+Method: owner's Chrome via Claude in Chrome, read only. Private Seller Portal data not opened or recorded. "Verified" = read on the live page today.
+
+### 1. TCGplayer storefront (verified, public pages only)
+Source: https://www.tcgplayer.com/sellers/Mulligan-Gaming-LLC/0062555a and /feedback (renders when signed in; earlier fetch got an empty shell).
+- Header: Mulligan Gaming LLC, Warminster, PA; 100% positive rating; 304 sales; "1 year on TCGplayer". Supersedes the old snippet (69 ratings / 71 sales).
+- Badges (alt text, linked to TCGplayer help): certified hobby shop, Gold Star Seller, WPN seller.
+- Feedback page: last 12 months, 153 ratings, all 5-star (0 of 1-4 star). Seller Feedback list shows 25 entries; many with no comment.
+- Shop: "Search all 3219 items". Product Line filter: Pokemon Japan (2,588 items) and Magic: The Gathering (631). No other lines. Sealed vs singles split: NOT read (filter not checked); the top items seen were singles.
+- Shipping policy, in-store pickup, return policy: NOT FOUND on the public storefront or feedback page. Not looked up in the Seller Portal. One buyer comment (Oct 5 2026) mentions a small shipping charge and no tracking number, so do not promise tracking or free shipping. Ask owner.
+- Judgement: listing count and sales are public numbers but change; fine to say "100% positive, 300+ sales" if the owner agrees.
+
+### 2. cEDH entry fees (verified, TopDeck pages read 2026-10-27)
+- Monthly MCS: $60 entry, $10 deposit online to hold a spot (TopDeck shows $9.98 online charge), remainder at the door, no refund for no-shows. 5 rounds, cut to top 10, 30-min lunch break, 80-player max, prizes grow at 64. Prizes: 2nd-4th $150 credit, 5th-10th $60 credit, 1st TBD. Source: https://topdeck.gg/event/mulligan-championship-series-november-w-guaranteed (November 2026 event, at capacity).
+- 5K: $100 entry, $10 deposit online (TopDeck $10.50 charge), rest at door. 5 rounds, top 16, lunch ~1pm provided. Nov 2026 prizes: set of Revised duals drafted in place order, 1st picks first + store credit, 11th-16th $125 credit. Source: https://topdeck.gg/event/mulligans-5k-cedh-tournament-november-guaranteed (at capacity). Note: the Feb 2026 5K was $90 (earlier section); fee has risen.
+- Redemption (Sunday after 5K): $35, or $25 if you played the 5K, paid on site. 4 rounds, cut to top 10, only points not invitation, 64 max, credit prizes by attendance. Source: https://topdeck.gg/event/5k-november-redemption-event
+- Invitational (Nov 8 2026): fee not read (page not opened).
+- Fees change per event; show "from TopDeck" with a link rather than hard-coding.
+
+### 3. Google reviews (verified; five-star confirmed on screen)
+Listing: Mulligan Games, 445 York Rd, Warminster, PA 18974, (215) 789-3299. Rating 4.9, 81 reviews. Source: https://www.google.com/maps/place/Mulligan+Games/@40.2023802,-75.1002751,930m (search "Mulligan Games 445 York Rd Warminster PA").
+Review summary chips: magic the gathering 17, selection of singles 7, pokemon 6, friendly employees 6, play space 4.
+| Reviewer (as shown) | Age | Excerpt (verbatim) |
+|---|---|---|
+| Matthew Mills | 3 months | "Staff are awesome and super knowledgeable." |
+| Jarrett Livingston | a year | "Incredible singles collection, great sealed selection, friendly and knowledgeable staff" |
+| Tyler Adams | 5 months | "the best TCG store in the greater Philadelphia metropolitan area." |
+| Wade Graeff | 3 weeks (edited) | "It has a ton of products for market prices and events for most tcg." |
+| Eric Kuhn | 4 months (edited) | "I like the generous space they offer fellow players to just come in and join a game" |
+| Jace Viera | 5 months | "the owners of the store had came in on a day off ... to buy my entire collection" (story; abbreviate with care) |
+Also seen but star count not checked on screen: "H-13 ANA" (4 months; newbie-friendly owner, singles and sealed), Zach Eplett (a month), Ryan M (3 months, "Staff was super knowledgeable and helpful."). Use only after owner approves naming reviewers. Display names as Google shows them; first name + last initial would be Matthew M., Jarrett L., Tyler A., Wade G., Eric K., Jace V.
+
+### 4. Store T-shirt (Q24): NOT FOUND
+- Facebook is blocked for the browser extension (permission denied), so the shirt post could not be read. Web search found nothing. TCGplayer storefront lists only Pokemon Japan and MTG lines, so no shirt there (search page for "shirt" was not read; judgement). Instagram not checked. Price, sizes, in store or online: ask the owner. Do not mention a shirt price until confirmed.
+
+### 5. Hours (verified on the Google listing today, a Tuesday)
+Mon closed; Tue closed; Wed 2-10 PM; Thu 2-10 PM; Fri 2 PM-12 AM; Sat 2 PM-12 AM; Sun 1-10 PM. Source: Google Maps listing above. Compare with the site's current hours before publishing.
