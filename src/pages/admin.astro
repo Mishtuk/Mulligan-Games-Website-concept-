@@ -934,13 +934,11 @@ import ThemeFab from '../components/ThemeFab.astro';
       // ---------- Today and the roster (P2.4b; DESIGN 9.2, 9.4, 15.7). D20: every name goes in with textContent, never innerHTML ----------
       const PAY = [['unpaid', 'Unpaid', 'Not paid'], ['door', 'Door', 'At the door'], ['online', 'Online', 'Paid online elsewhere'], ['comped', 'Comped', 'Comped'], ['credit', 'Credit', 'Store credit']];
       const PAYFULL = Object.fromEntries(PAY.map(([k, , f]) => [k, f]));
-      const RERR = { state: 'That had already changed. The list is up to date now.', expired: 'Too late to undo that (5 minutes).', dup: 'They signed up again, so the Undo was refused.', full: 'The event is full.', nosignup: 'This event does not take names here.', rate: 'Too many changes at once. Wait a little.', bad_input: 'That was not understood.' };
+      const RERR = { state: 'That had already changed. The list is up to date now.', expired: 'Too late to undo that (5 minutes).', dup: 'They signed up again, so the Undo was refused.', changed: 'They were checked in or paid since, so the Undo was refused.', full: 'The event is full.', nosignup: 'This event does not take names here.', rate: 'Too many changes at once. Wait a little.', bad_input: 'That was not understood.' };
       const stamp = (ms) => new Date(ms).toLocaleString('en-US', { ...ET, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       const etNow = () => { const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { ...ET, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value])); return { day: `${p.year}-${p.month}-${p.day}`, m: +p.hour * 60 + +p.minute }; };
       const reached = (ev, t) => { const n = etNow(); return !!t && (n.day > ev.date || (n.day === ev.date && n.m >= mins(t))); };
-      // ponytail: "Run it" is remembered on this device only (a second counter device still sees the warning); move to the server if owners use two devices.
-      const runKey = (ev) => `mg-run:${ev.id}:${ev.slot}`;
-      const ranIt = (ev) => { try { return !!localStorage.getItem(runKey(ev)); } catch { return false; } };
+      const ranIt = (ev) => !!ev.runIt; // "Run it" lives on the server per date (D50), so a second counter device sees it
       /** R19: the date has started with fewer players than its minimum, and nobody said "Run it" yet. */
       const underMin = (ev, c) => ev.signup !== 'walkin' && ev.signup !== 'external' && !ev.cancelled && ev.minPlayers && ev.date === etNow().day && reached(ev, ev.start) && c.in < ev.minPlayers && !ranIt(ev);
       let pollT;
@@ -984,7 +982,7 @@ import ThemeFab from '../components/ThemeFab.astro';
         async function undoCancel(r) { const u = await act(`/${r.id}/cancel`, { undo: true }); if (u.ok) toast(`${r.name} is signed up again${u.data.result.status === 'waitlist' ? ', back on the waitlist' : ''}.`); }
         async function moveIn(r) {
           if (full() && !(await ask('Seat anyway?', `${st.d.event.title} is full (${st.d.counts.in} of ${st.d.event.capacity}). Seating ${r.name} makes it ${seats()}.`, 'Seat anyway', 'Not now', 'btn-act'))) return;
-          const x = await act(`/${r.id}/movein`, {}); if (x.ok) { st.flash.add(r.id); draw(); toast(`${r.name} moved in.`); }
+          const x = await act(`/${r.id}/movein`, {}); if (x.ok) { st.flash.add(r.id); draw(); toast(`${r.name} moved in.`, { fn: async () => { const u = await act(`/${r.id}/movein`, { undo: true }); if (u.ok) toast(`${r.name} is back on the waitlist.`); } }); }
         }
         async function seatLate(r) {
           if (full() && !(await ask('Seat them?', `${st.d.event.title} is full. If you seat ${r.name}, the last person who moved in from the waitlist and has not checked in goes back to #1 on it.`, 'Seat them', 'Not now', 'btn-act'))) return;
@@ -997,7 +995,7 @@ import ThemeFab from '../components/ThemeFab.astro';
           if (!x.ok) return;
           st.walk = ''; draw(); $('[data-k=walk]', host)?.focus();
           const res = x.data.result, id = res.id;
-          toast(res.status === 'waitlist' ? `${name} is #${res.position} on the waitlist.` : res.over ? `${name} seated and checked in (${st.d.counts.in} of ${st.d.event.capacity}).` : `${name} checked in.`, { fn: async () => { const u = await act(`/${id}/cancel`, {}); if (u.ok) toast(`${name} removed.`); } });
+          toast(res.status === 'waitlist' ? `${name} is #${res.position} on the waitlist.` : res.over ? `${name} seated and checked in (${st.d.counts.in} of ${st.d.event.capacity}).` : `${name} checked in.`, { fn: async () => { const u = await act(`/${id}/delete`, {}); if (u.ok) toast(`${name} removed.`, { fn: () => act(`/${id}/delete`, { undo: true }) }); } }); // a mistaken walk-in is deleted, not left as a cancelled row (D50)
         }
         function preReg(opener) {
           const ev = st.d.event, name = h('input', { type: 'text', autocomplete: 'off', maxlength: 80 }), email = h('input', { type: 'email', autocomplete: 'off', maxlength: 120 }), phone = h('input', { type: 'tel', autocomplete: 'off', maxlength: 30 }), pay = h('select', {}, PAY.map(([k, , f]) => h('option', { value: k }, f)));
@@ -1079,7 +1077,7 @@ import ThemeFab from '../components/ThemeFab.astro';
           out.push(h('ul', { class: 'rstats' }, mode === 'list' ? [stat('check', `Checked in ${c.checkedIn} of ${c.in}`), !fee0 && stat('seat', `Paid ${c.paid}`), cap && stat('users', `${c.in} of ${cap} seats`), c.waitlist > 0 && stat('hourglass', `${c.waitlist} on the waitlist`, 'rstat-wait'),
             c.noshow > 0 && stat('noshow', `No-shows ${c.noshow}`), ev.minPlayers && c.in < ev.minPlayers && !ranIt(ev) && stat('warn', underMin(ev, c) ? `Started with ${c.in} (min ${ev.minPlayers})` : `Needs ${ev.minPlayers - c.in} more to run`, 'rstat-warn')] : stat('users', `Players ${st.d.headcount ?? 0}`)));
           if (underMin(ev, c)) out.push(h('div', { class: 'runit', role: 'alert' }, h('p', {}, `It has started with ${c.in} of the ${ev.minPlayers} players it needs.`), h('div', { class: 'row' },
-            h('button', { class: 'btn btn-act', type: 'button', onclick: () => { try { localStorage.setItem(runKey(ev), '1'); } catch {} draw(); opts.onLoad?.(st.d); toast(`${ev.title} will run.`, { fn: () => { try { localStorage.removeItem(runKey(ev)); } catch {} draw(); opts.onLoad?.(st.d); } }); } }, 'Run it'), h('button', { class: 'btn btn-bad', type: 'button', onclick: cancelDate }, 'Cancel this date'))));
+            h('button', { class: 'btn btn-act', type: 'button', onclick: async () => { const x = await act('/runit', { on: true }); if (x.ok) toast(`${ev.title} will run.`, { fn: () => act('/runit', { on: false }) }); } }, 'Run it'), h('button', { class: 'btn btn-bad', type: 'button', onclick: cancelDate }, 'Cancel this date'))));
           if (mode === 'list') {
             const offs = h('details', { class: 'off', open: off.length > 0 && (st.offOpen || !!q), ontoggle: (e) => (st.offOpen = e.target.open) }, h('summary', {}, `No-shows and cancelled (${off.length})`), h('ul', { class: 'rlist' }, off.map(offRow)));
             const hWl = h('h3', { class: 'rl-h' }, 'Waitlist'), hIn = h('h3', { class: 'rl-h' }, 'Signed up'), jump = (el, t) => h('button', { type: 'button', onclick: () => { if (el.tagName === 'DETAILS') el.open = true; el.scrollIntoView({ block: 'start' }); } }, t);

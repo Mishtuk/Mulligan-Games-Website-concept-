@@ -26,6 +26,8 @@ export function openDb(dir) {
       token_hash TEXT UNIQUE, created_at INTEGER NOT NULL, promoted_at INTEGER, purged INTEGER NOT NULL DEFAULT 0, undo TEXT);
     CREATE INDEX IF NOT EXISTS registrations_slot ON registrations (series, slot);
     CREATE TABLE IF NOT EXISTS headcount (series TEXT NOT NULL, slot TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (series, slot)) WITHOUT ROWID;
+    CREATE TABLE IF NOT EXISTS walkin_trash (id INTEGER PRIMARY KEY, series TEXT NOT NULL, slot TEXT NOT NULL, snap TEXT NOT NULL, at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS run_it (series TEXT NOT NULL, slot TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (series, slot)) WITHOUT ROWID;
     CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, category TEXT NOT NULL CHECK (category IN ('sealed', 'singles', 'accessory', 'miniature', 'paint', 'other')),
       game TEXT NOT NULL DEFAULT '', sku TEXT NOT NULL DEFAULT '', low INTEGER NOT NULL DEFAULT 0, enabled INTEGER NOT NULL DEFAULT 1);
     CREATE TABLE IF NOT EXISTS stock_moves (id INTEGER PRIMARY KEY, product INTEGER NOT NULL, qty INTEGER NOT NULL,

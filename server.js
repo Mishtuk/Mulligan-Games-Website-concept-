@@ -78,6 +78,7 @@ const runBackup = () => { try { backup(db, DATA); } catch (e) { log('backup fail
 /** Retention (P2.4a): once a day, wipe contact details of sign-ups whose event was RETENTION_DAYS or more days ago. Counts and statuses stay. */
 function runPurge() {
   try {
+    regs.purgeWalkinTrash(db); // D50: a deleted walk-in's name never outlives its 5-minute Undo (also by a timer on each delete)
     const today = etDay();
     if (db.prepare("SELECT value FROM kv WHERE key = 'purged_day'").get()?.value === today) return;
     const n = regs.purgeContacts(db, today), p = inv.purgePreorders(db, Date.now()); // preorder contacts: PREORDER_RETENTION_DAYS after pickup / cancel
@@ -589,13 +590,13 @@ function templatesApi(req, body, [id], ip, note) {
 
 // ---------- roster (admin): GET roster/:series/:slot | POST roster/:series/:slot/walkin | POST roster/:series/:slot/:id/<action> ----------
 // also POST .../prereg {name, email?, phone?, payment?, anyway?} (G1), .../headcount {delta | n} (G10, walk-in-only events), walkin {anyway} (seat anyway on a name match),
-// and .../:id/cancel {undo: true} (G6). actions: checkin {on}, payment {payment}, erase, cancel, noshow {on}, movein, move {dir: -1|1}. Session + origin check come from route(). Every reply is the whole roster again.
+// and .../:id/cancel {undo: true} (G6), .../runit {on}. actions: checkin {on}, payment {payment}, erase, cancel, noshow {on}, movein {undo}, delete {undo} (walk-ins), move {dir: -1|1}. Session + origin check come from route(). Every reply is the whole roster again.
 function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
   const m = req.method;
   if (m !== 'GET' && !allow(`ro:${ip}`, 1200)) { note('roster_blocked', 'rate limit'); return bad('rate', 429); }
   const o = occurrenceOf(publicCtx(url), series ?? '', slot ?? '');
   if (!o) return bad('not_found', 404);
-  const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null, toolUrl: o.tool?.url ?? null, toolCode: o.tool?.code ?? null, minPlayers: o.minPlayers ?? null, idLabel: regs.playerIdLabel(o.tool) },
+  const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null, toolUrl: o.tool?.url ?? null, toolCode: o.tool?.code ?? null, minPlayers: o.minPlayers ?? null, runIt: regs.getRunIt(db, o.seriesId, o.slot), idLabel: regs.playerIdLabel(o.tool) },
     counts: regs.counts(db, o.seriesId, o.slot), headcount: o.signup === 'walkin' ? regs.getHeadcount(db, o.seriesId, o.slot) : null, regs: regs.roster(db, o.seriesId, o.slot) });
   if (m === 'GET' && !id) return full();
   if (m !== 'POST') return bad('not_found', 404);
@@ -614,6 +615,12 @@ function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
     note('roster_headcount', `${o.seriesId} ${o.slot} ${r.n}`);
     return full(r);
   }
+  if (id === 'runit') { // R19 "Run it" {on: true | false}, false is its Undo
+    const r = regs.setRunIt(db, o, b.on);
+    if (!r.ok) return json({ error: r.error, result: r }, r.error === 'bad_input' ? 422 : 409);
+    note('roster_runit', `${o.seriesId} ${o.slot} ${r.runIt}`);
+    return full(r);
+  }
   if (id === 'walkin') {
     const r = regs.walkIn(db, o, { name: b.name, mode: b.mode, payment: b.payment, anyway: b.anyway === true });
     if (!r.ok && ['name', 'name_long', 'bad_input'].includes(r.error)) return json({ error: 'invalid', errors: { name: r.error === 'name' ? 'Type a name first.' : 'Check the name and options.' } }, 422);
@@ -628,7 +635,13 @@ function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
   if (action === 'cancel') return done(b.undo === true ? regs.undoCancel(db, o, rid) : regs.cancel(db, o, rid), b.undo === true ? 'roster_cancel_undo' : 'roster_cancel');
   if (action === 'noshow') return done(b.on === false ? regs.undoNoShow(db, o, rid) : regs.noShow(db, o, rid), b.on === false ? 'roster_noshow_undo' : 'roster_noshow');
   if (action === 'erase') return done(regs.erase(db, o, rid), 'roster_erase'); // "remove my details" at the counter
-  if (action === 'movein') return done(regs.moveIn(db, o, rid), 'roster_movein');
+  if (action === 'movein') return done(b.undo === true ? regs.undoMoveIn(db, o, rid) : regs.moveIn(db, o, rid), b.undo === true ? 'roster_movein_undo' : 'roster_movein');
+  if (action === 'delete') { // a mistaken walk-in, 5 minutes (D50); its name snapshot goes when the Undo window ends
+    if (b.undo === true) return done(regs.undoDeleteWalkIn(db, o, rid), 'roster_delete_undo');
+    const r = regs.deleteWalkIn(db, o, rid);
+    if (r.ok) setTimeout(() => { try { regs.purgeWalkinTrash(db); } catch (e) { log('walk-in trash purge failed', e.message); } }, regs.UNDO_MS + 1000).unref();
+    return done(r, 'roster_delete');
+  }
   if (action === 'move') return done(regs.moveWaitlist(db, o, rid, b.dir), 'roster_move');
   return bad('not_found', 404);
 }

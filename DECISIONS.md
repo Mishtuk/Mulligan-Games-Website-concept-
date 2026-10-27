@@ -595,3 +595,22 @@ link is 44px tall. (5) Privacy page: the clip-video sentence (port item 7) was m
 and every eyebrow state, band srcset, sandbox tokens. **Noted:** with three Magic photos, a busy two-day stretch reuses
 Magic photos on the next card day, and a tinted stand-in can share a base photo with a plain card the same day (D48 rule).
 Tests 200/0.
+
+### D50. Counter follow-ups: Move-in Undo, delete a walk-in, Run it on the server (2026-10-27, boss)
+(1) **Move-in Undo, 5 minutes:** only a person still seated from a staff move-in, not checked in and unpaid (else
+`changed`). They go back just ahead of whoever holds their old place (pos - 0.5); freeing a seat bumps nobody; ends with
+the normal promote, so a seat free meanwhile goes to the first in line (maybe them).
+(2) **Delete a mistaken walk-in:** staff walk-ins only, within 5 minutes of being made, while seated or waiting. The row
+goes, so it is neither a cancellation nor a no-show; a seat it held goes to the next in line. A name-only snapshot
+(no contact exists on a walk-in) waits in `walkin_trash` for the Undo and is purged once 5 minutes pass: on each
+delete, by a timer per delete, and at start and hourly in runPurge; never logged or returned. Undo restores the same id
+and place; if that makes it full, the D31 rule bumps the last unchecked person promoted since the delete (shared
+`bumpLastPromoted`, also used by cancel and No-show Undo, behaviour unchanged). Refused: same name back on the list
+(`dup`), id reused or already restored (`state`). Accepted: ids are not AUTOINCREMENT, so deleting the newest row lets
+the next sign-up reuse its id; a device with a stale list for a few seconds could act on that new row (every reply
+re-sends the roster). Hourly backups may hold a snapshot up to 7 days, as any row (privacy page).
+(3) **Run it lives on the server:** `run_it (series, slot)` (D23 key), `event.runIt` in the roster reply (Today reads
+the same), `{on: false}` is its Undo, refused on a cancelled date; every counter device sees it. localStorage is gone.
+Routes `POST roster/:series/:slot/:id/movein {undo}`, `/:id/delete {undo}`, `/runit {on}`: session + origin, 1200/hour,
+body cap, JSON types checked, SQL `?` only, one transaction each; unknown date or non-numeric id 404, refused 409/422.
+The coder logged this as "D32" (taken); renumbered.

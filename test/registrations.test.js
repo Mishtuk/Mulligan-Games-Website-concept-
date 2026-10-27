@@ -208,6 +208,92 @@ test('G6 cancel Undo after other changes: no free seat while someone waits, nobo
   R.cancel(db, o, a.id, { now: 1e6 }); join(o, 'Chris', { email: 'other@x.com' }); // a different Chris takes the seat
   assert.deepEqual([R.undoCancel(db, o, a.id, { now: 1e6 + 1 }).over, R.counts(db, 'fnm', FRI).in], [true, 3]);
 });
+test('D50 Move-in Undo: old place back, window, checked in / paid refused, seat freed meanwhile goes to the first in line', () => {
+  const { db, join } = setup(), o = occ(), T = 1e6, wl = () => R.roster(db, 'fnm', FRI).filter((r) => r.status === 'waitlist').map((r) => [r.name, r.waitlistPos]);
+  const [a, , c, d, e] = ['A', 'B', 'C', 'D', 'E'].map((n) => join(o, n));
+  assert.deepEqual(R.moveIn(db, o, d.id, { now: T }), { ok: true, over: true }); // seat anyway: 3 of 2, D was #2
+  assert.deepEqual(wl(), [['C', 1], ['E', 2]]);
+  assert.equal(R.undoMoveIn(db, o, a.id, { now: T }).error, 'state', 'A never moved in');
+  assert.deepEqual(R.undoMoveIn(db, o, d.id, { now: T + 1 }), { ok: true, promoted: [], status: 'waitlist' });
+  assert.deepEqual([wl(), R.counts(db, 'fnm', FRI).in], [[['C', 1], ['D', 2], ['E', 3]], 2], 'D is back at #2, ahead of E');
+  assert.equal(R.undoMoveIn(db, o, d.id).error, 'state', 'second Undo does nothing');
+  // window, check-in and payment since
+  R.moveIn(db, o, e.id, { now: T });
+  assert.equal(R.undoMoveIn(db, o, e.id, { now: T + R.UNDO_MS + 1 }).error, 'expired');
+  R.checkIn(db, o, e.id);
+  assert.equal(R.undoMoveIn(db, o, e.id, { now: T + 1 }).error, 'changed');
+  R.checkIn(db, o, e.id, false); R.setPayment(db, o, e.id, 'door');
+  assert.equal(R.undoMoveIn(db, o, e.id, { now: T + 1 }).error, 'changed');
+  R.setPayment(db, o, e.id, 'unpaid');
+  // a seat opened meanwhile (A cancels, 3 of 2 -> 2 of 2, no promotion yet); Undo frees one, so the first in line (C) gets it
+  R.cancel(db, o, a.id, { now: T });
+  assert.deepEqual([R.counts(db, 'fnm', FRI).in, names(db, o, 'waitlist')], [2, ['C', 'D']]);
+  const u = R.undoMoveIn(db, o, e.id, { now: T + 2 });
+  assert.deepEqual([u.ok, u.promoted, u.status, names(db, o, 'in'), wl()], [true, [c.id], 'waitlist', ['B', 'C'], [['D', 1], ['E', 2]]]);
+  // someone who is not waiting cannot be moved in
+  const o2 = occ({ capacity: undefined, slot: 'nocap' });
+  assert.equal(R.moveIn(db, o2, R.walkIn(db, o2, { name: 'Q', mode: 'over' }).id).error, 'state', 'not waitlisted');
+});
+test('D50 delete a mistaken walk-in: only staff walk-ins in the window, no cancel or no-show on record, Undo restores the place', () => {
+  const { db, join } = setup(), o = occ(), T = 1e6, st = () => R.roster(db, 'fnm', FRI).map((r) => `${r.name}:${r.status}${r.waitlistPos ?? ''}`);
+  const [a, b, c] = ['A', 'B', 'C'].map((n) => join(o, n));
+  const w = R.walkIn(db, o, { name: 'Wally', mode: 'over' }, { now: T });
+  assert.equal(R.deleteWalkIn(db, o, a.id, { now: T }).error, 'state', 'a public sign-up is not a walk-in');
+  assert.equal(R.deleteWalkIn(db, o, w.id, { now: T + R.UNDO_MS + 1 }).error, 'expired');
+  assert.equal(R.deleteWalkIn(db, o, 'x').error, 'state');
+  const x = R.deleteWalkIn(db, o, w.id, { now: T + 1000 });
+  assert.deepEqual([x.ok, x.promoted, rows(db)], [true, [], 3]);
+  const k = R.counts(db, 'fnm', FRI);
+  assert.deepEqual([k.cancelled, k.noshow, k.in, k.checkedIn], [0, 0, 2, 0], 'neither a cancellation nor a no-show');
+  assert.equal(R.deleteWalkIn(db, o, w.id).error, 'state', 'gone');
+  assert.equal(R.undoDeleteWalkIn(db, o, w.id, { now: T + R.UNDO_MS + 2000 }).error, 'expired');
+  const u = R.undoDeleteWalkIn(db, o, w.id, { now: T + 2000 });
+  assert.deepEqual([u.ok, u.bumped, u.over, u.status], [true, null, true, 'in']);
+  const rw = R.roster(db, 'fnm', FRI).find((r) => r.id === w.id);
+  assert.deepEqual([rw.name, rw.walkIn, rw.checkedIn, rw.payment], ['Wally', true, true, 'door']);
+  assert.equal(R.undoDeleteWalkIn(db, o, w.id).error, 'state', 'second Undo does nothing');
+  // a waitlisted walk-in keeps its place: A, B in (+ Wally over), C waits; D queues behind C, then goes and comes back
+  const d = R.walkIn(db, o, { name: 'D', mode: 'waitlist' }, { now: T });
+  const q = join(o, 'E'); // E is behind D
+  assert.deepEqual(st().filter((s) => s.includes('waitlist')), ['C:waitlist1', 'D:waitlist2', 'E:waitlist3']);
+  R.deleteWalkIn(db, o, d.id, { now: T + 3000 });
+  assert.deepEqual(st().filter((s) => s.includes('waitlist')), ['C:waitlist1', 'E:waitlist2']);
+  assert.equal(R.undoDeleteWalkIn(db, o, d.id, { now: T + 3001 }).status, 'waitlist');
+  assert.deepEqual(st().filter((s) => s.includes('waitlist')), ['C:waitlist1', 'D:waitlist2', 'E:waitlist3'], 'D is back ahead of E');
+  void b; void q;
+});
+test('D50 delete a seated walk-in: next in line moves in, Undo sends the last unchecked promoted person back to #1, same name refused', () => {
+  const { db, join } = setup(), o = occ(), T = 1e6, nm = (s) => names(db, o, s);
+  join(o, 'A'); const w = R.walkIn(db, o, { name: 'Wally' }, { now: T }); join(o, 'C');
+  assert.deepEqual([nm('in'), nm('waitlist')], [['A', 'Wally'], ['C']]);
+  const x = R.deleteWalkIn(db, o, w.id, { now: T + 1 });
+  assert.deepEqual([x.promoted.length, nm('in')], [1, ['A', 'C']]);
+  const u = R.undoDeleteWalkIn(db, o, w.id, { now: T + 2 });
+  assert.deepEqual([u.ok, u.bumped !== null, nm('in'), nm('waitlist')], [true, true, ['A', 'Wally'], ['C']]);
+  R.deleteWalkIn(db, o, w.id, { now: T + 3 });
+  R.walkIn(db, o, { name: 'wally', mode: 'over' }, { now: T + 4 });
+  assert.equal(R.undoDeleteWalkIn(db, o, w.id, { now: T + 5 }).error, 'dup');
+  // the name snapshot (no contact fields) lives only for the Undo window, and runPurge (start + hourly) and a per-delete timer purge it
+  assert.deepEqual(Object.keys(JSON.parse(db.prepare('SELECT snap FROM walkin_trash WHERE id = ?').get(w.id).snap)).filter((f) => /mail|phone|player|token/.test(f)), []);
+  assert.deepEqual([R.purgeWalkinTrash(db, T + 3 + R.UNDO_MS), R.purgeWalkinTrash(db, T + 4 + R.UNDO_MS), db.prepare('SELECT COUNT(*) n FROM walkin_trash').get().n], [0, 1, 0]);
+  assert.equal(R.undoDeleteWalkIn(db, o, w.id, { now: T + 6 }).error, 'state', 'purged: nothing to restore');
+  const srv = readFileSync(new URL('../server.js', import.meta.url), 'utf8');
+  assert.ok(/function runPurge\(\) \{\s*try \{\s*regs\.purgeWalkinTrash\(db\)/.test(srv), 'runPurge purges the trash before its once-a-day check');
+  assert.ok(/regs\.deleteWalkIn[\s\S]{0,200}setTimeout\(\(\) => \{ try \{ regs\.purgeWalkinTrash\(db\)/.test(srv), 'each delete sets a purge timer');
+});
+test('D50 Run it: one flag per date slot, Undo clears it, other slots and cancelled dates are separate, bad input refused', () => {
+  const { db } = setup(), o = occ(), o2 = occ({ slot: 'later' });
+  assert.equal(R.getRunIt(db, 'fnm', FRI), false);
+  assert.deepEqual(R.setRunIt(db, o, true), { ok: true, runIt: true });
+  assert.deepEqual([R.getRunIt(db, 'fnm', FRI), R.getRunIt(db, 'fnm', 'later')], [true, false]);
+  assert.equal(R.setRunIt(db, o, true).ok, true, 'twice is harmless');
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM run_it').get().n, 1);
+  for (const bad of ['yes', 1, null, undefined, { $ne: 1 }, "'; DROP TABLE run_it; --"]) assert.equal(R.setRunIt(db, o, bad).error, 'bad_input');
+  assert.equal(R.setRunIt(db, occ({ cancelled: true }), true).error, 'state');
+  assert.deepEqual(R.setRunIt(db, o, false), { ok: true, runIt: false });
+  assert.equal(R.getRunIt(db, 'fnm', FRI), false);
+  R.setRunIt(db, o2, true); assert.equal(R.getRunIt(db, 'fnm', 'later'), true);
+});
 test('migration: a database made before cancel Undo gets the undo column, keeps its rows, and opening it again is harmless', () => {
   const dir = mkdtempSync(joinPath(tmpdir(), 'mg-mig-')), old = openDb(dir);
   old.exec('ALTER TABLE registrations DROP COLUMN undo; DROP TABLE headcount');
@@ -626,6 +712,49 @@ test('HTTP: G4: a series edit or delete that would drop a date with sign-ups is 
   assert.equal((await (await adm('GET', `duo/${FRI}`)).json()).event.title, 'Duo Night!', 'the roster still finds its date');
   const late = (await (await api('GET', 'series/late')).json()).series; // nobody holds a seat on Late Night
   assert.equal((await api('PUT', 'series/late', { ...late, recurrence: { ...late.recurrence, day: 4 } })).status, 200);
+});
+test('HTTP: D50 Move-in Undo, delete a walk-in and Run it: staff only, validated, hostile input inert, public links cannot call them', async () => {
+  const P = (path, body, h) => adm('POST', path, body, h), nm = "<script>alert(1)</script>' OR 1=1 --";
+  for (const [path, body] of [[`duo/${FRI}/1/movein`, { undo: true }], [`duo/${FRI}/1/delete`, {}], [`duo/${FRI}/runit`, { on: true }]]) {
+    assert.equal((await P(path, body, { Origin: origin })).status, 401, 'no session');
+    assert.equal((await P(path, body, { Cookie: cookie })).status, 403, 'no Origin');
+    assert.equal((await P(path, body, { Cookie: cookie, Origin: 'http://evil.example' })).status, 403);
+  }
+  // Run it: shared by every device through the roster reply, Undo clears it
+  assert.equal((await (await adm('GET', `duo/${FRI}`)).json()).event.runIt, false);
+  assert.equal((await P(`duo/${FRI}/runit`, { on: 'yes' })).status, 422);
+  assert.equal((await P(`duo/${FRI}/runit`, {})).status, 422);
+  assert.equal((await (await P(`duo/${FRI}/runit`, { on: true })).json()).event.runIt, true);
+  assert.equal((await (await adm('GET', `duo/${FRI}`)).json()).event.runIt, true, 'a second device reads the same flag');
+  assert.equal((await (await P(`duo/${FRI}/runit`, { on: false })).json()).event.runIt, false);
+  assert.equal((await P(`nope/${FRI}/runit`, { on: true })).status, 404);
+  // walk-ins: seated, waitlisted, move in, Undo
+  const w = (await (await P(`duo/${FRI}/walkin`, { name: nm, mode: 'over' })).json()).result.id;
+  await P(`duo/${FRI}/walkin`, { name: 'Two', mode: 'over' });
+  const q = (await (await P(`duo/${FRI}/walkin`, { name: 'Queue', mode: 'waitlist' })).json()).result.id;
+  const pos0 = (await (await adm('GET', `duo/${FRI}`)).json()).regs.find((x) => x.id === q).waitlistPos;
+  let v = await (await P(`duo/${FRI}/${q}/movein`, {})).json();
+  assert.equal(v.regs.find((x) => x.id === q).status, 'in');
+  v = await (await P(`duo/${FRI}/${q}/movein`, { undo: true })).json();
+  assert.deepEqual([v.regs.find((x) => x.id === q).status, v.regs.find((x) => x.id === q).waitlistPos, v.result.ok], ['waitlist', pos0, true]);
+  assert.equal((await P(`duo/${FRI}/${q}/movein`, { undo: true })).status, 409, 'nothing to undo');
+  assert.equal((await P(`duo/${FRI}/abc/movein`, { undo: true })).status, 404);
+  assert.equal((await P(`duo/${FRI}/99999/delete`, {})).status, 409);
+  // delete: the row is gone (no cancelled row), the name stays inert data, Undo brings it back with the same id
+  v = await (await P(`duo/${FRI}/${w}/delete`, {})).json();
+  assert.deepEqual([v.regs.some((x) => x.id === w), v.counts.cancelled, v.counts.noshow], [false, 0, 0]);
+  v = await (await P(`duo/${FRI}/${w}/delete`, { undo: true })).json();
+  assert.equal(v.regs.find((x) => x.id === w).name, nm);
+  assert.equal((await P(`duo/${FRI}/${w}/delete`, { undo: true })).status, 409);
+  // a public sign-up (and so any player link) is not a walk-in: staff cannot delete it, a token is no route at all
+  const pub = tokenOf(await form('hostile', jn('Pat')));
+  const hv = await (await adm('GET', `hostile/${FRI}`)).json(), pid = hv.regs.find((x) => x.name === 'Pat').id;
+  assert.equal((await P(`hostile/${FRI}/${pid}/delete`, {})).status, 409, 'not a walk-in');
+  for (const p of ['delete', 'undo-delete', 'movein', 'undo-movein', 'runit']) {
+    const r = await fetch(`${origin}/api/signup/${p}?now=${NOW}`, { method: 'POST', redirect: 'manual', headers: { Origin: origin }, body: new URLSearchParams({ token: pub }) });
+    assert.ok([404, 405].includes(r.status), `/api/signup/${p} is not a route (${r.status})`);
+  }
+  assert.equal((await P(`hostile/${FRI}/${pub}/delete`, {})).status, 404, 'a token is not an id');
 });
 test('HTTP: too many sign-up tries from one address are refused (last, so the other tests keep their quota)', async () => {
   let status = 0;

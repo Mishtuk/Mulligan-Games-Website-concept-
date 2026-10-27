@@ -71,6 +71,12 @@ function promote(db, k, now) {
   renumber(db, k);
   return moved;
 }
+/** The LAST person auto-promoted since `since` who has not checked in goes back to waitlist #1 (0 sorts before #1). Returns their id or null. */
+function bumpLastPromoted(db, k, since) {
+  const id = db.prepare("SELECT id FROM registrations WHERE series = ? AND slot = ? AND status = 'in' AND checked_in = 0 AND promoted_at >= ? ORDER BY promoted_at DESC, id DESC LIMIT 1").get(k.series, k.slot, since)?.id ?? null;
+  if (id) db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = 0, promoted_at = NULL WHERE id = ?").run(id);
+  return id;
+}
 /** G3 (D30): someone holding a seat or a waitlist place under this name AND this email or phone (exact, not a piece of one). Two different
  *  "Chris Smith"s, or a parent signing up two kids with one email, are not duplicates. A row with no contact (walk-in) matches on name alone. */
 function dupOf(db, k, name, email = '', phone = '') {
@@ -171,8 +177,7 @@ export function undoNoShow(db, o, id) {
     if (!r || r.status !== 'noshow') return { ok: false, error: 'state' };
     let bumped = null;
     if (k.cap && inCount(db, k) >= k.cap) {
-      bumped = db.prepare("SELECT id FROM registrations WHERE series = ? AND slot = ? AND status = 'in' AND checked_in = 0 AND promoted_at IS NOT NULL ORDER BY promoted_at DESC, id DESC LIMIT 1").get(k.series, k.slot)?.id ?? null;
-      if (bumped) db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = 0, promoted_at = NULL WHERE id = ?").run(bumped); // 0 sorts before #1
+      bumped = bumpLastPromoted(db, k, 0); // any auto-promoted person (promoted_at is a positive ms time)
     }
     db.prepare("UPDATE registrations SET status = 'in' WHERE id = ?").run(r.id);
     renumber(db, k);
@@ -192,8 +197,7 @@ export function undoCancel(db, o, id, { now = Date.now(), self = false } = {}) {
     if (dupOf(db, k, r.name, r.email, r.phone)) return { ok: false, error: 'dup' }; // they signed up again meanwhile
     let bumped = null;
     if (u.from === 'in' && k.cap && inCount(db, k) >= k.cap) {
-      bumped = db.prepare("SELECT id FROM registrations WHERE series = ? AND slot = ? AND status = 'in' AND checked_in = 0 AND promoted_at >= ? ORDER BY promoted_at DESC, id DESC LIMIT 1").get(k.series, k.slot, u.at)?.id ?? null;
-      if (bumped) db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = 0, promoted_at = NULL WHERE id = ?").run(bumped); // 0 sorts before #1
+      bumped = bumpLastPromoted(db, k, u.at);
     }
     if (u.from === 'in') db.prepare("UPDATE registrations SET status = 'in', checked_in = ?, wait_pos = NULL, undo = NULL WHERE id = ?").run(u.checked ? 1 : 0, r.id);
     else db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = ?, undo = NULL WHERE id = ?").run((u.pos ?? 1) - 0.5, r.id); // just ahead of whoever has that place now
@@ -213,15 +217,31 @@ export function setPayment(db, o, id, payment) {
   db.prepare('UPDATE registrations SET payment = ? WHERE id = ?').run(payment, r.id);
   return { ok: true };
 }
-/** Staff: seat a waitlisted person now, even when full (over: true -> "29 of 28"). Nobody else is promoted until in < cap again. */
-export function moveIn(db, o, id) {
+/** Staff: seat a waitlisted person now, even when full (over: true -> "29 of 28"). Nobody else is promoted until in < cap again.
+ *  Remembers the old place for undoMoveIn (UNDO_MS). */
+export function moveIn(db, o, id, { now = Date.now() } = {}) {
   const k = keyOf(o);
   return tx(db, () => {
     const r = getReg(db, k, id);
     if (!r || r.status !== 'waitlist') return { ok: false, error: 'state' };
-    db.prepare("UPDATE registrations SET status = 'in', wait_pos = NULL, promoted_at = NULL WHERE id = ?").run(r.id);
+    db.prepare("UPDATE registrations SET status = 'in', wait_pos = NULL, promoted_at = NULL, undo = ? WHERE id = ?").run(JSON.stringify({ kind: 'movein', pos: r.wait_pos, at: now }), r.id);
     renumber(db, k);
     return { ok: true, over: !!k.cap && inCount(db, k) > k.cap };
+  });
+}
+/** Undo a move-in within UNDO_MS (D50): only a seated person moved in by staff who is still not checked in and unpaid. They go back to their
+ *  old place (just ahead of whoever has it now). That frees a seat and never needs one, so nobody is bumped (unlike cancel Undo); it ends with
+ *  promote(), so a seat freed meanwhile goes to whoever is first in line (the same person, if they were first). */
+export function undoMoveIn(db, o, id, { now = Date.now() } = {}) {
+  const k = keyOf(o);
+  return tx(db, () => {
+    const r = getReg(db, k, id), u = r?.status === 'in' && r.undo ? JSON.parse(r.undo) : null;
+    if (u?.kind !== 'movein') return { ok: false, error: 'state' };
+    if (now - u.at > UNDO_MS) return { ok: false, error: 'expired' };
+    if (r.checked_in || r.payment !== 'unpaid') return { ok: false, error: 'changed' };
+    db.prepare("UPDATE registrations SET status = 'waitlist', wait_pos = ?, promoted_at = NULL, undo = NULL WHERE id = ?").run((u.pos ?? 1) - 0.5, r.id);
+    const promoted = promote(db, k, now);
+    return { ok: true, promoted, status: getReg(db, k, r.id).status };
   });
 }
 /** Staff: nudge a waitlisted person up (dir -1) or down (+1). Refused at either end. */
@@ -292,6 +312,53 @@ export function walkIn(db, o, { name, mode = 'auto', payment = 'door', anyway = 
       .run(k.series, k.slot, k.day, nm, wait ? 'waitlist' : 'in', wait ? 0 : 1, wait ? 'unpaid' : payment, now).lastInsertRowid);
     renumber(db, k);
     return { ok: true, id, status: wait ? 'waitlist' : 'in', position: getReg(db, k, id).wait_pos, over: !wait && full };
+  });
+}
+/** Staff: remove a mistaken walk-in made in the last UNDO_MS (D50). The row goes (a snapshot waits in walkin_trash for undoDeleteWalkIn), so it
+ *  counts as neither a cancellation nor a no-show. Only staff-made walk-ins; a seat it held goes to the next in line. */
+export function deleteWalkIn(db, o, id, { now = Date.now() } = {}) {
+  const k = keyOf(o);
+  return tx(db, () => {
+    const r = getReg(db, k, id);
+    if (!r || !r.walk_in || r.purged || !['in', 'waitlist'].includes(r.status)) return { ok: false, error: 'state' };
+    if (now - r.created_at > UNDO_MS) return { ok: false, error: 'expired' };
+    purgeWalkinTrash(db, now);
+    db.prepare('INSERT OR REPLACE INTO walkin_trash (id, series, slot, snap, at) VALUES (?, ?, ?, ?, ?)')
+      .run(r.id, k.series, k.slot, JSON.stringify({ name: r.name, day: r.event_day, status: r.status, pos: r.wait_pos, checked: r.checked_in, payment: r.payment, created: r.created_at, promoted: r.promoted_at }), now);
+    db.prepare('DELETE FROM registrations WHERE id = ?').run(r.id);
+    return { ok: true, promoted: r.status === 'in' ? promote(db, k, now) : (renumber(db, k), []) };
+  });
+}
+/** The walk-in name snapshots older than UNDO_MS go (D50): called on each delete, by a timer UNDO_MS after it, and at start and hourly (runPurge). */
+export const purgeWalkinTrash = (db, now = Date.now()) => db.prepare('DELETE FROM walkin_trash WHERE at < ?').run(now - UNDO_MS).changes;
+/** Undo deleteWalkIn within UNDO_MS: same id, same place. When the event is full again, the last unchecked auto-promoted person goes to
+ *  waitlist #1 (as cancel Undo). Refused when the same name is on the list again (`dup`) or the id was taken (`state`). */
+export function undoDeleteWalkIn(db, o, id, { now = Date.now() } = {}) {
+  const k = keyOf(o);
+  return tx(db, () => {
+    const t = db.prepare('SELECT snap, at FROM walkin_trash WHERE id = ? AND series = ? AND slot = ?').get(Number.isInteger(id) ? id : -1, k.series, k.slot);
+    if (!t || db.prepare('SELECT 1 FROM registrations WHERE id = ?').get(id)) return { ok: false, error: 'state' };
+    if (now - t.at > UNDO_MS) return { ok: false, error: 'expired' };
+    const s = JSON.parse(t.snap);
+    if (dupOf(db, k, s.name)) return { ok: false, error: 'dup' };
+    const bumped = s.status === 'in' && k.cap && inCount(db, k) >= k.cap ? bumpLastPromoted(db, k, t.at) : null;
+    db.prepare('INSERT INTO registrations (id, series, slot, event_day, name, status, wait_pos, checked_in, payment, walk_in, created_at, promoted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)')
+      .run(id, k.series, k.slot, s.day, s.name, s.status, s.status === 'in' ? null : (s.pos ?? 1) - 0.5, s.checked, s.payment, s.created, s.status === 'in' ? s.promoted ?? null : null);
+    db.prepare('DELETE FROM walkin_trash WHERE id = ?').run(id);
+    const promoted = promote(db, k, now);
+    return { ok: true, bumped, promoted, status: getReg(db, k, id).status, over: !!k.cap && inCount(db, k) > k.cap };
+  });
+}
+
+/** R19 "Run it" (D50): staff said this date runs below its minimum. One flag per slot (D23 key), seen by every counter device; on:false is its Undo. */
+export const getRunIt = (db, series, slot) => !!db.prepare('SELECT 1 FROM run_it WHERE series = ? AND slot = ?').get(series, slot);
+export function setRunIt(db, o, on, { now = Date.now() } = {}) {
+  if (typeof on !== 'boolean') return { ok: false, error: 'bad_input' };
+  if (o.cancelled) return { ok: false, error: 'state' };
+  return tx(db, () => {
+    if (on) db.prepare('INSERT OR REPLACE INTO run_it (series, slot, at) VALUES (?, ?, ?)').run(o.seriesId, o.slot, now);
+    else db.prepare('DELETE FROM run_it WHERE series = ? AND slot = ?').run(o.seriesId, o.slot);
+    return { ok: true, runIt: on };
   });
 }
 /** After the seats of a date change (bigger cap, cap removed): fill free seats from the waitlist. Lowering the cap bumps nobody. */
