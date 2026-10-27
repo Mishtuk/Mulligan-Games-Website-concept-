@@ -29,12 +29,14 @@
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/site.css">
   <link rel="stylesheet" href="css/front.css">
+  <link rel="stylesheet" href="css/clips.css">
   <script src="data/sample.js" defer></script>
   <script src="js/mg.js" defer></script>
   <script src="js/state.js" defer></script>
   <script src="js/ui.js" defer></script>
   <script src="js/event-views.js" defer></script>
   <script src="js/front.js" defer></script>
+  <script src="js/clips.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#week">Skip to this week's events</a>
@@ -111,6 +113,7 @@
         <div class="wrap phero-strip-in">
           <p class="freeplay2">Free play all day, every day we're open</p>
           <p class="media-cap">On screen: <span class="cap-wide">The shop floor at 445 York Rd</span><span class="cap-narrow">cEDH night at the shop</span></p>
+          <a class="clips-link" href="#clips">Watch clips from the shop<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
           <button class="vid-btn" id="vid-btn" type="button" data-paused>
             <svg class="ic i-pause" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
             <svg class="ic i-play" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
@@ -120,11 +123,11 @@
       </div>
     </section>
 
-    <!-- 3. This week at Mulligan: the seven-day strip first, then the days -->
+    <!-- 3. This week: the seven-day strip first, then the days -->
     <section class="sec week" id="week" aria-labelledby="week-h">
       <div class="wrap">
         <div class="sec-head">
-          <h2 id="week-h">This week at Mulligan</h2>
+          <h2 id="week-h">This week</h2>
           <a class="more" href="events.html">All events and sign-ups<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
         </div>
         <p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
@@ -145,19 +148,117 @@
       </div>
     </section>
 
-    <!-- 3b. Inside the shop: the store's own photos (D27) -->
-    <section class="sec shop" id="shop" aria-labelledby="shop-h">
+    <!-- 3b. Clips from the shop (round 6, D47): the store's own TikTok and Instagram videos. Every card is a plain link to the post
+         (works without JS). Nothing from TikTok or Instagram loads until a card is clicked: js/clips.js then opens ONE dialog
+         with the official player. Cards are written out here (a build renders them from store.clips); clips.js drops any whose id fails validation. -->
+    <section class="sec clips-sec" id="clips" aria-labelledby="clips-h">
       <div class="wrap">
         <div class="sec-head">
-          <h2 id="shop-h">Inside the shop</h2>
-          <p class="sec-note">A play room full of tables, a singles case and a crew who know the formats.</p>
+          <h2 id="clips-h">Clips from the shop</h2>
+          <p class="sec-note">Short videos from our TikTok and Instagram.</p>
+          <a class="more" href="https://www.tiktok.com/@mulligangames" target="_blank" rel="noopener">Follow on TikTok<span class="vh"> (opens TikTok)</span><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+          <div class="clips-nav" id="clips-nav" hidden>
+            <button type="button" class="clips-btn" id="clips-prev" aria-controls="clips-list" aria-label="Earlier clips" disabled><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+            <button type="button" class="clips-btn" id="clips-next" aria-controls="clips-list" aria-label="More clips"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+          </div>
         </div>
-        <ul class="shots">
-          <li class="shot shot-banner"><figure><img src="img/social/interior-welcome-banner.webp" width="960" height="720" loading="lazy" decoding="async" alt="A Welcome to Mulligan Games banner over the doorway into the play room"><figcaption>Through this door: the play room</figcaption></figure></li>
-          <li class="shot shot-case"><figure><img src="img/social/singles-case-lit-800.webp" srcset="img/social/singles-case-lit-800.webp 800w, img/social/singles-case-lit.webp 1600w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="A lit glass case of single cards, with Japanese and Korean sections"><figcaption>The singles case</figcaption></figure></li>
-          <li class="shot shot-corgi"><figure><img src="img/social/shop-corgi-800.webp" srcset="img/social/shop-corgi-800.webp 800w, img/social/shop-corgi.webp 1070w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="1000" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding the shop corgi, game posters behind"><figcaption>Staff, and a corgi</figcaption></figure></li>
-          <li class="shot shot-crew"><figure><img src="img/social/event-full-room-800.webp" srcset="img/social/event-full-room-800.webp 800w, img/social/event-full-room.webp 1600w" sizes="(min-width: 768px) 50vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="The play room full of players at tables on an event night"><figcaption>An event night</figcaption></figure></li>
-        </ul>
+        <div class="clips-body">
+          <ul class="clips" id="clips-list" role="list">
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7456651666096704814" data-clip="0" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="media/social/tt-7456651666096704814.webp" width="240" height="427" alt="" loading="lazy" decoding="async" style="object-position:50% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>A full room for the monthly cEDH</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7554825277990259981" data-clip="1" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="media/social/tt-7554825277990259981.webp" width="240" height="427" alt="" loading="lazy" decoding="async" style="object-position:50% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>A PSA 10 Japanese Mewtwo EX, in the case</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.instagram.com/reel/DTHcsxqjNDL/" data-clip="2" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="media/social/ig-DTHcsxqjNDL.webp" width="240" height="427" alt="" loading="lazy" decoding="async" style="object-position:50% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><path d="M17 7h.01"/></svg>Instagram</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Watch on Instagram: </span>Winning a Mulligan cEDH tournament</span>
+              <span class="clip-by">by @perky_grn_fairy</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7561535591314115895" data-clip="3" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="media/social/tt-7561535591314115895.webp" width="240" height="427" alt="" loading="lazy" decoding="async" style="object-position:50% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>A sealed base set Charizard hanger</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7467024512442289451" data-clip="4" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="media/social/tt-7467024512442289451.webp" width="240" height="427" alt="" loading="lazy" decoding="async" style="object-position:50% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>February’s cEDH night and its prizes</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7671778087264144653" data-clip="5" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="img/social/shop-floor-cases-800.webp" width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:62% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>Only at Mulligan Games: a Pokemon find</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7689650786942323998" data-clip="6" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="img/social/pokemon-sealed-shelf-800.webp" width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:35% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>Pop 1 graded Pokemon cards</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.instagram.com/reel/DPcDJ7riL3B/" data-clip="7" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="img/social/event-cedh-tables-800.webp" width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:55% 60%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><path d="M17 7h.01"/></svg>Instagram</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Watch on Instagram: </span>Custom Commander art and a PSA 10</span>
+              <span class="clip-by">art by @perky_grn_fairy</span>
+            </a>
+          </li>
+          <li class="clip">
+            <a class="clip-a" href="https://www.tiktok.com/@mulligangames/video/7459197351555681582" data-clip="8" target="_blank" rel="noopener">
+              <span class="clip-ph">
+                <img src="img/social/singles-case-lit-800.webp" width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:50% 50%">
+                <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span>
+                <span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+              </span>
+              <span class="clip-cap"><span class="vh">Play video: </span>Make it or break it, episode 30</span>
+            </a>
+          </li>
+          </ul>
+          <p class="clips-priv">Videos load from TikTok or Instagram only when you press play; those sites may set their own cookies.</p>
+        </div>
       </div>
     </section>
 

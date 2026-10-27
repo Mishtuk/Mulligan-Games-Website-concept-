@@ -105,6 +105,15 @@
 .wdeck li[data-today] .dc-cap { color: var(--ink); font-weight: 800; background: none; padding: 0; }
 .wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); transform: none; animation: none; }
 @media (min-width: 768px) { .wdeck ol { margin-inline: 0; padding-inline: 0; overflow: visible; } }
+/* round 6: a photo cap on each open tile from 768px (hidden on phones, where a 50px tile is too small to read a picture; lazy images in display:none never load) */
+.dc-ph { display: none; }
+@media (min-width: 768px) {
+  .wdeck .daycard { height: 7.5rem; padding: 0 0 0.45rem; overflow: hidden; align-content: start; }
+  .wdeck .dc-ph { display: block; justify-self: stretch; height: 2.5rem; margin-bottom: 0.35rem; background: var(--surface-2); border-bottom: 2px solid var(--gc); }
+  .wdeck .dc-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .wdeck li[data-closed] .daycard { align-content: center; padding: 0.45rem 0.25rem; }
+  .wdeck li:not([data-closed]) .daycard { grid-template-rows: auto auto auto auto; }
+}
 @media (max-width: 767px) { /* seven fitted tiles, no sideways scroll (F18); the aria-label keeps the words */
   .wdeck ol { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); overflow: visible; margin-inline: 0; padding-inline: 0; gap: 3px; }
   .wdeck .dc-num { font-size: 1.5rem; }

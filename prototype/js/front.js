@@ -173,16 +173,52 @@
     $('#nextup-what').textContent = shown.join(', ') + (more ? ' and ' + more + ' more' : '');
     $('#nextup').setAttribute('href', '#d-' + slot.date);
   }
+  // one photo per live event of a day, picked once so cards, rows and the strip agree (and a chip filter doesn't reshuffle them)
+  // Today and the next day with events (the photo-card days) share one 'used' map, so Saturday's Draft does not repeat
+  // Friday's Magic picture just above it; the one-line days each start fresh (small thumbs).
+  var phCache = {}, cardUsed = {}, cardDays = null;
+  function isCardDay(ymd) {
+    if (!cardDays) {
+      cardDays = [MG.ymd(now)];
+      for (var i = 1; i < 7; i++) { var y = MG.ymd(MG.addDays(now, i)); if (week.some(function (o) { return o.date === y; })) { cardDays.push(y); break; } }
+    }
+    return cardDays.indexOf(ymd) !== -1;
+  }
+  function dayPh(ymd) {
+    if (!phCache[ymd]) {
+      var card = isCardDay(ymd);
+      if (card && ymd !== cardDays[0] && !phCache[cardDays[0]]) dayPh(cardDays[0]); // today always picks first
+      phCache[ymd] = MG.photosForDay(week.filter(function (o) { return o.date === ymd; }), card ? cardUsed : null);
+    }
+    return phCache[ymd];
+  }
+  // the strip shows each day's main-event photo, but not the same picture on two tiles while that game's list lasts
+  function stripPh(main, ymd, used) {
+    var p = dayPh(ymd)[main.key], name = p.src.replace(/^img\/social\/|-800\.webp$/g, '') + (p.tint ? ':tint' : ''); // same keys as MG.photoFor
+    if (!used[name]) { used[name] = true; return p; }
+    return MG.photoFor(main.series, used);
+  }
+  // the day's main event for the strip: featured, then sign-up here / external, then the earliest start
+  function mainEvent(evs) {
+    var best = null, bs = -1;
+    evs.forEach(function (o) {
+      var sc = (o.series.featured ? 4 : 0) + (o.series.signup === 'here' || o.series.signup === 'external' ? 2 : 0);
+      if (!best || sc > bs || (sc === bs && o.start < best.start)) { best = o; bs = sc; }
+    });
+    return best;
+  }
   function renderDeck() {
-    var html = '';
+    var html = '', stripUsed = {};
     for (var i = 0; i < 7; i++) {
       var d = MG.addDays(now, i), ymd = MG.ymd(d), h = MG.hoursFor(ymd);
       var evs = week.filter(function (o) { return o.date === ymd && live(o); });
       var closed = h.closed && !evs.length;
       var cap = closed ? 'Closed' : evs.length + (evs.length === 1 ? ' event' : ' events');
+      var main = mainEvent(evs), mp = main ? stripPh(main, ymd, stripUsed) : null;
       var pips = evs.slice(0, 8).map(function (o) { return '<i data-game="' + e(o.series.game) + '"></i>'; }).join('');
       html += '<li style="--i:' + i + '"' + (i === 0 ? ' data-today' : '') + (closed ? ' data-closed' : '') + '>' +
         '<a class="daycard" style="--i:' + i + '" href="#d-' + ymd + '" aria-label="' + e(MG.dayName(d) + ' ' + MG.fmtDate(d) + (i === 0 ? ', today' : '') + ', ' + cap.toLowerCase()) + '">' +
+          (main ? '<span class="dc-ph ph" aria-hidden="true" data-game="' + e(main.series.game) + '"' + (mp.tint ? ' data-tint' : '') + '>' + MG.photoImg(mp) + '</span>' : '') +
           '<span class="dc-dow">' + (i === 0 ? 'Today' : MG.dayShort(d)) + '</span>' +
           '<span class="dc-num">' + d.getDate() + '</span>' +
           '<span class="dc-pips" aria-hidden="true">' + pips + '</span>' +
@@ -249,7 +285,7 @@
         [['day-name', MG.dayName(d)], ['day-meta', dayMeta(ymd, d)]].forEach(function (x) { var sp = document.createElement('span'); sp.className = x[0]; sp.textContent = x[1]; hEl.appendChild(sp); });
         secEl.appendChild(hEl);
         var ul = document.createElement('ul'); ul.className = 'day-lines';
-        evs.forEach(function (o) { ul.appendChild(MG.views.compactLine(o, now, keepNow('events.html'))); });
+        evs.forEach(function (o) { ul.appendChild(MG.views.compactLine(o, now, keepNow('events.html'), dayPh(ymd)[o.key])); });
         secEl.appendChild(ul); frag.appendChild(secEl);
         continue;
       }
@@ -259,7 +295,7 @@
         return '<div class="slot"' + (multi ? ' data-multi' : '') + '>' +
           '<p class="slot-t"><time datetime="' + s.date + 'T' + s.start + '">' + MG.fmtTime(s.start) + '</time>' +
           (multi ? '<span class="slot-n">' + s.items.length + ' events start at ' + MG.fmtTime(s.start) + '</span>' : '') + '</p>' +
-          '<div class="slot-cards"' + (s.items.length === 1 ? ' data-one' : '') + '>' + s.items.map(function (o) { return MG.eventCard(o, now, { compact: true, href: keepNow('events.html') }); }).join('') + '</div></div>';
+          '<div class="slot-cards"' + (s.items.length === 1 ? ' data-one' : '') + '>' + s.items.map(function (o) { return MG.eventCard(o, now, { compact: true, href: keepNow('events.html'), photo: dayPh(ymd)[o.key] }); }).join('') + '</div></div>';
       }).join('');
       html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '"' + (i === 0 ? ' data-today' : '') + '>' + head +
         '<div class="slots">' + slots + '</div></section>';

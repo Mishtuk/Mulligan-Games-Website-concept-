@@ -299,16 +299,28 @@
       default: return s.inviteOnly ? 'Invite only' : (s.tool && s.tool.cta) || 'Sign up on ' + ((s.tool && s.tool.name) || 'another site');
     }
   };
+  // a decorative photo wrapper (row thumb): <span aria-hidden><img alt=""></span>, built with createElement
+  V.photoSpan = function (p, cls, game) {
+    var sp = document.createElement('span'); sp.className = cls; sp.setAttribute('aria-hidden', 'true');
+    if (p.tint) sp.setAttribute('data-tint', '');
+    if (game) sp.setAttribute('data-game', game);
+    var im = document.createElement('img'); im.src = p.src; im.width = 800; im.height = 600; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+    im.style.objectPosition = /^\d{1,3}% \d{1,3}%$/.test(p.pos || '') ? p.pos : '50% 50%';
+    sp.appendChild(im); return sp;
+  };
   // returns an <li>; everything is built with createElement + textContent (owner rule)
-  V.compactLine = function (occ, now, base) {
+  V.compactLine = function (occ, now, base, photo) {
     var s = occ.series, st = MG.seatState(occ, now), g = MG.game(s.game);
     function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
     var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', st.state);
-    var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot);
-    li.appendChild(mk('span', 'dl-time', MG.fmtTime(occ.start)));
-    var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = (base || 'events.html') + '#e-' + encodeURIComponent(occ.key); t.appendChild(a); li.appendChild(t);
+    var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot); // hidden on screen when a thumb is shown, kept for print
+    if (photo) li.appendChild(V.photoSpan(photo, 'dl-ph ph'));
+    var main = mk('span', 'dl-main');
+    main.appendChild(mk('span', 'dl-time', MG.fmtTime(occ.start)));
+    var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = (base || 'events.html') + '#e-' + encodeURIComponent(occ.key); t.appendChild(a); main.appendChild(t);
     var bits = [g.short, MG.fmtFee(s.fee)]; if (st.state !== 'walkin') bits.push(V.seatWords(st, s)); // walk-in is said once per page (F2)
-    li.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    main.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    li.appendChild(main);
     return li;
   };
 

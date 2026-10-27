@@ -315,9 +315,10 @@
         act = ''; break;
     }
 
+    var ph = opts.photo ? MG.photoFigure(opts.photo) : '';
     return '' +
       '<article class="ev" data-game="' + e(s.game) + '" data-state="' + st.state + '"' + (st.onNow ? ' data-now' : '') +
-        ' id="c-' + e(occ.key) + '" aria-labelledby="t-' + e(occ.key) + '">' +
+        ' id="c-' + e(occ.key) + '" aria-labelledby="t-' + e(occ.key) + '">' + ph +
         '<div class="ev-bar">' +
           '<h4 class="ev-title" id="t-' + e(occ.key) + '"><a href="' + href + '">' + e(s.title) + '</a></h4>' +
           '<p class="ev-cost"><span class="vh">Entry: </span>' + e(MG.fmtFee(s.fee)) + '</p>' +
@@ -330,6 +331,51 @@
         (act || stat ? '<div class="ev-foot">' + act + stat + '</div>' : '') +
       '</article>';
   };
+  /* ---------- one decorative photo per event (round 6, D47): constant map, never from data ---------- */
+  var PH = {
+    magic: [['event-magic-night', '50% 60%'], ['event-full-room-2', '50% 55%'], ['play-room-night', '50% 55%']],
+    cedh: [['event-cedh-tables', '50% 60%'], ['event-full-room-3', '50% 50%']],
+    cedhFeat: [['champion-belt', '50% 42%']],
+    pokemon: [['pokemon-sealed-shelf', '50% 50%']],
+    riftbound: [['event-packed-room', '50% 55%'], ['event-tables-fb', '50% 60%']],
+    warhammer: [['warhammer-table', '50% 65%'], ['warhammer-battle', '50% 50%']],
+    painting: [['painted-marines', '50% 45%']],
+    dnd: [['dnd-table', '50% 45%'], ['dnd-one-shot-setup', '50% 50%']],
+    other: [['event-full-room', '50% 55%']],
+    onepiece: [['event-full-room-2', '50% 55%']],
+    hololive: [['play-room-night', '50% 55%']]
+  };
+  // used: object of file names already shown that day (updated). Returns { src, pos, tint }
+  MG.photoFor = function (series, used) {
+    used = used || {};
+    var g = series.game, list, tint = false;
+    if (g === 'cedh') list = (series.featured ? PH.cedhFeat : []).concat(PH.cedh);
+    else if (g === 'warhammer' && series.format === 'Painting') list = PH.painting;
+    else if (g === 'other') list = series.format === 'D&D' ? PH.dnd : PH.other;
+    else if (g === 'onepiece' || g === 'hololive') { list = PH[g]; tint = true; }
+    else if (PH[g]) list = PH[g];
+    else { list = PH.other; tint = true; }
+    // a tinted stand-in looks nothing like the plain photo, so it is tracked apart (Thursday's One Piece tint must not use up a Magic picture)
+    var sfx = tint ? ':tint' : '', pick = null;
+    for (var i = 0; i < list.length; i++) if (!used[list[i][0] + sfx]) { pick = list[i]; break; }
+    if (!pick) pick = list[0];
+    used[pick[0] + sfx] = true;
+    return { src: 'img/social/' + pick[0] + '-800.webp', pos: pick[1], tint: tint };
+  };
+  // photos for one day's occurrences, in time order, no repeat while the list lasts: { occKey: photo }
+  // used (optional): a shared map, so today and tomorrow (the photo-card days) don't open with the same picture
+  MG.photosForDay = function (occs, used) {
+    used = used || {}; var out = {};
+    occs.slice().sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : a.series.title.localeCompare(b.series.title); })
+      .forEach(function (o) { out[o.key] = MG.photoFor(o.series, used); });
+    return out;
+  };
+  // the <img> markup shared by bands and strip caps; every value is escaped, position must look like "50% 60%"
+  MG.photoImg = function (p) {
+    var pos = /^\d{1,3}% \d{1,3}%$/.test(p.pos || '') ? p.pos : '50% 50%';
+    return '<img src="' + MG.esc(p.src) + '" width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:' + MG.esc(pos) + '">';
+  };
+  MG.photoFigure = function (p) { return '<figure class="ev-ph ph" aria-hidden="true"' + (p.tint ? ' data-tint' : '') + '>' + MG.photoImg(p) + '</figure>'; };
   MG.fmtEnd = function (occ) { return occ.series.end === '24:00' ? '24:00' : occ.series.end && occ.exception && occ.exception.start
     ? shift(occ.series.end, mins(occ.exception.start) - mins(occ.series.start)) : occ.series.end; };
   function shift(hm, d) { var m = (mins(hm) + d + 1440) % 1440; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }

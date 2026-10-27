@@ -1251,3 +1251,15 @@ Today; roster read-only, no button); full with waitlist (promote, above); full w
 walk-in"); loading (Today's skeleton rows, section 10); error (the change shows at once and rolls back if the server
 refuses: toast "Couldn't save. Riley K. is still signed up. Try again."; offline: banner, 9.1). Both themes: tokens
 only. Names are set with `textContent`.
+
+
+## 16. Round 6 note: Clips from the shop (D47)
+
+Built in the prototype: `index.html` section `#clips` (replaces "Inside the shop"; heading "This week at Mulligan" is now "This week"), `data/sample.js` `clips` (9 items, 7 TikTok and 2 Instagram), `css/clips.css`, `js/clips.js`, `js/tests-clips.js`. Each card is a plain link to the post; a click opens one dialog (via `MG.ui.dialog`) and only then creates the official player iframe from a validated id (TikTok `^\d{15,21}$`, Instagram `[A-Za-z0-9_-]{5,20}`). Nothing from TikTok, Instagram or Facebook loads before a click. The hero strip has a "Watch clips from the shop" link from 768 px. The scrolling row needs `position: relative` because `.vh` text inside an overflow container otherwise causes page-level horizontal scroll.
+
+**Privacy page line (the prototype has no privacy page, so the sentence lives here and under the row):** "Videos load from TikTok, Instagram or Facebook only when you press play; those sites may set their own cookies." Add it to the real privacy page, and `frame-src https://www.tiktok.com https://www.instagram.com https://www.facebook.com` to the CSP.
+
+**Boss 6 changes (D48):** Instagram cards stay plain links (the IG embed shows only a still for reels with licensed
+music) unless a clip sets `inline: true`; the dialog is `width: fit-content` and the frame `min(100vw - 3rem,
+(100svh - 10rem) * 9/16, 26rem)`; the clip 3 credit is "by @perky_grn_fairy". Photos: today and the next day with events
+share one "used" set, strip tiles avoid showing the same picture twice, tinted stand-ins are tracked apart.

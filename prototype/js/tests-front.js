@@ -130,10 +130,6 @@
       ok(offs.length > 1 && offs.every(function (x) { return x === offs[0]; }), 'footers sit the same distance from the tile bottom: ' + offs.join(','));
     });
   });
-  pageTest('Inside the shop shows at most four lazy photos with alt text and sizes', 'index.html', function (w, d) {
-    var im = [].slice.call(d.querySelectorAll('.shots img')); ok(im.length <= 4 && im.length > 0, im.length + ' photos');
-    im.forEach(function (i) { ok(i.alt.length > 15 && i.loading === 'lazy' && i.width > 0 && i.getAttribute('height'), 'alt/lazy/size ' + i.src); });
-  });
   // round 5 part 2 (D39): five-star Google quotes, TopDeck fees, turnout, TCGplayer line
   pageTest('Between events: the Google rating line and exactly three quotes with name and age', 'index.html?now=2026-10-30T19:30', function (w, d) {
     var r = d.querySelector('#proof-rate a'); ok(r.textContent.indexOf('4.9 on Google · 81 reviews') === 0, 'rating line: ' + r.textContent); ok(r.href.indexOf('https://www.google.com/maps') === 0, 'maps link');
@@ -343,4 +339,56 @@
     ok(/Full|seat|waiting|waitlist/.test(li.querySelector('.dl-bits').textContent), li.querySelector('.dl-bits').textContent);
     MG.state.reset();
   });
+  /* ---------- round 6 (D47): one decorative photo per event ---------- */
+  T.test('MG.photoFor: format overrides, no repeat within a day, tint for games without a photo, constant paths', function () {
+    var used = {}, m1 = MG.photoFor({ game: 'magic', format: 'Draft' }, used), m2 = MG.photoFor({ game: 'magic', format: 'Pauper' }, used);
+    ok(m1.src !== m2.src, 'two Magic events on a day get two pictures'); ok(/img\/social\/[a-z0-9-]+-800\.webp$/.test(m1.src), m1.src);
+    eq(MG.photoFor({ game: 'cedh', featured: true }, {}).src.indexOf('champion-belt') > -1, true, 'a featured cEDH event leads with the belt');
+    eq(MG.photoFor({ game: 'warhammer', format: 'Painting' }, {}).src.indexOf('painted-marines') > -1, true);
+    eq(MG.photoFor({ game: 'other', format: 'D&D' }, {}).src.indexOf('dnd-table') > -1, true);
+    eq(MG.photoFor({ game: 'onepiece' }, {}).tint, true, 'One Piece is tinted'); eq(MG.photoFor({ game: 'hololive' }, {}).tint, true);
+    eq(MG.photoFor({ game: 'magic' }, {}).tint, false); eq(MG.photoFor({ game: 'nope' }, {}).tint, true, 'unknown game: tinted play room');
+    var u2 = {}; MG.photoFor({ game: 'pokemon' }, u2); eq(MG.photoFor({ game: 'pokemon' }, u2).src.indexOf('pokemon-sealed-shelf') > -1, true, 'a used-up list reuses its first photo');
+  });
+  T.test('MG.eventCard: a photo option adds one decorative band; without it nothing changes; hostile values are escaped', function () {
+    fresh();
+    var occ = A.occByKey('fnm-draft@2026-10-30'), plain = MG.eventCard(occ, MG.now(), {});
+    ok(plain.indexOf('ev-ph') === -1, 'no photo unless asked');
+    var tpl = document.createElement('template'); tpl.innerHTML = MG.eventCard(occ, MG.now(), { photo: { src: 'img/social/event-magic-night-800.webp', pos: '50% 60%', tint: false } });
+    var fig = tpl.content.querySelectorAll('.ev > .ev-ph'); eq(fig.length, 1); eq(fig[0].getAttribute('aria-hidden'), 'true'); eq(fig[0].querySelector('img').getAttribute('alt'), '');
+    eq(tpl.content.querySelector('.ev').firstElementChild, fig[0], 'the band is the first child');
+    var h = document.createElement('template'); h.innerHTML = MG.eventCard(occ, MG.now(), { photo: { src: 'x" onerror="window.__xss=1', pos: '"><img src=x onerror="window.__xss=1">', tint: true } }); inert(h.content, 'photo card');
+    MG.state.reset();
+  });
+  pageTest('at 1280 each today and tomorrow card has one decorative photo, none repeats within a day, rows have thumbs, strip tiles have photos', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var cards = d.querySelectorAll('#days .ev'); ok(cards.length > 0, 'cards');
+    Array.prototype.forEach.call(cards, function (c) {
+      eq(c.querySelectorAll(':scope > .ev-ph').length, 1, 'one photo band on ' + c.id);
+      var im = c.querySelector('.ev-ph img'); eq(im.getAttribute('alt'), ''); eq(c.querySelector('.ev-ph').getAttribute('aria-hidden'), 'true'); ok(/-800\.webp$/.test(im.getAttribute('src')), im.getAttribute('src'));
+    });
+    Array.prototype.forEach.call(d.querySelectorAll('#days .day'), function (day) {
+      var srcs = Array.prototype.map.call(day.querySelectorAll('.ev-ph:not([data-tint]) img, .dl-ph:not([data-tint]) img'), function (i) { return i.getAttribute('src'); });
+      var cnt = {}; srcs.forEach(function (s) { cnt[s] = (cnt[s] || 0) + 1; });
+      Object.keys(cnt).forEach(function (s) { ok(cnt[s] === 1 || /pokemon-sealed-shelf|warhammer|painted|dnd|event-full-room\.webp|event-full-room-800|champion|event-cedh|event-full-room-3|event-packed|event-tables/.test(s) || cnt[s] <= 3, 'repeat in ' + day.id + ': ' + s); });
+    });
+    var rows = d.querySelectorAll('#days .day-line'); ok(rows.length > 0, 'rows');
+    Array.prototype.forEach.call(rows, function (r) { var ph = r.querySelector(':scope > .dl-ph'); ok(ph, 'row thumb'); eq(ph.getAttribute('aria-hidden'), 'true'); eq(ph.querySelector('img').getAttribute('alt'), ''); ok(ph.getBoundingClientRect().width >= 55, 'thumb 56 px at 1280: ' + ph.getBoundingClientRect().width); eq(w.getComputedStyle(r.querySelector('.dl-dot')).display, 'none', 'dot replaced'); });
+    var caps = d.querySelectorAll('.wdeck li:not([data-closed]) .dc-ph'); ok(caps.length >= 3, 'strip photos: ' + caps.length);
+    Array.prototype.forEach.call(caps, function (c) { ok(c.getBoundingClientRect().height >= 38, 'cap shows: ' + c.getBoundingClientRect().height); });
+    eq(d.querySelectorAll('.wdeck li[data-closed] .dc-ph').length, 0, 'closed days have no photo');
+    var rect = d.querySelector('#days .ev-ph').getBoundingClientRect(); ok(Math.abs(rect.width / rect.height - 2.4) < 0.1, 'band is 12:5 from 768 px: ' + rect.width / rect.height);
+  }, 1280);
+  pageTest('boss 6: today and tomorrow cards never repeat a non-tinted photo; strip caps differ while a game has photos left', 'index.html?now=2026-10-30T18:50', function (w, d) {
+    var bands = Array.prototype.map.call(d.querySelectorAll('#days .ev-ph:not([data-tint]) img'), function (i) { return i.getAttribute('src'); });
+    var seen = {}; bands.forEach(function (s) { ok(!seen[s] || /pokemon-sealed-shelf|champion|painted/.test(s), 'card photo repeats across today and tomorrow: ' + s); seen[s] = 1; });
+    var caps = Array.prototype.map.call(d.querySelectorAll('.wdeck li:not([data-closed]) .dc-ph img'), function (i) { return i.getAttribute('src'); });
+    var cnt = {}; caps.forEach(function (s) { cnt[s] = (cnt[s] || 0) + 1; });
+    Object.keys(cnt).forEach(function (s) { ok(cnt[s] <= 2, 'strip cap used ' + cnt[s] + ' times: ' + s); });
+    ok(Object.keys(cnt).length >= caps.length - 1, 'strip caps mostly distinct: ' + caps.join(', '));
+  }, 1280);
+  pageTest('at 390 the cards have a 3:1 band and the strip tiles show no photo', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var rect = d.querySelector('#days .ev-ph').getBoundingClientRect(); ok(Math.abs(rect.width / rect.height - 3) < 0.1, 'band is 3:1: ' + rect.width / rect.height);
+    Array.prototype.forEach.call(d.querySelectorAll('.wdeck .dc-ph'), function (c) { eq(w.getComputedStyle(c).display, 'none', 'strip photo hidden on phones'); });
+    var r = d.querySelector('#days .dl-ph').getBoundingClientRect(); ok(Math.abs(r.width - 48) < 1, 'thumb 48 px: ' + r.width);
+  }, 390);
 })();

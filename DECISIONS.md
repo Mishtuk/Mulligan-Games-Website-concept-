@@ -545,3 +545,35 @@ cells with , " CR LF are quoted. text/csv attachment `mulligan-products.csv`, no
   `mg-scheme` key (switching back to the system's scheme follows the system again), colours use this site's tokens,
   and on phones it sits above the quick-actions bar (D33) and the admin tab bar. Replaces the labelled Light | Dark pill
   in the header (D28/D37 wording) everywhere.
+
+### D47. Round 6: a visual "This week" and the store's social videos on the home page (2026-10-27, owner)
+- **Owner (Mish):** "For the This Week at Mulligan, I wanted to look a little bit more visually appealing and not just
+  plain text... images, more visual cues for things. Also, maybe just don't put This Week at Mulligan, but put like videos
+  from TikTok and like other things like that. Also, for the homepage, you can use like videos from TikTok, Instagram, and
+  Facebook."
+- **Ruling (main session):** events keep leading the home page (BRIEF, D1), but "This week" becomes visual: real store
+  photos by game as the cue on cards, rows and the week strip. The home page gets a row of the store's own TikTok /
+  Instagram / Facebook videos. Videos are **official embeds behind click-to-load posters** (no stream downloading; no
+  third-party request before a click); posters from TikTok's public oEmbed or the post's og:image. The heading may change
+  (designer decides in `docs/review/round-6-visual.md`).
+
+### D48. Round 6 review: PASS with boss fixes (2026-10-27, boss)
+**Checked:** no new data-fed innerHTML (photo values pass `MG.esc` + a position pattern; clip dialog is createElement;
+the icon helper only takes constant SVG). Clip ids, hosts and posters are validated before `new URL()`. Network log on
+load (real Chrome, 127.0.0.1): only our origin, no iframe, no third-party request before a click. Real players: TikTok
+loads and plays in the dialog at 1280 and 400px (controls, sound toggle, fullscreen); close (X / Esc) removes the iframe
+and focus returns to the card. This week reads as photos-first and stays calm: one image per item, one ratio per row.
+Weight at 390: hero poster + loop as before; 5 band photos (~300 KB, lazy but inside Chrome's load distance) come with
+the page; thumbs, clip posters and the cEDH stills load only on scroll; all photos are `-800`, no srcset. Tests 170/0.
+**Boss fixes:** (1) the dialog spanned the whole window (`width: auto` beats the UA's fit-content on a fixed dialog) ->
+`width: fit-content`; at 400px it overflowed into scrollbars -> frame `100vw - 3rem` / `100svh - 10rem`, `overflow-x:
+hidden`. (2) Instagram's embed will not play these reels (licensed music: it shows a still + "Watch on Instagram" that
+opens IG), so Instagram cards are now plain links unless a clip has `inline: true`. (3) The IG reel credit said
+"by @vespur"; the reel's own header shows **@perky_grn_fairy** -> corrected (data, card, test, research). (4) Today's and
+tomorrow's cards opened with the same Magic photo, and 4 of 5 strip tiles showed the same picture -> the two card days
+share one "used" map, strip tiles avoid repeats, tinted stand-ins no longer use up a game's plain photos (+1 test).
+(5) Opening a new card in the gap before the old dialog's late `close` event no longer falls through to the TikTok link.
+**Noted, not blocking:** TikTok's player sometimes shows its own "Watch this video on TikTok" app prompt instead of the
+video (seen once at 400px; the same clip played on retry); the dialog's "Open on TikTok" covers it. The 240px posters
+read soft but acceptable at 164-192px; the IG poster frame is mostly black (Q21 stills). Round 6 was first logged
+as D41/D42, numbers the Desktop had already used for P2.5 (stock ledger); renumbered to D47/D48. Port list: `docs/review/round-6-port.md`.

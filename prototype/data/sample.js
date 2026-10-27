@@ -324,6 +324,18 @@
       { label: 'Saturday 11:30 PM', now: '2026-10-31T23:30' }
     ],
     store: store,
+    // Round 6 (D47): the store's own social videos, in display order. Cards link to the post; the official player loads only after a click.
+    clips: [
+      { platform: 'tiktok', id: '7456651666096704814', url: 'https://www.tiktok.com/@mulligangames/video/7456651666096704814', caption: 'A full room for the monthly cEDH', credit: '', date: '2025-01-09', poster: 'media/social/tt-7456651666096704814.webp', pw: 240, ph: 427, pos: '50% 50%' },
+      { platform: 'tiktok', id: '7554825277990259981', url: 'https://www.tiktok.com/@mulligangames/video/7554825277990259981', caption: 'A PSA 10 Japanese Mewtwo EX, in the case', credit: '', date: '2025-09-27', poster: 'media/social/tt-7554825277990259981.webp', pw: 240, ph: 427, pos: '50% 50%' },
+      { platform: 'instagram', id: 'DTHcsxqjNDL', url: 'https://www.instagram.com/reel/DTHcsxqjNDL/', caption: 'Winning a Mulligan cEDH tournament', credit: 'by @perky_grn_fairy', date: '2026-01-10', poster: 'media/social/ig-DTHcsxqjNDL.webp', pw: 240, ph: 427, pos: '50% 50%' },
+      { platform: 'tiktok', id: '7561535591314115895', url: 'https://www.tiktok.com/@mulligangames/video/7561535591314115895', caption: 'A sealed base set Charizard hanger', credit: '', date: '2025-10-15', poster: 'media/social/tt-7561535591314115895.webp', pw: 240, ph: 427, pos: '50% 50%' },
+      { platform: 'tiktok', id: '7467024512442289451', url: 'https://www.tiktok.com/@mulligangames/video/7467024512442289451', caption: 'February’s cEDH night and its prizes', credit: '', date: '2025-02-03', poster: 'media/social/tt-7467024512442289451.webp', pw: 240, ph: 427, pos: '50% 50%' },
+      { platform: 'tiktok', id: '7671778087264144653', url: 'https://www.tiktok.com/@mulligangames/video/7671778087264144653', caption: 'Only at Mulligan Games: a Pokemon find', credit: '', date: '2026-08-08', poster: 'img/social/shop-floor-cases-800.webp', pw: 800, ph: 600, pos: '62% 50%' },
+      { platform: 'tiktok', id: '7689650786942323998', url: 'https://www.tiktok.com/@mulligangames/video/7689650786942323998', caption: 'Pop 1 graded Pokemon cards', credit: '', date: '2026-09-26', poster: 'img/social/pokemon-sealed-shelf-800.webp', pw: 800, ph: 600, pos: '35% 50%' },
+      { platform: 'instagram', id: 'DPcDJ7riL3B', url: 'https://www.instagram.com/reel/DPcDJ7riL3B/', caption: 'Custom Commander art and a PSA 10', credit: 'art by @perky_grn_fairy', date: '2025-10-10', poster: 'img/social/event-cedh-tables-800.webp', pw: 800, ph: 600, pos: '55% 60%' },
+      { platform: 'tiktok', id: '7459197351555681582', url: 'https://www.tiktok.com/@mulligangames/video/7459197351555681582', caption: 'Make it or break it, episode 30', credit: '', date: '2025-01-13', poster: 'img/social/singles-case-lit-800.webp', pw: 800, ph: 600, pos: '50% 50%' }
+    ],
     circuit: circuit,
     games: games,
     series: series,
