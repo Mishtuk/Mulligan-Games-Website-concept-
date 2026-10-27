@@ -56,6 +56,16 @@
   function wireVideo() {
     var v = $('#hero-video'), btn = $('#vid-btn'), box = $('#hero-media');
     if (!v || !btn || !v.play) return;
+    // Round 5: the portrait loop is for phones. From 900px the landscape still shows and the video is never loaded.
+    var narrow = matchMedia('(max-width: 899px)');
+    function addSources() {
+      if (v.querySelector('source')) return;
+      v.poster = 'media/video/cedh-players-tables-loop-poster.webp';
+      [['cedh-players-tables-loop.mp4', 'video/mp4'], ['cedh-players-tables-loop.webm', 'video/webm']].forEach(function (s) {
+        var el = document.createElement('source'); el.src = 'media/video/' + s[0]; el.type = s[1]; v.appendChild(el);
+      });
+      v.load();
+    }
     var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null;
     var hold = rm.matches || c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
     try { pref = sessionStorage.getItem('mg-video'); } catch (err) { /* not stored */ }
@@ -63,7 +73,7 @@
       $('#vid-label').textContent = playing ? 'Pause video' : 'Play video';
       if (playing) btn.removeAttribute('data-paused'); else btn.setAttribute('data-paused', '');
     }
-    function start() { v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
+    function start() { if (!narrow.matches) return; addSources(); v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
     // Reveal the video only once a real frame has been painted. Until then (and if it never plays: blocked autoplay,
     // headless capture, a decode error) the poster <img> and the box's poster background stay in view.
     function reveal() { box.classList.add('is-on'); }
@@ -80,6 +90,8 @@
       if (go) start(); else v.pause();
     });
     try { rm.addEventListener('change', function (ev) { if (ev.matches) v.pause(); }); } catch (err) { /* old browsers */ }
+    try { narrow.addEventListener('change', function (ev) { if (!ev.matches) v.pause(); }); } catch (err) { /* old browsers */ }
+    if (!narrow.matches) return; // wide: no video, no pause control (the button stays hidden)
     btn.classList.add('is-ready'); label(false);
     if ((hold && pref !== 'play') || pref === 'pause') return;
     var later = function () { setTimeout(start, 300); };
@@ -330,6 +342,13 @@
       lastEl.appendChild(document.createTextNode('Last Championship Series, ' + MG.fmtDate(MG.parseYmd(last.date)) + ': '));
       lastEl.appendChild(mk('strong', null, last.headcount + ' players.')); lastEl.appendChild(document.createTextNode(' ' + (last.prizes || '')));
     }
+    // fees come from the data (TopDeck, Nov 2026); the $10 online deposit is said once, here
+    var fee = function (k) { var s = D.series.filter(function (x) { return x.cedhSeries === k; })[0]; return s ? MG.fmtFee(s.fee) : ''; };
+    $('#cedh-fees').textContent = 'Championship Series ' + fee('mcs') + ', 5K ' + fee('5k') + ', Redemption ' + fee('redemption') + ' ($25 after the 5K). A $10 online deposit holds a spot; the rest is paid at the door.';
+    var tl = $('#cedh-turnout'); tl.textContent = '';
+    D.circuit.events.filter(function (r) { return r.date < today; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 4).forEach(function (r) {
+      var li = mk('li'); li.appendChild(mk('span', 'turnout-d', MG.fmtDate(MG.parseYmd(r.date)))); li.appendChild(mk('span', 'turnout-t', r.title)); li.appendChild(mk('b', null, r.players + ' players')); tl.appendChild(li);
+    });
   }
 
   /* ---------- 5. new and preorders ---------- */
@@ -350,7 +369,7 @@
           p.appendChild(a); p.appendChild(document.createTextNode(': ' + MG.list(when.slice(0, 3)) + '. ' + MG.fmtFee(s.fee) + '.')); text.appendChild(p);
         }
       }
-      li.appendChild(text);
+      if (text.firstChild) li.appendChild(text); // no note and no event: no empty body, the footer sits under the name
       var stat = null;
       if (r.status === 'preorder' && r.preorderEnds) {
         var days = Math.round((MG.parseYmd(r.preorderEnds) - MG.parseYmd(today)) / 864e5), end = MG.parseYmd(r.preorderEnds);
@@ -389,15 +408,23 @@
     $('#hours-note').textContent = D.store.hoursConfirmed ? '' : 'Hours from public listings. The owners will confirm them before launch.';
   }
   function renderCommunity() {
-    $('#proof').innerHTML = D.store.proof.map(function (p) { return '<li>' + e(p.text) + '<small>Source: ' + e(p.source) + '</small></li>'; }).join('');
-    $('#lately').innerHTML = D.results.filter(function (r) { return r.public; })
-      .sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 4).map(function (r) {
-        var s = D.series.filter(function (x) { return x.id === r.series; })[0], title = r.title || (s && s.title) || 'Event';
-        var bits = [];
-        if (r.headcount) bits.push(r.headcount + ' players.');
-        if (r.prizes) bits.push(r.prizes);
-        return '<li><strong>' + e(title) + '</strong>, ' + e(MG.fmtDate(MG.parseYmd(r.date))) + '<small>' + e(bits.join(' ')) + '</small></li>';
-      }).join('');
+    // built with createElement (owner rule): reviews and results are data
+    var rv = D.store.reviews, rate = $('#proof-rate'), pl = $('#proof'); rate.textContent = ''; pl.textContent = '';
+    var ra = mk('a', null, rv.rating + ' on ' + rv.source + ' · ' + rv.count + ' reviews'); ra.href = MG.safeUrl(rv.url); ra.target = '_blank'; ra.rel = 'noopener';
+    ra.appendChild(mk('span', 'vh', ' (opens Google Maps)')); rate.appendChild(ra);
+    rv.items.forEach(function (q) { var li = mk('li'); li.appendChild(mk('q', null, q.text)); li.appendChild(mk('small', null, q.name + ', ' + q.age)); pl.appendChild(li); });
+    var ll = $('#lately'); ll.textContent = '';
+    D.results.filter(function (r) { return r.public; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 4).forEach(function (r) {
+      var s = D.series.filter(function (x) { return x.id === r.series; })[0], title = r.title || (s && s.title) || 'Event';
+      var bits = [];
+      if (r.headcount) bits.push(r.headcount + ' players.');
+      if (r.prizes) bits.push(r.prizes);
+      var li = mk('li'); li.appendChild(mk('strong', null, title)); li.appendChild(document.createTextNode(', ' + MG.fmtDate(MG.parseYmd(r.date)))); li.appendChild(mk('small', null, bits.join(' '))); ll.appendChild(li);
+    });
+    // TCGplayer: one quiet line under the preorders
+    var tg = D.store.tcgplayer, tl = $('#tcg-line'); tl.textContent = '';
+    var ta = mk('a', null, tg.line); ta.href = MG.safeUrl(tg.url); ta.target = '_blank'; ta.rel = 'noopener'; ta.appendChild(mk('span', 'vh', ' (opens TCGplayer)'));
+    tl.appendChild(ta); if (tg.positive) tl.appendChild(document.createTextNode(' · ' + tg.positive));
   }
 
   /* ---------- chips: enhance links into in-place filters ---------- */

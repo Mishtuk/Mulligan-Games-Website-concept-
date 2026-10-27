@@ -12,8 +12,9 @@
 .phero-media {
   position: absolute; inset: 0; z-index: -2;
   /* the poster is also the box background, so the frame is never empty or black while the image decodes */
-  background: #17110E url("../media/video/cedh-players-tables-loop-poster.webp") 50% 38% / cover no-repeat;
+  background: #17110E;
 }
+@media (max-width: 899px) { .phero-media { background: #17110E url("../media/video/cedh-players-tables-loop-poster.webp") 50% 38% / cover no-repeat; } }
 .phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
 .phero-media video { opacity: 0; transition: opacity 600ms; }
 .phero-media.is-on video { opacity: 1; }
@@ -57,6 +58,7 @@
   font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; visibility: hidden;
 }
 .vid-btn.is-ready { visibility: visible; }
+.cap-wide { display: none; }
 .vid-btn:hover { background: rgb(255 255 255 / 0.12); }
 .vid-btn:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
 .vid-btn .i-play { display: none; }
@@ -69,6 +71,10 @@
   .media-cap + .vid-btn { margin-left: 0; }
 }
 @media (min-width: 900px) {
+  .cap-narrow { display: none; } .cap-wide { display: inline; }
+  .vid-btn { display: none; } /* no video on wide screens, so no pause control */
+}
+@media (min-width: 900px) {
   /* wide: the copy on the left, the photo shows through on the right */
   .phero { min-height: clamp(34rem, 78svh, 50rem); }
   .phero::before {
@@ -77,8 +83,8 @@
       linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
   }
   .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
-  .phero-media img, .phero-media video { object-position: 50% 82%; }
-  .phero-media { background-position: 50% 82%; }
+  .phero-media video { display: none; }
+  .phero-media img { object-position: 50% 30%; } /* the sealed wall on top, the lit cases on the right */
 }
 
 /* the week, seven cards (first thing in "This week") */
@@ -127,7 +133,8 @@
   padding: 0.35rem 0.7rem; border-radius: var(--r-box); background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
 }
 .shot-corgi img { object-position: 50% 30%; }
-.shot-crew img { object-position: 50% 45%; }
+.shot-case img { object-position: 30% 60%; }
+.shot-crew img { object-position: 50% 55%; }
 @media (min-width: 768px) {
   .shots {
     margin-inline: 0; padding-inline: 0; overflow: visible; grid-auto-flow: row; grid-auto-columns: auto;

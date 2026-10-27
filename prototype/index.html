@@ -23,7 +23,9 @@
   <meta property="og:image:alt" content="The Mulligan Games logo on its sign plate, next to the play room doorway">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" as="image" href="media/video/cedh-players-tables-loop-poster.webp" fetchpriority="high">
+  <!-- LCP hint per screen: phones fetch the portrait poster, wide screens the landscape still (never both) -->
+  <link rel="preload" as="image" href="media/video/cedh-players-tables-loop-poster.webp" media="(max-width: 899px)" fetchpriority="high">
+  <link rel="preload" as="image" imagesrcset="img/social/shop-floor-cases-800.webp 800w, img/social/shop-floor-cases.webp 1440w" imagesizes="100vw" media="(min-width: 900px)" fetchpriority="high">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/site.css">
   <link rel="stylesheet" href="css/front.css">
@@ -77,13 +79,15 @@
     <!-- 2. Hero (round 3, D36): the room on a cEDH night fills the whole width; the copy sits on a dark scrim -->
     <section class="phero" aria-labelledby="hero-h">
       <div class="phero-media" id="hero-media">
-        <img src="media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Players at the cEDH tables in the Mulligan Games play room" fetchpriority="high">
-        <!-- Decoration: muted, no captions needed. The script starts it after load unless motion or data is limited (DESIGN 6.1).
-             The poster shows until a real frame has been painted (front.js), so the box is never black. -->
-        <video id="hero-video" muted loop playsinline preload="none" poster="media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" aria-hidden="true" tabindex="-1">
-          <source src="media/video/cedh-players-tables-loop.mp4" type="video/mp4">
-          <source src="media/video/cedh-players-tables-loop.webm" type="video/webm">
-        </video>
+        <!-- Round 5: from 900px the landscape no-faces still (a portrait poster blown up to full width is a huge face crop);
+             under 900px the portrait poster and loop. -->
+        <picture>
+          <source media="(min-width: 900px)" srcset="img/social/shop-floor-cases-800.webp 800w, img/social/shop-floor-cases.webp 1440w" sizes="100vw" width="1440" height="1080">
+          <img src="media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Inside Mulligan Games: tables, sealed product and singles cases" fetchpriority="high">
+        </picture>
+        <!-- Decoration: muted, no captions needed. No <source> and no poster here: front.js adds them only under 900px, so wide
+             screens never download or play the video. The poster <img> shows until a real frame has been painted. -->
+        <video id="hero-video" muted loop playsinline preload="none" width="540" height="960" aria-hidden="true" tabindex="-1"></video>
       </div>
       <div class="wrap phero-in">
         <div class="phero-copy">
@@ -106,7 +110,7 @@
       <div class="phero-strip">
         <div class="wrap phero-strip-in">
           <p class="freeplay2">Free play all day, every day we're open</p>
-          <p class="media-cap">On screen: cEDH night at the shop</p>
+          <p class="media-cap">On screen: <span class="cap-wide">The shop floor at 445 York Rd</span><span class="cap-narrow">cEDH night at the shop</span></p>
           <button class="vid-btn" id="vid-btn" type="button" data-paused>
             <svg class="ic i-pause" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
             <svg class="ic i-play" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
@@ -150,9 +154,9 @@
         </div>
         <ul class="shots">
           <li class="shot shot-banner"><figure><img src="img/social/interior-welcome-banner.webp" width="960" height="720" loading="lazy" decoding="async" alt="A Welcome to Mulligan Games banner over the doorway into the play room"><figcaption>Through this door: the play room</figcaption></figure></li>
-          <li class="shot shot-case"><figure><img src="img/social/singles-display-case.webp" width="480" height="640" loading="lazy" decoding="async" alt="A lit glass case full of single cards"><figcaption>The singles case</figcaption></figure></li>
-          <li class="shot shot-corgi"><figure><img src="img/social/staff-corgi-interior.webp" width="512" height="640" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding a corgi, game posters behind"><figcaption>Staff, and a corgi</figcaption></figure></li>
-          <li class="shot shot-crew"><figure><img src="img/social/staff-group.webp" width="640" height="480" loading="lazy" decoding="async" alt="Five Mulligan Games staff at the counter"><figcaption>The Mulligan crew</figcaption></figure></li>
+          <li class="shot shot-case"><figure><img src="img/social/singles-case-lit-800.webp" srcset="img/social/singles-case-lit-800.webp 800w, img/social/singles-case-lit.webp 1600w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="A lit glass case of single cards, with Japanese and Korean sections"><figcaption>The singles case</figcaption></figure></li>
+          <li class="shot shot-corgi"><figure><img src="img/social/shop-corgi-800.webp" srcset="img/social/shop-corgi-800.webp 800w, img/social/shop-corgi.webp 1070w" sizes="(min-width: 768px) 25vw, 78vw" width="800" height="1000" loading="lazy" decoding="async" alt="A Mulligan Games staff member holding the shop corgi, game posters behind"><figcaption>Staff, and a corgi</figcaption></figure></li>
+          <li class="shot shot-crew"><figure><img src="img/social/event-full-room-800.webp" srcset="img/social/event-full-room-800.webp 800w, img/social/event-full-room.webp 1600w" sizes="(min-width: 768px) 50vw, 78vw" width="800" height="600" loading="lazy" decoding="async" alt="The play room full of players at tables on an event night"><figcaption>An event night</figcaption></figure></li>
         </ul>
       </div>
     </section>
@@ -167,7 +171,7 @@
           <dl class="cedh-facts">
             <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
             <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
-            <div><dt>Standings</dt><dd><a href="https://topdeck.gg/circuit/mulligans" target="_blank" rel="noopener">Circuit points on TopDeck<span class="vh"> (opens TopDeck)</span></a></dd></div>
+            <div><dt>Entry</dt><dd id="cedh-fees">Championship Series $60, 5K $100, Redemption $35 ($25 after the 5K). A $10 online deposit holds a spot; the rest is paid at the door.</dd></div>
             <div><dt>Parking</dt><dd>Any lot next to the shop except the RISE lot.</dd></div>
           </dl>
         </div>
@@ -175,6 +179,11 @@
           <h3>Next cEDH events</h3>
           <ol class="cedh-list" id="cedh-list"></ol>
           <p class="cedh-last" id="cedh-last"></p>
+          <div class="turnout">
+            <h4>Recent turnout</h4>
+            <ul class="turnout-list" id="cedh-turnout"></ul>
+            <a class="turnout-more" href="https://topdeck.gg/circuit/mulligans" target="_blank" rel="noopener">Full standings on TopDeck<span class="vh"> (opens TopDeck)</span></a>
+          </div>
         </div>
       </div>
     </section>
@@ -188,6 +197,7 @@
         </div>
         <figure class="rel-photo"><img src="media/video/sealed-packs-counter-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="Sealed product on the counter at Mulligan Games"></figure>
         <ul class="rel-list" id="rel-list"></ul>
+        <p class="tcg-line" id="tcg-line"></p>
       </div>
     </section>
 
@@ -261,6 +271,7 @@
           </div>
           <div class="comm-proof">
             <h3>What people say</h3>
+            <p class="proof-rate" id="proof-rate"></p>
             <ul class="proof" id="proof"></ul>
           </div>
           <div class="comm-lately">

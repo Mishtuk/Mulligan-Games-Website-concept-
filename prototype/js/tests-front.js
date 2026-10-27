@@ -96,13 +96,73 @@
     ok(/Most nights are walk-in\. Cards with a Sign up button hold seats\./.test(d.querySelector('.week-note').textContent), 'the note');
     ok(/Sign up here|Join the waitlist|Sign up/.test(d.querySelector('#d-2026-10-30').textContent), 'exceptions keep their words');
   });
-  pageTest('cEDH ticket: "10 AM · $40" and "80 registered" (no tool name repeated)', 'index.html?now=2026-10-30T19:30', function (w, d) {
+  pageTest('cEDH ticket: "10 AM · $60" and "80 registered" (no tool name repeated)', 'index.html?now=2026-10-30T19:30', function (w, d) {
     var t = d.querySelector('#cedh-list .tix'); ok(t, 'a ticket');
-    eq(t.querySelector('.tix-what p').textContent, '10 AM · $40');
+    eq(t.querySelector('.tix-what p').textContent, '10 AM · $60');
     eq(t.querySelector('.ev-stat-big').textContent + ' ' + t.querySelector('.ev-stat-unit').textContent, '80 registered');
     eq(d.querySelectorAll('#cedh-list .ev-stat-small').length, 0, 'no small "on TopDeck" line');
     ok(!/Preorders in store only/.test(d.getElementById('rel-list').textContent), 'preorder tiles do not repeat the section note');
     eq(d.querySelectorAll('.rel-art').length, 0, 'no tinted icon band on the tiles');
+  });
+  // round 5: the wide hero is the landscape still; the portrait video is phone-only
+  pageTest('at 1280 px the hero uses the shop-floor still, the video has no source and is not started, no pause control', 'index.html', function (w, d) {
+    var img = d.querySelector('#hero-media img'); ok(/shop-floor-cases/.test(img.currentSrc), 'hero image is ' + img.currentSrc);
+    var v = d.getElementById('hero-video'); eq(v.querySelectorAll('source').length, 0, 'no <source>'); ok(!v.getAttribute('src') && !v.getAttribute('poster'), 'no src or poster'); ok(v.paused, 'not playing'); eq(v.currentSrc, '', 'nothing loaded');
+    eq(w.getComputedStyle(d.getElementById('vid-btn')).display, 'none', 'pause control hidden');
+    ok(/shop floor at 445 York Rd/.test(d.querySelector('.cap-wide').textContent) && w.getComputedStyle(d.querySelector('.cap-wide')).display !== 'none' && w.getComputedStyle(d.querySelector('.cap-narrow')).display === 'none', 'wide caption');
+  });
+  pageTest('at 390 px the hero keeps the portrait poster and the video loop, with the pause control', 'index.html', function (w, d) {
+    var img = d.querySelector('#hero-media img'); ok(/cedh-players-tables-loop-poster/.test(img.currentSrc), 'poster ' + img.currentSrc);
+    var v = d.getElementById('hero-video');
+    return T.wait(700).then(function () {
+      eq(v.querySelectorAll('source').length, 2, 'video sources added');
+      ok(d.getElementById('vid-btn').classList.contains('is-ready'), 'pause control ready');
+    });
+  }, 390);
+  pageTest('tiles without a note have no empty body, and the footers line up on a shared row', 'index.html', function (w, d) {
+    w.MG.data.releases.filter(function (r) { return r.id === 'delta-reign'; })[0].note = '';
+    var s2 = d.createElement('script'); s2.src = BASE + 'js/front.js'; // render again with the note gone
+    return new Promise(function (res) { s2.onload = res; s2.onerror = res; d.body.appendChild(s2); }).then(function () { return T.wait(100); }).then(function () {
+      var tiles = [].slice.call(d.querySelectorAll('#rel-list .rel')); ok(tiles.length > 1, 'tiles');
+      tiles.forEach(function (t) { var b = t.querySelector('.rel-text'); ok(!b || b.textContent.trim() !== '', 'no empty body in ' + t.querySelector('.rel-name').textContent); });
+      var dr = d.querySelector('#rel-list .rel[data-game="pokemon"]'); ok(dr && !dr.querySelector('.rel-text'), 'the Delta Reign tile has no body');
+      var offs = tiles.filter(function (t) { return t.querySelector('.rel-foot'); }).map(function (t) { return Math.round(t.getBoundingClientRect().bottom - t.querySelector('.rel-foot').getBoundingClientRect().bottom); });
+      ok(offs.length > 1 && offs.every(function (x) { return x === offs[0]; }), 'footers sit the same distance from the tile bottom: ' + offs.join(','));
+    });
+  });
+  pageTest('Inside the shop shows at most four lazy photos with alt text and sizes', 'index.html', function (w, d) {
+    var im = [].slice.call(d.querySelectorAll('.shots img')); ok(im.length <= 4 && im.length > 0, im.length + ' photos');
+    im.forEach(function (i) { ok(i.alt.length > 15 && i.loading === 'lazy' && i.width > 0 && i.getAttribute('height'), 'alt/lazy/size ' + i.src); });
+  });
+  // round 5 part 2 (D39): five-star Google quotes, TopDeck fees, turnout, TCGplayer line
+  pageTest('Between events: the Google rating line and exactly three quotes with name and age', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var r = d.querySelector('#proof-rate a'); ok(r.textContent.indexOf('4.9 on Google · 81 reviews') === 0, 'rating line: ' + r.textContent); ok(r.href.indexOf('https://www.google.com/maps') === 0, 'maps link');
+    var q = d.querySelectorAll('#proof li'); eq(q.length, 3, 'three quotes');
+    [].forEach.call(q, function (li) { ok(li.querySelector('q').textContent.length > 20, 'a quote'); var sm = li.querySelector('small').textContent; ok(/^[A-Z][a-z]+ [A-Z][.], .*ago$/.test(sm), 'first name + initial, age: ' + sm); });
+    eq(d.querySelectorAll('#proof q').length, 3, 'quotes are q elements');
+  });
+  pageTest('hostile review text and turnout titles stay text', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var X = w.MG.data; X.store.reviews.items[0].text = XSS_IMG; X.store.reviews.items[0].name = XSS_IMG; X.circuit.events.forEach(function (r) { r.title = XSS_IMG; });
+    var s2 = d.createElement('script'); s2.src = BASE + 'js/front.js';
+    return new Promise(function (res) { s2.onload = res; s2.onerror = res; d.body.appendChild(s2); }).then(function () { return T.wait(100); }).then(function () {
+      eq(w.__xss || 0, 0, 'nothing ran'); eq(d.querySelectorAll('img[src="x"], [onerror]').length, 0, 'no injected markup');
+      eq(d.querySelector('#proof li q').textContent, XSS_IMG, 'quote is text'); eq(d.querySelector('#cedh-turnout .turnout-t').textContent, XSS_IMG, 'turnout title is text');
+    });
+  });
+  pageTest('cEDH fees come from the verified TopDeck numbers: MCS $60, 5K $100, Redemption $35, deposit said once', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var fee = function (k) { return w.MG.data.series.filter(function (x) { return x.cedhSeries === k; })[0].fee; };
+    eq(fee('mcs'), 60); eq(fee('5k'), 100); eq(fee('redemption'), 35);
+    var t = d.getElementById('cedh-fees').textContent; ok(t.indexOf('Championship Series $60, 5K $100, Redemption $35 ($25 after the 5K)') === 0, t);
+    eq(d.getElementById('cedh').textContent.split('$10 online deposit').length - 1, 1, 'the deposit appears once');
+  });
+  pageTest('Recent turnout: the last four past events, newest first, plus one TopDeck standings link', 'index.html?now=2026-10-30T19:30', function (w, d) {
+    var li = d.querySelectorAll('#cedh-turnout li'); eq(li.length, 4, 'four rows');
+    eq(li[0].textContent.split(' ').join('').length > 0 ? li[0].textContent : '', 'Oct 4Championship Series69 players');
+    ok(/69 players/.test(d.getElementById('cedh-last').textContent), 'last Championship Series line agrees with the list');
+    var a = d.querySelector('.turnout-more'); ok(a.textContent.indexOf('Full standings on TopDeck') === 0 && a.href.indexOf('topdeck.gg') > 0, 'standings link');
+  });
+  pageTest('one quiet TCGplayer line under the preorders', 'index.html', function (w, d) {
+    var a = d.querySelector('#tcg-line a'); ok(a.textContent.indexOf('Shop Pokemon Japan and Magic cards online on TCGplayer') === 0 && a.href.indexOf('tcgplayer.com/sellers/Mulligan-Gaming-LLC/0062555a') > 0, 'link');
   });
   pageTest('closed Monday and Tuesday are one quiet line with both anchors (F9)', 'index.html?now=2026-10-30T19:30', function (w, d) {
     var off = d.querySelectorAll('#days .day-off'); eq(off.length, 1, 'one .day-off');

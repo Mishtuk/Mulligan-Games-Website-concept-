@@ -51,9 +51,27 @@
       x: 'https://x.com/MulliganGames',
       patreon: 'https://www.patreon.com/MulliganGames'
     },
-    proof: [
-      { text: 'Nominated for TCGplayer Hobby Shop of the Year 2025 (Northeast).', source: 'TCGplayer' },
-      { text: '100% of Facebook reviewers recommend the shop (10 reviews).', source: 'Facebook' }
+    // Q23: five-star Google reviews only, verbatim excerpts, first name + last initial (docs/research/tcgplayer-topdeck.md, 2026-10-27)
+    reviews: {
+      rating: '4.9', count: 81, source: 'Google',
+      url: 'https://www.google.com/maps/search/?api=1&query=Mulligan+Games+445+York+Rd+Warminster+PA+18974',
+      items: [
+        { text: 'Incredible singles collection, great sealed selection, friendly and knowledgeable staff', name: 'Jarrett L.', age: 'a year ago' },
+        { text: 'I like the generous space they offer fellow players to just come in and join a game', name: 'Eric K.', age: '4 months ago' },
+        { text: 'the best TCG store in the greater Philadelphia metropolitan area.', name: 'Tyler A.', age: '5 months ago' }
+      ]
+    },
+    tcgplayer: { url: 'https://www.tcgplayer.com/sellers/Mulligan-Gaming-LLC/0062555a', line: 'Shop Pokemon Japan and Magic cards online on TCGplayer', positive: '100% positive' }
+  };
+
+  /* ---------- cEDH circuit turnout (TopDeck circuit page, "registered"; the last rows are what the front page shows) ---------- */
+  var circuit = {
+    url: 'https://topdeck.gg/circuit/mulligans',
+    events: [
+      { date: '2026-06-07', title: 'Championship Series', players: 40 }, { date: '2026-07-05', title: 'Championship Series', players: 59 },
+      { date: '2026-08-02', title: 'Championship Series', players: 42 }, { date: '2026-08-08', title: '5K', players: 77 },
+      { date: '2026-08-09', title: 'Redemption', players: 12 }, { date: '2026-09-06', title: 'Championship Series', players: 69 },
+      { date: '2026-10-04', title: 'Championship Series', players: 69 }
     ]
   };
 
@@ -144,8 +162,8 @@
       tool: { name: 'TopDeck', url: 'https://topdeck.gg/mulligangames' }, bring: 'A cEDH deck. Up to 10 proxies, judge-approved.' },
     { id: 'cedh-mcs', title: 'Championship Series', game: 'cedh', format: 'Championship Series', kind: 'cedh',
       cedhSeries: 'mcs', featured: true,
-      recurrence: { type: 'nth', nth: 1, day: 0 }, start: '10:00', end: '20:00', fee: 40, feeConfirmed: false,
-      signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/circuit/mulligans' },
+      recurrence: { type: 'nth', nth: 1, day: 0 }, start: '10:00', end: '20:00', fee: 60,
+      signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/circuit/mulligans' }, // TopDeck, Nov 2026: $60, $10 deposit online
       externalCount: { '2026-11-01': 80 },
       prize: 'A guaranteed dual land every month. Each winner gets an invitational seat.',
       bring: 'A cEDH deck. Up to 10 proxies, judge-approved, with full rules text.' },
@@ -155,16 +173,16 @@
       recurrence: { type: 'none', date: '2026-10-30' }, start: '18:00', end: '22:00', fee: 20, capacity: 24, minPlayers: 8,
       signup: 'here', cutoff: 'start', tool: { name: 'Wizards EventLink' }, prize: 'Prize packs paid by record.' }, // pub (cap and min are guesses)
     { id: 'cedh-5k-nov7', title: '5K cEDH Tournament', game: 'cedh', format: '5K', kind: 'cedh', cedhSeries: '5k', featured: true,
-      recurrence: { type: 'none', date: '2026-11-07' }, start: '10:00', end: '22:00', fee: 60, feeConfirmed: false,
+      recurrence: { type: 'none', date: '2026-11-07' }, start: '10:00', end: '22:00', fee: 100,
       signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/mulligangames' },
-      externalCount: { '2026-11-07': 120 } }, // pub + TopDeck render (120 registered). Start time and fee: guesses.
+      externalCount: { '2026-11-07': 120 } }, // pub + TopDeck render (120 registered). Fee: TopDeck, Nov 2026. Start time: a guess.
     { id: 'cedh-invitational', title: 'Championship Series Invitational', game: 'cedh', format: 'Invitational', kind: 'cedh',
       cedhSeries: 'invitational', featured: true,
       recurrence: { type: 'none', date: '2026-11-08' }, start: '11:00', end: '20:00', fee: 0, signup: 'external',
       inviteOnly: true, tool: { name: 'TopDeck', url: 'https://topdeck.gg/circuit/mulligans' },
       description: 'Every Championship Series winner plus the next players by circuit points.' },
     { id: 'cedh-redemption-nov8', title: 'Redemption', game: 'cedh', format: 'Redemption', kind: 'cedh', cedhSeries: 'redemption',
-      recurrence: { type: 'none', date: '2026-11-08' }, start: '12:00', end: '20:00', fee: 20, feeConfirmed: false,
+      recurrence: { type: 'none', date: '2026-11-08' }, start: '12:00', end: '20:00', fee: 35, // $25 if you played the 5K (TopDeck, Nov 2026)
       signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/mulligangames' }, externalCount: { '2026-11-08': 9 } },
     { id: 'startrek-prerelease', title: 'Star Trek Prerelease', game: 'magic', format: 'Prerelease', kind: 'prerelease', featured: true,
       recurrence: { type: 'dates', dates: [ { date: '2026-11-06', start: '19:00' }, { date: '2026-11-08', start: '15:00' }, { date: '2026-11-08', start: '17:00' } ] },
@@ -306,6 +324,7 @@
       { label: 'Saturday 11:30 PM', now: '2026-10-31T23:30' }
     ],
     store: store,
+    circuit: circuit,
     games: games,
     series: series,
     exceptions: exceptions,

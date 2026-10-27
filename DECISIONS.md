@@ -496,3 +496,15 @@ short (pre-existing). The counter-only card (Star Trek Prerelease) has its text 
 - **Player counts:** public. Show attendance (TopDeck circuit table) on the cEDH section and past-event results.
 - **Hours (Q2):** use the hours found (Google, 2026-10-27: Wed-Thu 2-10 PM, Fri-Sat 2 PM-midnight, Sun 1-10 PM). Any
   day with no hours found is **closed**; the site never shows a day as open without hours.
+
+### D40. Round 5 review: PASS with small fixes (2026-10-27, boss)
+**Checked:** hero from 900px is the `shop-floor-cases` still (one image request, no .mp4/.webm at 1280/1920), under
+900px the portrait poster + loop (no large still at 390); caption switches. Preorder footers align; no empty bodies.
+Inside the shop shows the three new photos; deleted files are unreferenced in prototype/. Reviews: "4.9 on Google · 81
+reviews" + three five-star quotes, verbatim, first name + last initial. Fees and the four turnout rows (Oct 4 69, Sep 6
+69, Aug 9 12, Aug 8 77) match the research tables. No new data-fed innerHTML (all createElement). Tests 152/0.
+**Boss fixes:** TCGplayer line said "singles" (the sealed/singles split was never read) -> "Magic cards"; turnout rows
+used "MCS ..." jargon -> plain "Championship Series" / "5K" / "Redemption"; Entry fact shortened ("$25 after the 5K",
+"holds a spot"); DESIGN note now says the line keeps the rating only (D39 allows it).
+**Carried, not blocking:** "Last Championship Series, Oct 4: 69 players" repeats the first turnout row; the Redemption
+(Nov 8) is not in "Next cEDH events"; at 1920 the 1440w still is slightly soft. Port list: `docs/review/round-5-port.md`.

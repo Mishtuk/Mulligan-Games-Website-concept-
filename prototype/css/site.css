@@ -369,7 +369,7 @@ img { max-width: 100%; height: auto; display: block; }
 .rel .ev-type { padding: 0 var(--s4) var(--s2); }
 .rel-text { flex: 1; padding: var(--s3) var(--s4) var(--s2); font-size: var(--t-sm); }
 .rel-text p { margin: 0 0 var(--s2); }
-.rel-foot { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-end; justify-content: space-between; padding: 0 var(--s4) var(--s4); }
+.rel-foot { margin-top: auto; display: flex; flex-wrap: wrap; gap: var(--s2); align-items: flex-end; justify-content: space-between; padding: 0 var(--s4) var(--s4); }
 .rel[data-status="out"] .ev-stat .ic { color: var(--ok); }
 .rel[data-status="preorder"] .ev-stat .ic { color: var(--warn); }
 @media (min-width: 768px) {
@@ -408,6 +408,15 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .proof, .lately { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
 .proof li, .lately li { padding-left: 1.4rem; position: relative; }
 .proof li::before, .lately li::before { content: ""; position: absolute; left: 0.2rem; top: 0.55em; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--line-strong); }
+.proof q { quotes: "\201C" "\201D"; }
+.proof-rate { margin: 0 0 var(--s3); font-weight: 750; }
+.tcg-line { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
+.turnout { margin-top: var(--s5); padding-top: var(--s4); border-top: 1px solid rgb(255 255 255 / 0.18); }
+.turnout h4 { margin: 0 0 var(--s2); font-size: var(--t-lg); font-stretch: var(--wdth-head); }
+.turnout-list { list-style: none; margin: 0 0 var(--s3); padding: 0; display: grid; gap: var(--s1); font-size: var(--t-sm); color: var(--on-band-2); }
+.turnout-list li { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr) auto; gap: var(--s3); }
+.turnout-list b { color: var(--on-band); font-weight: 750; }
+.turnout-more { color: var(--on-band); font-weight: 700; font-size: var(--t-sm); }
 .proof small, .lately small { display: block; color: var(--ink-2); font-size: var(--t-sm); }
 .quote-slot { margin-top: var(--s4); padding: var(--s4); border: 2px dashed var(--line-strong); border-radius: var(--r-card); color: var(--ink-2); font-size: var(--t-sm); }
 @media (min-width: 768px) { .comm-in { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
