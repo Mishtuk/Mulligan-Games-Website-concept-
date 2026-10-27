@@ -38,7 +38,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** #13 + owner redesign (calmer palette, photos, visible light/dark switch): `prototype/`, `DESIGN.md`, `docs/review/live-concept-review.md`, `source/social/` (local).
-- **Desktop:** P2.4b server side done. Waiting for the Laptop's look-A admin rollout + token issue before the P2.4b screens (Today, roster, No-show, 9.1 shell).
+- **Desktop:** #14 look A in the build (step 1: tokens, header, theme switch, hero/photos, head tags on public pages; step 2: admin shell + P2.4b screens): `src/styles/`, `src/components/`, `src/pages/`, `public/`, `server.js`, `test/`.
 
 ## Status (handoff, 2026-10-26)
 **P2.2 and P2.3 are built and reviewed (105 tests). Next: #11 fixes (Desktop), then P2.4 sign-ups; Laptop #12 meanwhile;
