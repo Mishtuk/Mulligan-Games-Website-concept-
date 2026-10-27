@@ -348,7 +348,6 @@
     dlg.addEventListener('close', closeDetail);
     window.addEventListener('hashchange', fromHash);
     if (PHONE.addEventListener) PHONE.addEventListener('change', function () { renderWeekly(); });
-    MG.scheme.wire();
     MG.state.subscribe(function () { now = MG.now(); render(); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && $('#cal-menu').open) $('#cal-menu').open = false; });
   }

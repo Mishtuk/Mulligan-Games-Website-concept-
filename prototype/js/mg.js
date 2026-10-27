@@ -386,50 +386,5 @@
       (small ? '<span class="ev-stat-small">' + MG.esc(small) + '</span>' : '') + '</p>';
   }
 
-  /* ---------- theme (two-state toggle, system default; see DESIGN.md "Light and dark") ---------- */
-  MG.scheme = {
-    stored: function () { try { return localStorage.getItem('mg-scheme'); } catch (e) { return null; } },
-    system: function () { return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; },
-    current: function () {
-      var m = document.querySelector('meta[name="color-scheme"]'), c = m && m.content;
-      return c === 'light' || c === 'dark' ? c : MG.scheme.stored() || MG.scheme.system();
-    },
-    // set a scheme; choosing the system's own scheme forgets the choice, so the page follows the system again
-    set: function (target) {
-      var meta = document.querySelector('meta[name="color-scheme"]'), sys = MG.scheme.system();
-      try { if (target === sys) localStorage.removeItem('mg-scheme'); else localStorage.setItem('mg-scheme', target); } catch (e) { /* not persisted */ }
-      meta.content = target === sys ? 'light dark' : target;
-      document.documentElement.dataset.scheme = target;
-      return target;
-    },
-    toggle: function () { return MG.scheme.set(MG.scheme.current() === 'dark' ? 'light' : 'dark'); },
-    // the labelled "Theme  Light | Dark" switch (two pressed-state buttons); same markup as the static one in the page headers
-    html: function (cls) {
-      var cur = MG.scheme.current();
-      function b(id, label, icon) {
-        return '<button type="button" data-scheme="' + id + '" aria-pressed="' + (cur === id) + '">' + MG.icon(icon) + '<span>' + label + '</span></button>';
-      }
-      return '<div class="scheme' + (cls ? ' ' + MG.esc(cls) : '') + '" role="group" aria-label="Colour theme">' +
-        b('light', 'Light', 'sun') + b('dark', 'Dark', 'moon') + '</div>';
-    },
-    // keep every switch on the page in step; one delegated listener, so switches drawn later (admin shell, dialogs) work too
-    sync: function () {
-      var cur = MG.scheme.current();
-      Array.prototype.forEach.call(document.querySelectorAll('button[data-scheme]'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-scheme') === cur)); });
-    },
-    wire: function () {
-      if (MG.scheme.wired) return; MG.scheme.wired = true;
-      document.addEventListener('click', function (ev) {
-        var b = ev.target.closest && ev.target.closest('button[data-scheme]');
-        if (b) { MG.scheme.set(b.getAttribute('data-scheme')); MG.scheme.sync(); }
-      });
-      window.addEventListener('storage', function (ev) {
-        if (ev.key === 'mg-scheme') { document.querySelector('meta[name="color-scheme"]').content = ev.newValue || 'light dark'; MG.scheme.sync(); }
-      });
-      try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', MG.scheme.sync); } catch (e) { /* old browsers */ }
-      MG.scheme.sync();
-    }
-  };
-
   window.MG = MG;
 })();

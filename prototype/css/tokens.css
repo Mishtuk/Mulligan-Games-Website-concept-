@@ -3,7 +3,7 @@
  * Warm cream / charcoal surfaces like the brick front at 445 York Rd; the sign's deep blue (#2F5FB0) is the ONE accent
  * (buttons and links that act). Game colours appear only as dots, thin rules and icons.
  * Light and dark use light-dark(), keyed off color-scheme. The <meta name="color-scheme"> is mapped back to the
- * property so the Light | Dark switch works; elements that set color-scheme: dark (open-now strip, footer, admin
+ * property so the round theme button (js/theme-fab.js) works; elements that set color-scheme: dark (open-now strip, footer, admin
  * chrome) get the dark value of every token.
  * Contrast (WCAG formula, 2026-10-26; all pass AA, see DESIGN.md "Contrast"):
  *   light: ink 13.7 (15.3 on surface), ink-2 6.7 (6.2 on surface-2), accent text 5.4, white on accent 6.2,

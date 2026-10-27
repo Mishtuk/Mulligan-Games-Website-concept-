@@ -172,19 +172,49 @@
     eq(d.querySelector('#hours-why').textContent, 'Sun Nov 1 opens at 10 AM for the cEDH Championship Series.');
     ok(!d.querySelector('.hours').contains(d.getElementById('hours-why')), 'the reason is outside the table'); eq(d.querySelectorAll('.hours-note').length, 0, 'no bold note in a cell');
   });
-  pageTest('bands: brown in light, lighter than the page and edged in dark; no "Theme" word (F4, F16)', 'index.html', function (w, d) {
+  pageTest('bands: brown in light, lighter than the page and edged in dark; no "Theme" word, no labelled pill (F4, F16, D46)', 'index.html?theme=light', function (w, d) {
     var cs = function (s) { return w.getComputedStyle(d.querySelector(s)); };
     try {
-      d.querySelector('[data-scheme="light"]').click();
       eq(cs('.site-foot').backgroundColor, 'rgb(62, 42, 34)', 'light footer band'); eq(cs('.cedh').backgroundColor, 'rgb(62, 42, 34)', 'light cEDH band');
-      d.querySelector('[data-scheme="dark"]').click();
+      d.querySelector('meta[name="color-scheme"]').content = 'dark';
       ok(cs('.site-foot').backgroundColor !== cs('body').backgroundColor, 'dark footer differs from the page');
       eq(cs('.site-foot').backgroundColor, 'rgb(42, 29, 23)', 'dark footer band'); eq(cs('.cedh').backgroundColor, 'rgb(42, 29, 23)', 'dark cEDH band');
       ok(cs('.site-foot').borderTopWidth !== '0px' && cs('.cedh').borderTopWidth !== '0px', 'a hairline edge in dark');
     } finally { try { w.localStorage.removeItem('mg-scheme'); } catch (err) { /* nothing stored */ } }
-    ok(!/Theme/.test(d.body.textContent), 'no "Theme" text'); eq(d.querySelectorAll('.scheme button').length, 2, 'Light and Dark buttons stay');
-    eq(d.querySelector('.scheme').textContent.replace(/\s+/g, ' ').trim(), 'Light Dark');
+    ok(!/Theme/.test(d.body.textContent), 'no "Theme" text'); eq(d.querySelectorAll('.scheme, [data-scheme]').length, 0, 'the Light | Dark pill is gone');
   });
+  /* D46: the round theme button, bottom-right, on every public page and the admin */
+  ['index.html', 'events.html', 'admin/index.html', 'admin/events.html', 'admin/inventory.html'].forEach(function (path) {
+    pageTest('theme button on ' + path + ': round 44px, bottom-right; click flips color-scheme, aria-label and mg-scheme; again follows the system', path + '?now=2026-10-30T18:50', function (w, d) {
+      var f = d.querySelector('.theme-fab'), meta = d.querySelector('meta[name="color-scheme"]'), sys = w.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light', other = sys === 'dark' ? 'light' : 'dark';
+      try { w.localStorage.removeItem('mg-scheme'); } catch (err) { /* ok */ }
+      meta.content = 'light dark';
+      ok(f, 'the button exists'); eq(d.querySelectorAll('.theme-fab').length, 1, 'only one'); eq(f.tagName, 'BUTTON');
+      var r = f.getBoundingClientRect(); eq(Math.round(r.width) + 'x' + Math.round(r.height), '44x44'); ok(w.getComputedStyle(f).borderRadius === '50%' || parseFloat(w.getComputedStyle(f).borderRadius) >= 22, 'round');
+      ok(d.documentElement.clientWidth - r.right <= 16 && w.innerHeight - r.bottom <= 16, 'bottom-right corner: ' + (d.documentElement.clientWidth - r.right) + ',' + (w.innerHeight - r.bottom));
+      eq(f.getAttribute('aria-label'), 'Switch to ' + other + ' mode', 'label names the other mode');
+      try {
+        f.click();
+        eq(meta.content, other, 'color-scheme set'); eq(w.localStorage.getItem('mg-scheme'), other, 'stored as mg-scheme'); eq(f.getAttribute('aria-label'), 'Switch to ' + sys + ' mode');
+        f.click();
+        eq(meta.content, 'light dark', 'back to the system scheme follows the system'); eq(w.localStorage.getItem('mg-scheme'), null, 'choice forgotten');
+      } finally { try { w.localStorage.removeItem('mg-scheme'); } catch (err) { /* ok */ } }
+      ok(!d.querySelector('.scheme'), 'no labelled pill');
+    });
+  });
+  pageTest('404.html loads the theme button script (its absolute asset paths only resolve on the site, so no click test here)', '404.html', function (w, d) {
+    ok(d.querySelector('script[src$="js/theme-fab.js"]'), 'script tag'); ok(d.querySelector('meta[name="color-scheme"]'), 'color-scheme meta');
+  });
+  pageTest('theme button on phones (390): above the quick-actions bar and clear of it, toast clear of the button (D33, D46)', 'index.html?now=2026-10-30T18:50', function (w, d) {
+    var f = d.querySelector('.theme-fab').getBoundingClientRect(), bar = d.querySelector('.mobile-bar').getBoundingClientRect();
+    ok(f.bottom <= bar.top, 'button bottom ' + f.bottom + ' is above bar top ' + bar.top); ok(d.documentElement.clientWidth - f.right <= 16, 'still at the right edge');
+    var t = d.querySelector('.toast');
+    if (t) { t.classList.add('on'); var tr = t.getBoundingClientRect(); ok(tr.bottom <= f.top || tr.top >= f.bottom, 'toast clear of the button'); }
+  }, 390);
+  pageTest('theme button on the admin at 390: above the tab bar', 'admin/index.html?now=2026-10-30T18:50', function (w, d) {
+    var f = d.querySelector('.theme-fab').getBoundingClientRect(), tabs = d.querySelector('.adm-tabs').getBoundingClientRect();
+    ok(f.bottom <= tabs.top, 'button bottom ' + f.bottom + ' is above the tab bar top ' + tabs.top);
+  }, 390);
   pageTest('the footer is an index: four columns at 1280, Explore links keep ?now=', 'index.html?now=2026-10-30T19:30', function (w, d) {
     var cols = ['.foot-brand', '.foot-visit', '.foot-hours', '.foot-explore'].map(function (s) { return d.querySelector(s).getBoundingClientRect().left; });
     ok(cols[0] < cols[1] && cols[1] < cols[2] && cols[2] < cols[3], 'side by side: ' + cols.join(','));
@@ -390,5 +420,12 @@
     var rect = d.querySelector('#days .ev-ph').getBoundingClientRect(); ok(Math.abs(rect.width / rect.height - 3) < 0.1, 'band is 3:1: ' + rect.width / rect.height);
     Array.prototype.forEach.call(d.querySelectorAll('.wdeck .dc-ph'), function (c) { eq(w.getComputedStyle(c).display, 'none', 'strip photo hidden on phones'); });
     var r = d.querySelector('#days .dl-ph').getBoundingClientRect(); ok(Math.abs(r.width - 48) < 1, 'thumb 48 px: ' + r.width);
+  }, 390);
+
+  /* ---------- D46: the round theme button never covers the hero's Pause / Play control ---------- */
+  pageTest('at 390 px the theme button and the hero Pause control do not overlap', 'index.html', function (w, d) {
+    var fab = d.querySelector('.theme-fab'), btn = d.querySelector('#vid-btn');
+    ok(fab && btn, 'both exist'); var a = fab.getBoundingClientRect(), b = btn.getBoundingClientRect();
+    ok(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom, 'button ' + Math.round(a.left) + ',' + Math.round(a.top) + ' vs pause ' + Math.round(b.left) + '-' + Math.round(b.right) + ',' + Math.round(b.top));
   }, 390);
 })();

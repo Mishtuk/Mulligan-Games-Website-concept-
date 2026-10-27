@@ -485,7 +485,7 @@
     renderChips(); renderDays(); renderLater();
     renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips(); keepNowLinks();
   }
-  try { MG.scheme.wire(); wireVideo(); } catch (err) { if (window.console) console.error(err); }
+  try { wireVideo(); } catch (err) { if (window.console) console.error(err); }
   try { init(); } catch (err) {
     // error state: say what failed and what to do (DESIGN.md "Loading, empty, error")
     var days = document.getElementById('days');

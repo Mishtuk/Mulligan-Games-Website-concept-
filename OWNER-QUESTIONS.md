@@ -86,3 +86,4 @@ write the answer and date under the question and, if it changes a ruling, add an
     initials), like sign-ups. Keep 30, or another number?
 26. **Preorder status wording:** the screens say "Waiting" for an order not yet in. Would "Ordered" read better at the counter?
 27. **Who sees stock and preorder contacts:** owners only, or every staff login (ties to Q10)?
+- **Clip credit (round 6, 2026-10-27):** owner OK to show "by @perky_grn_fairy" under Instagram reel DTHcsxqjNDL ("all ok").

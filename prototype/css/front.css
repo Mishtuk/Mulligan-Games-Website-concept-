@@ -1,5 +1,5 @@
 /* Front page only (index.html): the photo-led layout (D27), look A (D28). Loads after tokens.css and site.css;
- * colours come only from tokens. The header, the Light | Dark switch and the event card live in site.css.
+ * colours come only from tokens. The header, the round theme button and the event card live in site.css.
  */
 
 /* ---------- hero (round 3, D36): full-bleed photo / video, the copy on a dark scrim, a strip along the bottom ----------
@@ -216,3 +216,7 @@
   .week .later-date { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 0.3rem; text-align: left; }
   .week .later-date b { display: inline; font-size: 1.35rem; }
 }
+
+/* D46: the round theme button sits fixed in the bottom-right corner; the hero strip keeps that corner free so the
+ * Pause / Play control is never under it on first load (390: button 334-378 x 732-776 vs pause 328-373 x 740-788). */
+.phero-strip-in { padding-right: calc(var(--gutter) + 3.75rem); }

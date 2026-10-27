@@ -144,12 +144,12 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
 - **Header (public pages, `.site-head` in `site.css`):** `--brick` with an inline SVG brick coursing pattern at 11%
   opacity; `color-scheme: dark`. Left: the logo on the **sign plate** (`.plate`: white, 6px radius, 6px 10px padding,
   hairline `--plate-edge` ring and a small drop shadow; logo 168px wide, 132px under 420px; the link says "Mulligan
-  Games, home"). Nav links in cream; the current page underlined. Right: the theme switch. Under 900px the nav drops
+  Games, home"). Nav links in cream; the current page underlined. Under 900px the nav drops
   to its own sideways-scrolling row. The footer repeats the plate (120px) on `--band` and is an index (section 6, round 4).
 - **Admin chrome (`admin.css`):** plainer and calm for the counter: `--charcoal`, no brick texture. Sidebar (1024+,
   16rem): the plate (160px) with "SHOP ADMIN" under it, sections with a 4px `--act` bar on the current one, then
-  open status, "View the website" and the labelled theme switch. Under 1024: a charcoal top bar with a small plate
-  (100px), the page name and the open status (plus the switch from 600px), and a charcoal tab bar with a 3px `--act`
+  open status and "View the website" (the theme button is the round corner button). Under 1024: a charcoal top bar with a small plate
+  (100px), the page name and the open status, and a charcoal tab bar with a 3px `--act`
   bar on the current tab; on phones the switch is under More. Count badges use `--highlight`.
 - **Photos (D27):** the store's own photos and stills only (`prototype/img/social/`, `media/video/*-poster.webp`;
   sources in `docs/research/social-photos.md`). `object-fit: cover`, `--r-photo` 12px corners (full-bleed on phones),
@@ -167,12 +167,15 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   `timeupdate` past 0), and drops back to the poster on `error`, `emptied` or `abort`; blocked autoplay simply leaves
   the poster. A "Play video / Pause video" button (48px, `--scrim`) is the control (WCAG 2.2.2); the choice lasts the
   visit (`sessionStorage`). Section 6.1 keeps the encoding, crop and size budgets.
-- **Theme switch (round 4: D27 wins over F16):** a pill on every page, "Light | Dark" with no "Theme" word (two `aria-pressed` buttons with sun and
-  moon icons, in a `role="group"` named "Colour theme"; the group name carries the label). Follows the system until
-  the visitor picks; the pick is stored (`mg-scheme`) only when it differs from the system. One implementation:
-  `MG.scheme` in `mg.js` (`html()` draws it, `wire()` handles clicks with one delegated listener, other tabs via the
-  `storage` event and system changes). `?theme=light|dark` shows one scheme without saving it (screenshots, reviews);
-  every page's head script reads it before first paint.
+- **Theme switch (D46, supersedes the D27/D37 labelled pill):** the round button from the Warminster VFW site (`ThemeFab`), fixed
+  bottom-right on every public page and the admin: 44px circle, `--surface` fill, `--line-strong` edge, moon in light mode, sun in dark
+  mode, `aria-label` "Switch to dark mode" / "Switch to light mode". It is not in the header, so the nav has the room. Hidden in
+  print and without JS. Follows the system until the visitor picks; the pick is stored (`mg-scheme`) and applied to
+  `<meta name="color-scheme">`; switching back to the system's own scheme forgets the choice, so the page follows the system again.
+  One implementation: `js/theme-fab.js` (DOM calls only, no `innerHTML`; other tabs via the `storage` event, system changes), styles
+  in `site.css`; the real site's `ThemeFab.astro` is the same thing. On phones it sits above the quick-actions bar (D33) and the admin
+  tab bar, the toast rides above it, and on the admin Today page the walk-in bar leaves its corner free.
+  `?theme=light|dark` shows one scheme without saving it (screenshots, reviews); every page's head script reads it before first paint.
 - **Icons and link previews (every page, relative paths so they work under the Pages subpath
   `/Mulligan-Games-Website-concept-/`):** `<link rel="icon" href="img/logo/favicon-32.png">`, `<link
   rel="apple-touch-icon" href="img/logo/logo-180.png">` (admin pages use `../`), `theme-color` (`#6B3A2C` public,
@@ -350,7 +353,7 @@ circle is retired with look A).
 - **Proof list** and **Lately at the shop**: diamond bullets; each line says its source ("Source: Facebook"); results
   come from public results (`results[].public`). A dashed slot holds 2 or 3 real reviews once the owners choose them.
   No made-up quotes, ever.
-- **Theme switch**: the labelled "Theme | Light | Dark" pill in the header (section 2.5, section 11).
+- **Theme switch**: the round bottom-right button (D46; section 2.5, section 11).
 
 ---
 
@@ -838,7 +841,7 @@ note, free-play line. Saving updates the strip, hours table, footer, JSON-LD and
 | Recurrence | `occurrences()` weekly / monthly / Nth weekday | add "On these dates" (prerelease slots, RCQ dates) and per-date exceptions (cancel / change / note) shown publicly as Cancelled / Updated |
 | Sign-ups | volunteer shift sign-up shape (name, contact, slots, retention) | add waitlist with auto-promote, check-in, payment status, player ID |
 | Open-now | `bar-hours.js` midnight-close logic and the strip | add date overrides with a public note; strip is `--band` (warm dark brown), not the VFW bar colours |
-| Theme | `ThemeFab` toggle | a labelled Light / Dark switch in the header (owner, D27), two-state with system default (modern-web-guidance) |
+| Theme | `ThemeFab` toggle | the round bottom-right button, moon / sun (owner, D46; replaces the D27 labelled pill), two-state with system default (modern-web-guidance) |
 | Fonts | Archivo self-hosted | drop Literata: one family, the width axis gives the display voice |
 | Public pages | server-rendered with markers | the card component and week deck are new |
 | Events calendar | hall month grid | not on public pages (players want this week, not a month); the admin list uses "Next dates" per series |

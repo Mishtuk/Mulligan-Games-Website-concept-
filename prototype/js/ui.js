@@ -206,7 +206,6 @@
     host.appendChild(inner);
   };
 
-  /* the Light | Dark switch is MG.scheme.html() / MG.scheme.wire() in mg.js, shared with the public pages */
 
   /* ---------- a live region for "Showing Magic: 9 events" style messages ---------- */
   U.announce = function (msg) {

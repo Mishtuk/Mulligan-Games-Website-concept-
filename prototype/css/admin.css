@@ -3,8 +3,8 @@
  * Built for a tablet at the counter (768px), works on a phone, desktop gets the sidebar (1024px).
  * Targets are 56px (var(--tap-admin)); body text 17px. Loads after tokens.css, site.css, ui.css.
  */
-.adm { --toast-bottom: 5.25rem; background: var(--paper); }
-.adm[data-page="today"] { --toast-bottom: 10.5rem; } /* above the sticky walk-in bar (one row, about 72px, on phones) */
+.adm { --toast-bottom: 8.5rem; background: var(--paper); }
+.adm[data-page="today"] { --toast-bottom: 13.5rem; } /* above the sticky walk-in bar (one row, about 72px, on phones) */
 .adm .btn { min-height: var(--tap-admin); }
 .adm .btn-sm { min-height: 3rem; }
 .adm .fld input:not([type="checkbox"]):not([type="radio"]), .adm .fld select, .adm .input { min-height: var(--tap-admin); }
@@ -28,12 +28,6 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
 .top-mark { display: grid; place-items: center; text-decoration: none; }
 .plate { display: inline-flex; align-items: center; padding: 4px 7px; border-radius: var(--r-box); background: var(--plate); box-shadow: 0 0 0 1px var(--plate-edge); }
 .top-plate img { width: 6.25rem; height: auto; }
-.top-scheme { display: none; }
-@media (min-width: 600px) { .top-scheme { display: inline-flex; } }
-.top-scheme button { min-height: 36px; padding: 0 0.65rem; }
-.more-scheme .scheme { width: 100%; justify-content: space-between; }
-.more-scheme .scheme-k { display: inline; }
-.more-scheme .scheme button { flex: 1; justify-content: center; min-height: var(--tap); }
 .top-title { margin: 0 auto 0 0; font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 1.6rem; line-height: 1; }
 .top-open { margin: 0; display: flex; align-items: center; gap: var(--s2); font-size: var(--t-sm); font-weight: 650; }
 [data-open="true"] > .ob-dot { background: #6FD49A; border-color: #6FD49A; box-shadow: 0 0 0 3px #6FD49A40; }
@@ -66,9 +60,6 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
   .side-foot { margin-top: auto; display: grid; gap: var(--s2); }
   .side-open { margin: 0; display: flex; align-items: center; gap: var(--s2); font-size: var(--t-sm); color: var(--on-band-2); }
   .side-link { display: flex; align-items: center; gap: var(--s2); min-height: 3rem; color: var(--on-band); font-weight: 650; }
-  .side-scheme { justify-self: stretch; justify-content: space-between; }
-  .side-scheme .scheme-k { padding: 0 0.25rem 0 0.6rem; }
-  .side-scheme button { padding: 0 0.6rem; }
   .adm-main { padding-top: var(--s6); }
 }
 
@@ -168,6 +159,11 @@ ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s1
 /* walk-in bar: sticky above the tab bar */
 .walkbar { position: sticky; bottom: calc(4rem + env(safe-area-inset-bottom) + 0.5rem); z-index: 10; display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; padding: var(--s2); margin-top: var(--s3); background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-card); box-shadow: var(--lift); }
 .walkbar .fld { flex: 1 1 11rem; margin: 0; }
+/* phones: leave the corner for the round theme button */
+/* D46: the sticky walk-in and save bars keep the bottom-right corner free for the round theme button, at every width */
+.walkbar:not(.walkbar-inline), .savebar { margin-right: calc(44px + 12px + env(safe-area-inset-right)); }
+/* keyboard focus scrolls controls clear of the tab bar and the theme button */
+html:has(.adm) { scroll-padding-bottom: calc(4rem + 44px + 1.5rem + env(safe-area-inset-bottom)); }
 .walkbar-inline { position: static; border-color: var(--line-strong); box-shadow: none; align-items: flex-end; }
 @media (min-width: 1024px) { .walkbar { bottom: 1rem; } }
 .counter { display: grid; gap: var(--s3); }

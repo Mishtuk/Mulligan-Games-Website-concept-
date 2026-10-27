@@ -41,12 +41,10 @@
         return '<li><a href="' + e(U.href(it.href)) + '"' + (cur === it.id ? ' aria-current="page"' : '') + '>' + MG.icon(it.icon) + '<span>' + e(it.label) + '</span>' + badgeHtml(b[it.id], BADGE_WORD[it.id]) + '</a></li>';
       }).join('') + '</ul></nav>' +
       '<div class="side-foot"><p class="side-open" data-open="' + isOpen + '"><span class="ob-dot" aria-hidden="true"></span>' + e(nowStr) + '</p>' +
-      '<a class="side-link" href="' + e(U.href('../events.html')) + '">' + MG.icon('external') + 'View the website</a>' +
-      MG.scheme.html('side-scheme') + '</div>';
+      '<a class="side-link" href="' + e(U.href('../events.html')) + '">' + MG.icon('external') + 'View the website</a></div>';
     $('#top').innerHTML = '<a class="top-mark" href="' + e(U.href('index.html')) + '" aria-label="Mulligan Games shop admin, Today">' + plate('top-plate') + '</a>' +
       '<p class="top-title">' + e((ITEMS.filter(function (i) { return i.id === cur; })[0] || ITEMS[0]).label) + '</p>' +
-      '<p class="top-open" data-open="' + isOpen + '"><span class="ob-dot" aria-hidden="true"></span>' + e(nowStr) + '</p>' +
-      MG.scheme.html('top-scheme');
+      '<p class="top-open" data-open="' + isOpen + '"><span class="ob-dot" aria-hidden="true"></span>' + e(nowStr) + '</p>';
     $('#tabs').innerHTML = '<ul>' + ITEMS.map(function (it) {
       return '<li><a href="' + e(U.href(it.href)) + '"' + (cur === it.id ? ' aria-current="page"' : '') + '>' + MG.icon(it.icon) + '<span>' + e(it.tab) + '</span>' + badgeHtml(b[it.id], BADGE_WORD[it.id]) + '</a></li>';
     }).join('') + '<li><button type="button" class="tab-more" id="tab-more">' + MG.icon('dots') + '<span>More</span></button></li></ul>';
@@ -61,11 +59,9 @@
       var t = ev.target.closest ? ev.target : ev.target.parentElement;
       if (t.closest('#tab-more')) {
         var d = U.dialog('More', '<ul class="more-list"><li><a class="btn btn-2" href="' + e(U.href('../events.html')) + '">' + MG.icon('external') + 'View the website</a></li>' +
-          '<li class="more-scheme">' + MG.scheme.html() + '</li>' +
           '<li><p class="hint">Store info, the security log and the account page arrive with the real site (Phase 2).</p></li></ul>');
         return;
       }
     });
-    MG.scheme.wire();
   };
 })();
