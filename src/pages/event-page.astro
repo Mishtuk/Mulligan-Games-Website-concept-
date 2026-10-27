@@ -1,0 +1,8 @@
+---
+// The frame for one event date (D16). Not a public page: server.js fills <!--mg:head--> (title, canonical, Event JSON-LD) and <!--mg:event-->
+// from the live database for each /events/<id>?date=... request, and answers /event-page/ itself with a 404.
+import Base from '../components/Base.astro';
+---
+<Base dynamicHead={true} current="events" skip="#main" skipLabel="Skip to the event">
+  <main id="main"><Fragment set:html={`<!--mg:event--><div class="wrap dp-wrap"><p>This page needs the shop's server. <a href="/events/">See all events</a>.</p></div><!--/mg:event-->`} /></main>
+</Base>

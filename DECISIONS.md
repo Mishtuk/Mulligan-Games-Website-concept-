@@ -227,3 +227,23 @@ no earlier change, accepted: undoing would mean restoring the old change, and "C
 **Why:** (1) prereleases are the biggest events and the seed already has two slots on one day; the key is cheapest to
 change before sign-ups and public URLs depend on it. The rest is either built on things that don't exist yet or rare.
 Boss overrule: none.
+
+### D24. P2.3a review calls; D20 on the server (2026-10-26)
+(1) D20 clarified: server-rendered HTML outside Astro may use `render.js`'s `h` tagged template, the server twin of
+Astro `{}`. Only the constant literal parts are markup; every `${}` value (strings, numbers, nested arrays) is
+HTML-escaped, quotes included, so attributes are safe; `null` / `undefined` / `false` print nothing; only another `h`
+result passes through. Links from data still go through `safeUrl`. The one raw door is `safe()`, allowed only on
+`ldScript()` output (JSON with `<` escaped); a review greps `safe(` and `new Html(` (icons only). No `html()` helper,
+no string-built markup. (2) CSP hashes come from the built page before `injectMarkers()`, never from the filled page,
+so an escaping miss can't hash its own script (boss fix; injected parts are JSON / JSON-LD data blocks only).
+(3) `?date=` and `?now=` must be real days in 2000-2999 (`realDay`): `2026-13-45` gave a 500 and `9999-12-31` broke the
+date maths (boss fix, tested). Bad ids or dates give a titled `noindex` 404 with nothing echoed; the dateless redirect
+only ever points at `/events/<id>?date=` (no open redirect). (4) The `?now=` test clock works only when
+`NODE_ENV` is not `production`, the same switch as every other production guard; it only changes what time the page
+shows (canonical, JSON-LD and caching are unaffected, `no-cache` everywhere). Deploy check in P3.2. (5) JSON-LD,
+`.ics` and sitemap accepted as built (DST offsets, EventCancelled / EventRescheduled + previousStartDate, SoldOut from
+seats, invite-only gets no Event, sameAs only non-null safe links, STATUS:CANCELLED with a stable UID). (6) Open items
+accepted: Rich Results Test and the `robots.txt` Sitemap line wait for the domain (Q14, P3.2); store facts are read
+at server start until P2.3b makes them editable.
+**Why:** text APIs and an escape-everything tag can't miss a value; the rest are the smallest fixes that close real
+500s and a CSP gap. Boss overrule: none.

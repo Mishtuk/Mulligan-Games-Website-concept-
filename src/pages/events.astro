@@ -1,0 +1,12 @@
+---
+// Events list (DESIGN.md 7): game chips, a format filter, special events by date and repeating nights collapsed. Server-rendered at <!--mg:events-->
+// from the live database; the chips and the format form are plain links and a plain form, so it works without JS.
+import Base from '../components/Base.astro';
+---
+<Base title="Events and sign-ups, Mulligan Games, Warminster PA" description="Every event at Mulligan Games in Warminster, PA: Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer. See the fee and open seats, sign up or join the waitlist, add it to your calendar." current="events" skip="#main">
+  <main id="main">
+    <div class="wrap ep">
+      <Fragment set:html={`<!--mg:events--><h1>Events</h1><p class="day-skip">The event list is loading from the server. Call the shop for tonight’s events.</p><!--/mg:events-->`} />
+    </div>
+  </main>
+</Base>

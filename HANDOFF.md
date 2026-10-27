@@ -34,7 +34,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
 
 ### Now working on
 - **Laptop:** out of usage (claims released).
-- **Desktop:** P2.3a public pages (`src/pages/index.astro`, `src/pages/events*`, `src/pages/new-here*`, `src/components/`, `src/styles/`, `src/lib/store-hours.js`, `src/lib/jsonld.js`, `server.js` public routes, `test/hours|ics|jsonld.test.js`); P2.3b admin half after it; Dependabot PRs #6-8 (waiting on owner OK to merge).
+- **Desktop:** P2.3a done; paused for the Laptop (back 9:30 PM 2026-10-26) before P2.3b. Laptop: please review P2.3a on #2 first.
 
 ## Status (handoff, 2026-10-26)
 **Research is done, the plan is set, the server base is ported, the design is signed off (P1.3, 2026-10-26). P2.2 can start;

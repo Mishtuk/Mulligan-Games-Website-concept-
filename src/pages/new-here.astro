@@ -1,0 +1,76 @@
+---
+// "New here?" (DESIGN.md 15.6). Copy comes from store facts and from sentences DESIGN.md already specifies.
+// Rule: no store policy is invented. Sections whose facts are still open owner questions (OWNER-QUESTIONS Q20, Q8: borrowing a deck, house
+// rules, the store-wide age rule, general bring advice, prerelease limits, other proxy rules, what trade-ins and when) are left out until the
+// owners answer; a test fails if the word that marks an open question reaches this page.
+import Base from '../components/Base.astro';
+import Icon from '../components/Icon.astro';
+import store from '../content/store.json';
+import { safeUrl } from '../lib/events.js';
+
+const a = store.address;
+const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
+const tel = safeUrl(store.phoneHref);
+const discord = safeUrl(store.links?.discord);
+const toc = [['first', 'Good first nights'], store.freePlay && ['free', 'Free play'], ['bring', 'What to bring'], ['kids', 'Kids and ages'], ['pay', 'Signing up and paying'],
+  ['prerelease', 'Prereleases'], ['proxies', 'Proxies'], ['trade', 'Trade-ins'], ['here', 'Getting here'], ['ask', 'Still have a question?']].filter(Boolean);
+---
+<Base title="New here? Mulligan Games, Warminster PA" description="Never been to Mulligan Games? What to expect, what to bring and which nights are good for a first visit." current="new-here" skip="#main" skipLabel="Skip to the page">
+  <main id="main">
+    <div class="wrap nh">
+      <h1>New here?</h1>
+      <p class="nh-lede">Never been to Mulligan Games? Here’s what to expect, what to bring and which nights are good for a first visit.</p>
+      <nav class="nh-toc" aria-label="On this page">
+        <ul>
+          {toc.map(([id, label]) => <li><a href={`#${id}`}>{label}</a></li>)}
+        </ul>
+      </nav>
+      <div class="nh-body">
+        <section id="first" aria-labelledby="h-first">
+          <h2 id="h-first"><span class="nh-dia" aria-hidden="true"></span>Good first nights</h2>
+          <Fragment set:html={`<!--mg:nights--><p>Open the <a href="/events/">events list</a> to see what’s on.</p><!--/mg:nights-->`} />
+        </section>
+        {store.freePlay && <section id="free" aria-labelledby="h-free">
+          <h2 id="h-free"><span class="nh-dia" aria-hidden="true"></span>Free play</h2>
+          <p>{store.freePlay}. Bring a deck and find a table.</p>
+        </section>}
+        <section id="bring" aria-labelledby="h-bring">
+          <h2 id="h-bring"><span class="nh-dia" aria-hidden="true"></span>What to bring</h2>
+          <p>Each event page says what to bring.</p>
+        </section>
+        <section id="kids" aria-labelledby="h-kids">
+          <h2 id="h-kids"><span class="nh-dia" aria-hidden="true"></span>Kids and ages</h2>
+          <p>Each event shows “Kids welcome” or its age rule.</p>
+          {store.kids && <p>{store.kids}</p>}
+        </section>
+        <section id="pay" aria-labelledby="h-pay">
+          <h2 id="h-pay"><span class="nh-dia" aria-hidden="true"></span>Signing up and paying</h2>
+          <p>Some events are walk-in: just show up. Others hold a seat when you sign up on the event’s page, and you pay at the store when you arrive. If an event says “Arrive by”, come by then or your seat can go to the next person waiting.</p>
+        </section>
+        <section id="prerelease" aria-labelledby="h-pre">
+          <h2 id="h-pre"><span class="nh-dia" aria-hidden="true"></span>Prereleases</h2>
+          <p>Prerelease seats are pre-registered at the counter. The event page shows if seats are left.</p>
+        </section>
+        <section id="proxies" aria-labelledby="h-prox">
+          <h2 id="h-prox"><span class="nh-dia" aria-hidden="true"></span>Proxies</h2>
+          <p>cEDH: up to 10 proxies, approved by a judge.</p>
+        </section>
+        <section id="trade" aria-labelledby="h-trade">
+          <h2 id="h-trade"><span class="nh-dia" aria-hidden="true"></span>Trade-ins</h2>
+          <p>We buy trade-ins.</p>
+        </section>
+        <section id="here" aria-labelledby="h-here">
+          <h2 id="h-here"><span class="nh-dia" aria-hidden="true"></span>Getting here</h2>
+          <address>{a.street}<br />{a.city}, {a.region} {a.zip}</address>
+          {store.parking && <p>{store.parking}</p>}
+          <Fragment set:html={`<!--mg:today-hours--><!--/mg:today-hours-->`} />
+          <p class="visit-acts"><a class="btn btn-2" href={maps} target="_blank" rel="noopener"><Icon name="pin" />Directions<span class="vh"> (opens Google Maps)</span></a></p>
+        </section>
+        <section id="ask" aria-labelledby="h-ask">
+          <h2 id="h-ask"><span class="nh-dia" aria-hidden="true"></span>Still have a question?</h2>
+          <p>Call {tel ? <a href={tel}>{store.phone}</a> : store.phone}.{discord && <> Or ask in our <a href={discord} target="_blank" rel="noopener">Discord<span class="vh"> (opens Discord)</span></a>.</>}</p>
+        </section>
+      </div>
+    </div>
+  </main>
+</Base>

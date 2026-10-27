@@ -1,0 +1,82 @@
+---
+// Shared page frame: head, open-now strip, header, footer. Every value comes from src/content/store.json and is printed with {} (escaped).
+// The strip's status is a live region (<!--mg:strip-->) the server fills; the baked text is what a page shows if the server cannot.
+import '../styles/global.css';
+import store from '../content/store.json';
+import { safeUrl } from '../lib/events.js';
+import Icon from './Icon.astro';
+
+const { title = '', description = '', current = '', skip = '#main', skipLabel = 'Skip to the events', dynamicHead = false } = Astro.props;
+const a = store.address;
+const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
+const tel = safeUrl(store.phoneHref);
+const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
+const nav = [['This week', '/#week', 'home'], ['cEDH', '/#cedh', ''], ['New and preorders', '/#new', ''], ['Visit', '/#visit', ''], ['All events', '/events/', 'events'], ['New here?', '/new-here/', 'new-here']];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>try { var s = localStorage.getItem('mg-scheme'); if (s) document.querySelector('meta[name="color-scheme"]').content = s; } catch (e) {}</script>
+    {dynamicHead ? <Fragment set:html="<!--mg:head-->" /> : <><title>{title}</title><meta name="description" content={description} /></>}
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Crect x='15' y='9' width='21' height='30' rx='3.5' fill='%23C8161F'/%3E%3Cpath d='M25.5 15.5 31 24l-5.5 8.5L20 24z' fill='%23fff'/%3E%3C/svg%3E" />
+    <slot name="head" />
+    <script src="/js/site.js" defer is:inline></script>
+  </head>
+  <body>
+    <a class="skip" href={skip}>{skipLabel}</a>
+
+    <div class="openbar">
+      <div class="wrap openbar-in">
+        <Fragment set:html="<!--mg:strip--><p class='ob-status'><span class='ob-dot' aria-hidden='true'></span><span><strong>Hours coming soon.</strong> Call the shop for today’s hours.</span></p><!--/mg:strip-->" />
+        <p class="ob-addr">{a.street}, {a.city}</p>
+        {tel && <a class="ob-link" href={tel}><Icon name="phone" /><span class="ob-long">{store.phone}</span><span class="ob-short">Call</span></a>}
+        <a class="ob-link" href={maps} target="_blank" rel="noopener"><Icon name="pin" />Directions<span class="vh"> (opens Google Maps)</span></a>
+      </div>
+    </div>
+
+    <header class="site-head">
+      <div class="wrap head-in">
+        <a class="brand" href="/" aria-label={`${store.name}, home`}>
+          <!-- Placeholder wordmark (D13). Not the store's logo. -->
+          <svg class="mark" viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
+            <rect x="7" y="5" width="21" height="30" rx="3.5" transform="rotate(-13 17.5 20)" fill="none" stroke="var(--sign)" stroke-width="2.5"/>
+            <rect x="15" y="9" width="21" height="30" rx="3.5" fill="var(--flyer-red)"/>
+            <path d="M25.5 15.5 31 24l-5.5 8.5L20 24z" fill="#fff"/>
+          </svg>
+          <span class="brand-name">Mulligan<small>Games</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+          <ul>
+            {nav.map(([label, href, id]) => <li><a href={href} aria-current={id && id === current ? 'page' : undefined}>{label}</a></li>)}
+          </ul>
+        </nav>
+        <button class="theme-btn" id="theme-btn" type="button">
+          <Icon name="moon" class="i-moon" />
+          <Icon name="sun" class="i-sun" />
+          <span class="vh t-dark">Switch to dark theme</span><span class="vh t-light">Switch to light theme</span>
+        </button>
+      </div>
+    </header>
+
+    <slot />
+
+    <footer class="site-foot">
+      <div class="wrap foot-in">
+        <div>
+          <p class="foot-name">{store.name}</p>
+          <p>{a.street}, {a.city}, {a.region} {a.zip}<br />{tel ? <a href={tel}>{store.phone}</a> : store.phone}</p>
+        </div>
+        <ul class="foot-links">
+          <li><a href="/new-here/">New here?</a></li>
+          <li><a href="/events/">All events</a></li>
+          <li><a href="/events.ics">Calendar feed</a></li>
+          {social.map(([n, u]) => <li><a href={u} target="_blank" rel="noopener">{n}<span class="vh"> (opens in a new tab)</span></a></li>)}
+          <li><a href="/admin/">Staff sign-in</a></li>
+        </ul>
+      </div>
+    </footer>
+  </body>
+</html>

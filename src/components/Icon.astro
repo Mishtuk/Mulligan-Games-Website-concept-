@@ -1,0 +1,6 @@
+---
+// One icon from src/lib/icons.js. The paths are constants in our own code, never data, so set:html is allowed here (D20).
+import { ICONS } from '../lib/icons.js';
+const { name, class: cls = '' } = Astro.props;
+---
+<svg class={`ic${cls ? ' ' + cls : ''}`} viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><Fragment set:html={ICONS[name] ?? ''} /></svg>

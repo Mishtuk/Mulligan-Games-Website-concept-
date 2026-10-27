@@ -202,23 +202,25 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
   `src/lib/jsonld.js`, server `.ics` and `sitemap.xml` routes, `test/hours.test.js`, `test/ics.test.js`,
   `test/jsonld.test.js`.
 - **Needs:** P2.2, `DESIGN.md` front + events sections (incl. the P1.3b public additions).
-- **Done when:**
+- **Status:** P2.3a (public half: server pages, JSON-LD, `.ics`, sitemap, tests) reviewed and accepted by the boss
+  2026-10-26 (D24). Styling is with the designer. P2.3b owns the admin events items and store facts in admin.
   - [ ] Matches the signed-off prototype at 360 / 768 / 1280, light and dark; pages render server-side (work without JS;
         chips enhance).
-  - [ ] Admin edits appear on the public pages without a rebuild (markers), including cancellations.
-  - [ ] Open-now strip correct across midnight closes and holiday overrides (tested).
-  - [ ] `.ics` feed and per-event files include admin edits and exceptions (tested); JSON-LD validates (tested).
-  - [ ] Admin events (moved from P2.2b, D23): game colour band on each list row, game chips + search on the list,
+  - [x] Admin edits appear on the public pages without a rebuild (markers), including cancellations.
+  - [x] Open-now strip correct across midnight closes and holiday overrides (tested).
+  - [x] `.ics` feed and per-event files include admin edits and exceptions (tested); JSON-LD validates (tested).
+  - [ ] (P2.3b) Admin events (moved from P2.2b, D23): game colour band on each list row, game chips + search on the list,
         live card preview in the editor (the real P2.3 event card); the photo picker (VFW) for the room photo slot.
-  - [ ] Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
-        from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2).
-  - [ ] Every upcoming date has its own page (D16) with Event JSON-LD: name, start/end with UTC offset, location Place
+  - [ ] (P2.3b) Store facts editable in admin (hours, holiday overrides, address, phone, links, age policy, parking note), adapted
+        from VFW `site-build.js` / `post.js` / `content.js` (added 2026-10-26, Desktop note on #2). Until then
+        `store.json` is read once at server start (a change needs a restart); P2.3b makes it live.
+  - [x] Every upcoming date has its own page (D16) with Event JSON-LD: name, start/end with UTC offset, location Place
         with name and full address, offers (price, 0 when free, USD, availability from seats), `eventStatus`
-        (EventCancelled / EventRescheduled + `previousStartDate`); one weekly and one one-off pass Google's Rich
-        Results Test.
-  - [ ] Cards and event pages show Cancelled or Changed with "updated <date>"; cancelled dates stay listed, struck
-        through; D17 tags and the seat-release time show on card and page.
-  - [ ] `sitemap.xml` lists the public pages and every upcoming event date; `HobbyShop` JSON-LD has `sameAs`
+        (EventCancelled / EventRescheduled + `previousStartDate`) (field tests). Google's Rich Results Test moved
+        to P3.2 (needs the live domain, D24).
+  - [x] Cards and event pages show Cancelled or Changed with "updated <date>"; cancelled dates stay listed, struck
+        through; D17 tags and the seat-release time show on card and page. (Markup done; the strike is the designer's CSS.)
+  - [x] `sitemap.xml` lists the public pages and every upcoming event date; `HobbyShop` JSON-LD has `sameAs`
         (Facebook, TopDeck, Discord, Wizards locator) (tested).
   - [ ] "New here?" page from store facts and owner answers (Q20): what to bring, kids / age rule, pay at the store,
         proxies, prerelease and waitlist rules, parking, trade-ins; linked from the front page and footer.
@@ -282,7 +284,9 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 ### P3.2 Quality pass
 - **Owner:** Desktop coder. **Files:** as needed.
 - **Done when:** [ ] mobile Lighthouse performance 90+ and accessibility 100 on home and events (VFW's bar);
-  [ ] `npm test`, `npm audit`, CodeQL clean; [ ] works with JS off for public pages.
+  [ ] `npm test`, `npm audit`, CodeQL clean; [ ] works with JS off for public pages;
+  [ ] on the live domain (Q14): one weekly and one one-off date page pass Google's Rich Results Test, `robots.txt`
+  gets its `Sitemap:` line, and `/?now=2000-01-01T12:00` shows today's date (NODE_ENV=production, D24).
 
 ### P3.3 Design review of the build
 - **Owner:** Laptop designer (screenshots taken by Desktop researcher in Chrome).

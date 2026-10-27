@@ -72,7 +72,7 @@ export function occurrences(s, from, to, exceptions = []) {
     if (end && e?.start && x.start) end = hm(mins(end) + mins(e.start) - mins(x.start)); // a moved start keeps the length
     const arriveBy = start && Number.isInteger(s.arriveByMins) ? hm(mins(start) - s.arriveByMins) : null;
     return {
-      ...s, arriveBy, seriesId: s.id, slot, date: e?.movedTo || x.date, originalDate: x.date, start, end, capacity: e?.capacity ?? s.capacity,
+      ...s, arriveBy, baseStart: x.start, seriesId: s.id, slot, date: e?.movedTo || x.date, originalDate: x.date, start, end, capacity: e?.capacity ?? s.capacity,
       cancelled: e?.type === 'cancel', moved: !!e?.movedTo, changed: !!e && e.type !== 'cancel', note: e?.note ?? null, updated: e?.updated ?? null,
     };
   }).filter((o) => o.date >= from && o.date <= to);

@@ -29,10 +29,11 @@ export const dataScript = (s, today) => `<script type="application/json" id="mg-
 // <!--mg:name--> is replaced by live content. If the static page has baked content, wrap it as
 // <!--mg:name-->baked<!--/mg:name--> and the whole region is replaced. Unknown names are left alone.
 const MARKER = /<!--mg:([a-z-]+)-->(?:[\s\S]*?<!--\/mg:\1-->)?/g;
-/** Fill every marker in a page. today = etDay(). */
-export function injectMarkers(html, state, today) {
-  const parts = {
-    data: () => dataScript(state, today),
-  };
-  return html.replace(MARKER, (m, name) => parts[name]?.() ?? m);
+/** Fill every marker in a page. today = etDay(). extra = { name: () => markup } from src/lib/render.js: those functions must escape everything they
+ *  read from the database (the h tag does), because what they return is inserted as HTML. A throwing part leaves its marker, the static page's default. */
+export function injectMarkers(html, state, today, extra = {}) {
+  const parts = { ...extra, data: () => dataScript(state, today) };
+  return html.replace(MARKER, (m, name) => {
+    try { const v = parts[name]?.(); return v === undefined ? m : String(v); } catch { return m; }
+  });
 }

@@ -1,16 +1,113 @@
 ---
-// Placeholder until the front page is built from DESIGN.md (P2.3).
+// Front page (DESIGN.md 6). The fixed copy and layout are built here; every live region is a <!--mg:name--> marker that server.js fills from the
+// database on each request (src/lib/render.js), so admin edits and cancellations show without a rebuild. The baked text between a marker pair
+// is what a visitor sees if the server cannot fill it.
+import Base from '../components/Base.astro';
+import Icon from '../components/Icon.astro';
+import store from '../content/store.json';
+import { safeUrl } from '../lib/events.js';
+
+const a = store.address;
+const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
+const tel = safeUrl(store.phoneHref);
+const circuit = safeUrl(store.links?.topdeckCircuit) ?? safeUrl(store.links?.topdeck);
+const discord = safeUrl(store.links?.discord);
+const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mulligan Games</title>
-  </head>
-  <body>
-    <main>
-      <h1>Mulligan Games: site coming soon</h1>
-    </main>
-  </body>
-</html>
+<Base title="Mulligan Games, Warminster PA: events this week" description="Card and game shop in Warminster, PA. Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights every week. See what's on, sign up and plan your visit." current="home" skip="#week" skipLabel="Skip to this week's events">
+  <Fragment slot="head"><Fragment set:html="<!--mg:shop-ld-->" /></Fragment>
+  <main id="main">
+    <!-- 2. Hero: the store's own flyer, made live -->
+    <section class="hero" aria-labelledby="hero-h">
+      <div class="wrap hero-in">
+        <Fragment set:html={`<!--mg:hero--><div class="hero-copy"><h1 class="hero-h" id="hero-h">Card and game nights every week in Warminster.</h1></div><!--/mg:hero-->`} />
+      </div>
+    </section>
+
+    <!-- 3. This week at Mulligan -->
+    <section class="sec week" id="week" aria-labelledby="week-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="week-h">This week at Mulligan</h2>
+          <a class="more" href="/events/">All events and sign-ups<Icon name="chevron" /></a>
+        </div>
+        <Fragment set:html={`<!--mg:week--><p class="day-skip">The schedule is on the <a href="/events/">events page</a>.</p><!--/mg:week-->`} />
+      </div>
+    </section>
+
+    <!-- 4. cEDH strip (D4) -->
+    <section class="cedh" id="cedh" aria-labelledby="cedh-h">
+      <div class="wrap cedh-in">
+        <div class="cedh-copy">
+          <h2 id="cedh-h">cEDH at Mulligan</h2>
+          <p class="cedh-lede">A monthly Championship Series, 5K weekends and a November invitational. Forty to 120 players an event, and a dual land on the line every month.</p>
+          <dl class="cedh-facts">
+            <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
+            <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
+            {circuit && <div><dt>Standings</dt><dd><a href={circuit} target="_blank" rel="noopener">Circuit points on TopDeck<span class="vh"> (opens TopDeck)</span></a></dd></div>}
+            {store.parking && <div><dt>Parking</dt><dd>{store.parking}</dd></div>}
+          </dl>
+        </div>
+        <div class="cedh-next">
+          <h3>Next cEDH events</h3>
+          <Fragment set:html={`<!--mg:cedh--><!--/mg:cedh-->`} />
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. New and preorders -->
+    <section class="sec new" id="new" aria-labelledby="new-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="new-h">New and preorders</h2>
+          <p class="sec-note">Preorders are taken at the counter or by phone.</p>
+        </div>
+        <ul class="rel-list"><Fragment set:html={`<!--mg:releases--><!--/mg:releases-->`} /></ul>
+      </div>
+    </section>
+
+    <!-- 6. Visit -->
+    <section class="sec visit" id="visit" aria-labelledby="visit-h">
+      <div class="wrap visit-in no-photo">
+        <div class="visit-hours">
+          <h2 id="visit-h">Visit</h2>
+          <Fragment set:html={`<!--mg:hours--><p>We’re confirming our opening hours. Call us for today’s hours.</p><!--/mg:hours-->`} />
+        </div>
+        <div class="visit-where">
+          <h3>Find us</h3>
+          <address>{a.street}<br />{a.city}, {a.region} {a.zip}</address>
+          <p class="visit-acts">
+            <a class="btn btn-2" href={maps} target="_blank" rel="noopener"><Icon name="pin" />Directions<span class="vh"> (opens Google Maps)</span></a>
+            {tel && <a class="btn btn-2" href={tel}><Icon name="phone" />{store.phone}</a>}
+          </p>
+          {store.parking && <p><strong>Parking:</strong> {store.parking}</p>}
+          <h3>Good to know</h3>
+          <dl class="faq">
+            <dt>New here?</dt>
+            <dd><a href="/new-here/">Start here.</a> What to expect and which nights are good for a first visit.</dd>
+            {store.kids && <><dt>Can kids come?</dt><dd>{store.kids}</dd></>}
+            {store.freePlay && <><dt>Can I just come and play?</dt><dd>{store.freePlay}.</dd></>}
+            <dt>How do preorders work?</dt>
+            <dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Community -->
+    <section class="sec community" id="community" aria-labelledby="comm-h">
+      <div class="wrap comm-in">
+        <div class="comm-discord">
+          <h2 id="comm-h">Between events</h2>
+          {discord
+            ? <><p>Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
+              <p><a class="btn btn-act" href={discord} target="_blank" rel="noopener"><Icon name="chat" />Join the Discord<span class="vh"> (opens Discord)</span></a></p></>
+            : <p>Follow the shop to hear about new events first.</p>}
+          <ul class="socials">
+            {social.map(([n, u]) => <li><a href={u} target="_blank" rel="noopener">{n}<span class="vh"> (opens in a new tab)</span></a></li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</Base>

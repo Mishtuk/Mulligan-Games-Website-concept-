@@ -14,6 +14,14 @@ import {
   signSession, startupProblem, verifySession, SESSION_DAYS,
 } from './src/auth.js';
 import { etDay, injectMarkers } from './src/lib/state.js';
+import store from './src/content/store.json' with { type: 'json' };
+import releases from './src/content/releases.json' with { type: 'json' };
+import { etNow, NOW_TEST, realDay } from './src/lib/clock.js';
+import * as view from './src/lib/render.js';
+import { calendar, feedOccurrences } from './src/lib/ics.js';
+import { eventLd, ldScript, shopLd } from './src/lib/jsonld.js';
+import { seatState } from './src/lib/seats.js';
+import { sitemap } from './src/lib/sitemap.js';
 import { createStats } from './src/stats/index.js';
 
 const ROOT = import.meta.dirname;
@@ -145,10 +153,11 @@ async function serveStatic(nreq, nres, url) {
   if (type.startsWith('text/html')) {
     const isAdmin = p.startsWith('/admin');
     let html = readFileSync(file, 'utf8');
-    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay()); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
+    const tpl = html; // CSP hashes come from the built page, never from what was injected into it
+    if (!isAdmin) { try { html = injectMarkers(html, getState(db), etDay(), liveParts(url)); } catch (e) { log('inject failed, serving the static page', e.message); } } // fail open: static HTML is a correct default
     headers['Cache-Control'] = isAdmin ? 'no-store' : 'no-cache';
     if (isAdmin) headers['X-Robots-Tag'] = 'noindex, nofollow';
-    Object.assign(headers, baseHeaders(url, html)); // CSP hashes for this page's inline scripts
+    Object.assign(headers, baseHeaders(url, tpl)); // CSP hashes for the built page's own inline scripts: injected script text gets none
     const body = compress(nreq, Buffer.from(html), type, headers);
     nres.writeHead(200, headers);
     if (!isAdmin) stats.record(nreq, nres);
@@ -180,6 +189,85 @@ function sendRange(nreq, nres, file, st, headers) {
   nres.writeHead(status, headers);
   if (nreq.method === 'HEAD') return nres.end();
   createReadStream(file, { start, end }).on('error', () => nres.destroy()).pipe(nres);
+}
+
+// ---------- live public pages (D11, D16): rendered from the database on every request, so admin edits and cancellations show without a rebuild ----------
+const FAMILY = Object.fromEntries(GAMES.map((g) => [g.id, g.family]));
+/** The data the renderers read. ?now=YYYY-MM-DDTHH:MM (store time) sets the clock outside production, for screenshots and tests. */
+function publicCtx(url) {
+  const t = url.searchParams.get('now'), keepNow = !PROD && NOW_TEST.test(t ?? '') && realDay(t.slice(0, 10)) ? t : null;
+  return { store, series: listSeries(db), exceptions: listExceptions(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL };
+}
+/** Marker name -> function, for injectMarkers(); the database is read only when a page actually has a marker. */
+function liveParts(url, more = {}) {
+  let c;
+  const ctx = () => (c ??= publicCtx(url));
+  const script = (obj) => view.h`<script type="application/ld+json">${view.safe(ldScript(obj))}</script>`;
+  return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), cedh: () => view.cedh(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
+    events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(store, PUBLIC_URL)), ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
+}
+/** tpl = the built page before injectMarkers(): only its inline scripts get CSP hashes. */
+function sendHtml(nreq, nres, url, html, tpl, status = 200) {
+  const headers = { ...baseHeaders(url, tpl), 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' };
+  const body = compress(nreq, Buffer.from(html), 'text/html; charset=utf-8', headers);
+  nres.writeHead(status, headers);
+  if (status === 200) stats.record(nreq, nres);
+  nres.end(nreq.method === 'HEAD' ? undefined : body);
+}
+function sendText(nreq, nres, url, body, type, extra = {}) {
+  const headers = { ...baseHeaders(url), 'Content-Type': type, 'Cache-Control': 'no-cache', ...extra };
+  const buf = compress(nreq, Buffer.from(body), type, headers);
+  nres.writeHead(200, headers);
+  nres.end(nreq.method === 'HEAD' ? undefined : buf);
+}
+const template = (name) => { try { return readFileSync(join(DIST, name, 'index.html'), 'utf8'); } catch { return null; } };
+
+/** One event date: /events/<id>?date=<slot> (D16). No date: 302 to the next date that is not cancelled. */
+function eventPage(nreq, nres, url, id) {
+  const tpl = template('event-page');
+  if (!tpl) return notFound(nreq, nres, url);
+  const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === id && x.enabled !== false);
+  const page = (status, body, head = view.h`<title>Event not found | ${store.name}</title>`) => {
+    let out = injectMarkers(tpl, getState(db), etDay(), { ...liveParts(url), head: () => head, event: () => body });
+    if (status !== 200) out = out.replace('</head>', '<meta name="robots" content="noindex"></head>');
+    return sendHtml(nreq, nres, url, out, tpl, status);
+  };
+  if (!s) return page(404, view.eventMissing(ctx, null));
+  if (!url.searchParams.has('date')) {
+    const next = view.nextDate(ctx, s);
+    if (!next) return page(404, view.eventMissing(ctx, s));
+    nres.writeHead(302, { ...baseHeaders(url), Location: ctx.keepNow ? `${view.eventPath(next)}&now=${encodeURIComponent(ctx.keepNow)}` : view.eventPath(next) });
+    return nres.end();
+  }
+  const o = view.findOccurrence(ctx, s, url.searchParams.get('date'), url.searchParams.get('time'));
+  if (!o) return page(404, view.eventMissing(ctx, s));
+  const st = seatState(o, ctx.now.m), abs = PUBLIC_URL + view.eventPath(o), ld = eventLd(o, st, store, abs);
+  const desc = `${o.title} at ${store.name} in ${store.address.city}, ${store.address.region} on ${view.fmtLong(o.date)}. ${view.timeLine(o)}.`;
+  const head = view.h`<title>${`${o.title}, ${view.fmtLong(o.date)}${o.cancelled ? ' (cancelled)' : ''} | ${store.name}`}</title><meta name="description" content="${desc}"><link rel="canonical" href="${abs}">${ld ? view.h`<script type="application/ld+json">${view.safe(ldScript(ld))}</script>` : ''}`;
+  return page(200, view.eventPage(ctx, o), head);
+}
+
+/** Server-made public routes: the calendar feed, one-date calendar files, sitemap.xml and the event date pages. Returns true when it answered. */
+async function publicRoute(nreq, nres, url) {
+  const p = url.pathname;
+  if (p === '/events.ics') {
+    const ctx = publicCtx(url), game = url.searchParams.get('game');
+    const occs = feedOccurrences(ctx.series, ctx.exceptions, ctx.now.ymd, 120, GAMES.some((g) => g.id === game) ? game : null, FAMILY);
+    sendText(nreq, nres, url, calendar(occs, store, PUBLIC_URL, { name: `${store.name} events` }), TYPES['.ics']);
+    return true;
+  }
+  if (p === '/sitemap.xml') { const ctx = publicCtx(url); sendText(nreq, nres, url, sitemap(ctx.series, ctx.exceptions, PUBLIC_URL, etDay()), TYPES['.xml']); return true; }
+  if (p === '/event-page' || p.startsWith('/event-page/')) { notFound(nreq, nres, url); return true; } // the built template, not a page
+  let m = /^\/events\/([a-z0-9][a-z0-9-]{0,59})\.ics$/.exec(p);
+  if (m) {
+    const ctx = publicCtx(url), s = ctx.series.find((x) => x.id === m[1] && x.enabled !== false), o = s && view.findOccurrence(ctx, s, url.searchParams.get('date'), url.searchParams.get('time'));
+    if (!o) { notFound(nreq, nres, url); return true; }
+    sendText(nreq, nres, url, calendar([o], store, PUBLIC_URL, { name: o.title }), TYPES['.ics'], { 'Content-Disposition': `attachment; filename="mulligan-${s.id}-${o.date}.ics"` });
+    return true;
+  }
+  m = /^\/events\/([a-z0-9][a-z0-9-]{0,59})\/?$/.exec(p);
+  if (m) { eventPage(nreq, nres, url, m[1]); return true; }
+  return false;
 }
 
 // ---------- sign-in ----------
@@ -414,6 +502,7 @@ const server = createServer(async (nreq, nres) => {
   try {
     if (!url.pathname.startsWith('/api/')) {
       if (!['GET', 'HEAD'].includes(nreq.method)) { nres.writeHead(405, baseHeaders(url)).end(); return; }
+      if (await publicRoute(nreq, nres, url)) return;
       return await serveStatic(nreq, nres, url);
     }
     const headers = new Headers();
