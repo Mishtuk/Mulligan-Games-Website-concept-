@@ -100,3 +100,7 @@ write the answer and date under the question and, if it changes a ruling, add an
 ## Redesign (2026-10-27; docs/research/wix-templates-desktop.md)
 31. **"Meet the shop":** a short story in your own words (who runs Mulligan, why you opened it, what you want it to
     be for players) and a photo of the owners. The best shop templates open with this; we would put it under This week.
+32. **Which events need a results reminder?** Today the admin reminds about every past date in the last 14 days, so a
+    fresh install shows "28 past events need results", casual free nights included. Proposed: remind only for events that
+    name an official tool (EventLink, Play! Pokemon, TopDeck...) or had check-ins / a walk-in headcount, and only from the
+    first day results are used. OK, or a different rule?
