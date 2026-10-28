@@ -42,7 +42,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** own Wix template research for the round-8 redesign (owner asked both machines): `docs/research/wix-templates-desktop.md`. Then the round-8 port. D-numbers: Laptop odd, Desktop even (next D59 / D60).
+- **Desktop:** Wix research pushed (`docs/research/wix-templates-desktop.md`). Next: round-8 port when the Laptop posts it; meanwhile P2.7 cEDH section. D-numbers: Laptop odd, Desktop even (next D59 / D60).
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every

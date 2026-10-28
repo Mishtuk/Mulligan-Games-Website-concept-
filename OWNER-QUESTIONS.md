@@ -96,3 +96,7 @@ write the answer and date under the question and, if it changes a ruling, add an
     Bandai TCG+), or only sanctioned ones? Today reminds about any event that names a tool until "Reported" is ticked.
 30. **Events nobody came to:** should a date with 0 players still ask for results, or drop off the reminder by itself?
     Today it stays until staff save a result (players 0 is fine).
+
+## Redesign (2026-10-27; docs/research/wix-templates-desktop.md)
+31. **"Meet the shop":** a short story in your own words (who runs Mulligan, why you opened it, what you want it to
+    be for players) and a photo of the owners. The best shop templates open with this; we would put it under This week.
