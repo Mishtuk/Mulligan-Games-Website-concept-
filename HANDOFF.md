@@ -42,7 +42,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** (1) #16 Desktop part, hero montage encode (`tools/hero-montage.sh`, `public/media/video/hero*`). (2) Then round-7 port (3d832d0): `src/`, `public/`, `server.js`, `test/`.
+- **Desktop:** round-7 port + VFW-style video hero (#16) + owner headline (combined): `src/`, `public/`, `server.js`, `test/`. Hero files done (234a2d8).
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
