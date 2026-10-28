@@ -2,7 +2,7 @@
  * Values come from tokens.css; site.css (buttons, tags, chips, stat box, event card) loads first. */
 
 /* ---------- more button and tag kinds ---------- */
-.btn-sm { min-height: 2.5rem; padding: 0 0.8rem; font-size: var(--t-sm); }
+.btn-sm { min-height: 2.5rem; padding: 0 1rem; font-size: var(--t-sm); }
 .btn-bad { background: var(--surface); color: var(--bad); border-color: var(--bad); }
 .btn-bad:hover { background: var(--bad-bg); }
 .btn-bad-fill { background: var(--bad); color: var(--on-act); }
@@ -33,12 +33,12 @@
 .chk input { width: 1.5rem; height: 1.5rem; flex: none; accent-color: var(--act); }
 
 /* ---------- dialogs ---------- */
-.dlg { width: min(calc(100% - 1rem), 36rem); max-height: min(92dvh, 56rem); padding: 0; border: 1px solid var(--line-strong); border-radius: var(--r-card); background: var(--surface); color: var(--ink); overflow: auto; box-shadow: 0 24px 60px -20px #000a; }
-.dlg::backdrop { background: rgb(20 16 14 / 0.62); }
+.dlg { width: min(calc(100% - 1rem), 36rem); max-height: min(92dvh, 56rem); padding: 0; border: 1px solid var(--line-strong); border-radius: var(--r-panel); background: var(--surface); color: var(--ink); overflow: auto; box-shadow: var(--lift-panel); }
+.dlg::backdrop { background: rgb(23 18 14 / 0.6); }
 .dlg-det { width: min(calc(100% - 1rem), 42rem); }
 .dlg-in { display: grid; }
 .dlg-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s4); background: var(--surface); border-bottom: 1px solid var(--line); }
-.dlg-h { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 850; }
+.dlg-h { font-size: var(--t-card); line-height: 1.15; }
 .dlg-x { display: grid; place-items: center; width: var(--tap); height: var(--tap); border: 2px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink); cursor: pointer; }
 .dlg-x:hover { border-color: var(--ink); }
 .dlg-body { padding: var(--s4); }
@@ -66,7 +66,7 @@
 .su-go .spin { border-color: color-mix(in oklab, var(--on-act) 35%, transparent); border-top-color: var(--on-act); }
 .su-done { display: grid; gap: var(--s2); outline: none; }
 .su-done p { margin: 0; }
-.su-big { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.4rem; line-height: 1; color: var(--ink); }
+.su-big { font-family: var(--font-display); font-weight: 600; font-size: 2rem; line-height: 1.05; color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
 .su-done .det-acts { margin-top: var(--s3); }
 
 /* ---------- event detail (round 4): picture, head, one action box, text sections with hairlines ---------- */
@@ -77,10 +77,10 @@
 .det-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .det-head { display: grid; gap: var(--s2); padding: var(--s4) var(--s4) var(--s3); }
 .det-head p { margin: 0; }
-.det-kicker { font-size: var(--t-sm); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mark); }
-.det-h { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s1) var(--s3); font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 800; font-size: clamp(1.9rem, 1.3rem + 2.6vw, 3rem); line-height: 1.05; }
+.det-kicker { font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.01em; color: var(--kicker); }
+.det-h { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s1) var(--s3); font-family: var(--font-display); font-weight: 600; font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem); line-height: 1.1; }
 .det-h:focus { outline: none; }
-.det-price { font-size: var(--t-xl); font-weight: 750; }
+.det-price { font-family: var(--font-display); font-size: var(--t-xl); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
 .det-gl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); font-size: var(--t-sm); }
 .det-time { display: flex; align-items: center; gap: var(--s2); font-size: var(--t-md); font-weight: 650; }
 .det-time .ic { color: var(--ink-2); }
@@ -88,20 +88,21 @@
 .det-banner-bad { background: var(--bad-bg); color: var(--bad); font-weight: 650; }
 .det-next { font-weight: 750; }
 .det-tags { display: flex; flex-wrap: wrap; gap: var(--s2); }
-.det-act { display: grid; gap: var(--s3); margin: var(--s2) var(--s4) var(--s4); padding: var(--s4); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--lift); }
+.det-act { display: grid; gap: var(--s3); margin: var(--s2) var(--s4) var(--s4); padding: var(--s4); background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-card); box-shadow: var(--lift); }
 .det-act p { margin: 0; }
 .det-state { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s3); font-size: var(--t-md); font-weight: 650; }
-.det-big { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.4rem; line-height: 1; }
+.det-big { font-family: var(--font-display); font-weight: 600; font-size: 2.4rem; line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
 .det-how { display: flex; align-items: center; gap: var(--s2); font-size: var(--t-sm); color: var(--ink-2); }
 .det-walk { font-size: var(--t-md); font-weight: 700; color: var(--ink); }
 .det-go { width: 100%; justify-content: center; }
 .det-ics { justify-self: start; }
 .det-sec { margin: 0 var(--s4); padding-block: var(--s4); border-top: 1px solid var(--line); display: grid; gap: var(--s3); justify-items: start; }
-.det-sec > h3 { margin: 0; font-size: var(--t-lg); font-weight: 800; }
+.det-sec > h3 { margin: 0; font-size: var(--t-card); line-height: 1.15; }
 .det-sec p { margin: 0; }
 .det-list { margin: 0; padding: 0; display: grid; gap: var(--s2); width: 100%; }
-.det-list > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
-.det-list dt { font-size: var(--t-xs); font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+.det-list > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: var(--s2); border-top: 1px solid var(--line); }
+.det-list > div:first-child { border-top: 0; padding-top: 0; }
+.det-list dt { font-size: var(--t-sm); font-weight: 700; color: var(--ink-2); }
 .det-list dd { margin: 0; font-size: var(--t-md); }
 .det-desc { max-width: 62ch; }
 .det-dates { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2) var(--s4); width: 100%; }
@@ -116,7 +117,7 @@
 .dlg-su-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s4); border-bottom: 1px solid var(--line); }
 @media (min-width: 640px) {
   .det-list > div { grid-template-columns: 8rem minmax(0, 1fr); gap: var(--s3); }
-  .det-list dt { font-size: var(--t-sm); font-weight: 650; text-transform: none; letter-spacing: 0; }
+  .det-list dt { font-size: var(--t-sm); font-weight: 700; }
   .det-go { width: auto; justify-self: start; min-width: 14rem; }
 }
 @media (max-width: 639px) { .det-dates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

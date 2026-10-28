@@ -308,20 +308,93 @@
     im.style.objectPosition = /^\d{1,3}% \d{1,3}%$/.test(p.pos || '') ? p.pos : '50% 50%';
     sp.appendChild(im); return sp;
   };
+  /* ---------- the one action of a row (round 8, 3.2) ----------
+   * opts.action: 'link'   -> Sign up / Join the waitlist are <a href="<base>#su-<key>"> (front page)
+   *              'button' -> they are <button data-signup="<key>"> (events page: opens the form in place)
+   *              null / undefined -> no .dl-act at all (the old rows)
+   * One control per state: open/few/needs = .btn-act "Sign up"; waitlist = .btn-2 "Join the waitlist"; external = .btn-2 to the tool
+   * (rel=noopener, .vh "(opens X)"); walk-in, closed, full, counter, invite-only = a.dl-more "Details ›" (hidden under 768, the row is the
+   * link); cancelled = span.stamp (no button). Built with createElement + textContent. */
+  function rowAct(occ, st, base, detailHref, mode) {
+    var s = occ.series, tool = s.tool || {}, box = document.createElement('span'), c;
+    function mkn(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+    box.className = 'dl-act';
+    function signCtl(cls, label) {
+      if (mode === 'button') { c = mkn('button', 'btn ' + cls + ' btn-row', label); c.type = 'button'; c.setAttribute('data-signup', occ.key); }
+      else { c = mkn('a', 'btn ' + cls + ' btn-row', label); c.href = (base || 'events.html') + '#su-' + encodeURIComponent(occ.key); }
+      return c;
+    }
+    function more() { var a = mkn('a', 'dl-more', 'Details '); a.href = detailHref; a.appendChild(document.createTextNode('›')); return a; }
+    if (occ.cancelled || st.state === 'cancelled') {
+      var sp = mkn('span', 'stamp'); sp.appendChild(ic('cancel')); sp.appendChild(document.createTextNode('Cancelled')); box.appendChild(sp); return box;
+    }
+    switch (st.state) {
+      case 'open': case 'few': case 'needs': box.appendChild(signCtl('btn-act', 'Sign up')); break;
+      case 'waitlist': box.appendChild(signCtl('btn-2', 'Join the waitlist')); break;
+      case 'external':
+        if (s.inviteOnly || !tool.url) { box.appendChild(more()); break; }
+        c = mkn('a', 'btn btn-2 btn-row', tool.cta || 'Sign up on ' + (tool.name || 'another site'));
+        c.href = MG.safeUrl(tool.url); c.target = '_blank'; c.rel = 'noopener';
+        c.appendChild(mkn('span', 'vh', ' (opens ' + (tool.name || 'another site') + ')')); c.appendChild(ic('external', 'ic-ext'));
+        box.appendChild(c); break;
+      default: box.appendChild(more());
+    }
+    return box;
+  }
+  // the bits line for a row that has an action: the button already says "Sign up" / the tool's CTA / "Cancelled", so those words are dropped
+  function rowBits(occ, st, g, s, withAct) {
+    var bits = [g.short, MG.fmtFee(s.fee)];
+    if (st.state !== 'walkin') {
+      var skip = withAct && ((st.state === 'open' && !st.cap) || st.state === 'external' || st.state === 'cancelled');
+      if (!skip) bits.push(V.seatWords(st, s));
+    }
+    return bits;
+  }
+
   // returns an <li>; everything is built with createElement + textContent (owner rule)
-  V.compactLine = function (occ, now, base, photo) {
-    var s = occ.series, st = MG.seatState(occ, now), g = MG.game(s.game);
+  // opts (optional): { action: 'link' | 'button' | null }, see rowAct
+  V.compactLine = function (occ, now, base, photo, opts) {
+    opts = opts || {};
+    var s = occ.series, st = MG.seatState(occ, now), g = MG.game(s.game), withAct = opts.action === 'link' || opts.action === 'button';
     function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
-    var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', st.state);
+    var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', occ.cancelled ? 'cancelled' : st.state);
     var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot); // hidden on screen when a thumb is shown, kept for print
     if (photo) li.appendChild(V.photoSpan(photo, 'dl-ph ph'));
     var main = mk('span', 'dl-main');
     main.appendChild(mk('span', 'dl-time', MG.fmtTime(occ.start)));
-    var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = (base || 'events.html') + '#e-' + encodeURIComponent(occ.key); t.appendChild(a); main.appendChild(t);
-    var bits = [g.short, MG.fmtFee(s.fee)]; if (st.state !== 'walkin') bits.push(V.seatWords(st, s)); // walk-in is said once per page (F2)
-    main.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    var t = mk('span', 'dl-title'), a = mk('a', null, s.title), href = (base || 'events.html') + '#e-' + encodeURIComponent(occ.key);
+    a.href = href; t.appendChild(a); main.appendChild(t);
+    main.appendChild(mk('span', 'dl-bits', rowBits(occ, st, g, s, withAct).join(' · '))); // walk-in is said once per page (F2)
     li.appendChild(main);
+    if (withAct) li.appendChild(rowAct(occ, st, base, href, opts.action));
     return li;
+  };
+
+  /* ---------- the Tonight band (round 8, 3.1): the first 3 dates of one day as event cards, the rest as rows ----------
+   * occs: occurrences of the lead day. opts: { href: base for links (default 'events.html'), photos: { occKey: photo } for cards and rows,
+   * action: 'link' | 'button' for the rows (default 'link') }.
+   * Returns { cards: div.tn-cards, rest: ul.day-lines | null, restBox: div.tn-also (h3 "Also tonight" + rest) | null }; null for no dates.
+   * Card ids become 'tn-<key>' so the same dates can also appear elsewhere on the page. */
+  V.tonightBand = function (occs, now, opts) {
+    opts = opts || {};
+    if (!occs || !occs.length) return null;
+    var list = occs.slice().sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : a.series.title.localeCompare(b.series.title); });
+    var photos = opts.photos || {}, base = opts.href || 'events.html';
+    var cards = document.createElement('div'); cards.className = 'tn-cards';
+    list.slice(0, 3).forEach(function (o) {
+      var tpl = document.createElement('template'); tpl.innerHTML = MG.eventCard(o, now, { href: base, photo: photos[o.key] }); // MG.eventCard escapes every value
+      var art = tpl.content.firstElementChild, title = art.querySelector('.ev-title');
+      art.removeAttribute('id'); if (title) { title.id = 'tn-' + o.key; art.setAttribute('aria-labelledby', title.id); }
+      cards.appendChild(art);
+    });
+    var rest = null, restBox = null;
+    if (list.length > 3) {
+      rest = document.createElement('ul'); rest.className = 'day-lines';
+      list.slice(3).forEach(function (o) { rest.appendChild(V.compactLine(o, now, base, photos[o.key], { action: opts.action || 'link' })); });
+      restBox = document.createElement('div'); restBox.className = 'tn-also';
+      var h = document.createElement('h3'); h.className = 'tn-also-h'; h.textContent = opts.alsoTitle || 'Also tonight'; restBox.appendChild(h); restBox.appendChild(rest);
+    }
+    return { cards: cards, rest: rest, restBox: restBox };
   };
 
   /* ---------- the Tonight block at the top of the events page (R16): every date for one day, in time order ---------- */
@@ -380,20 +453,24 @@
   };
   V.weeklyCard = function (s, now, from, to) { var a = V.weeklyCardEl(s, now, from, to); return a ? a.outerHTML : ''; };
 
-  // phone row (F7): game dot, time, linked title, then only the fee and what is unusual
-  V.weeklyRow = function (s, now, from, to) {
+  // one row per repeating series (F7 phone row, round 8: rows at every width). opts (optional): { action: 'link' | 'button' | null }, see rowAct
+  V.weeklyRow = function (s, now, from, to, opts) {
+    opts = opts || {};
     var nx = V.weeklyNext(s, now, from, to); if (!nx) return null;
-    var o = nx.shown, first = nx.first, st = MG.seatState(o, now), g = MG.game(s.game);
+    var o = nx.shown, first = nx.first, st = MG.seatState(o, now), g = MG.game(s.game), withAct = opts.action === 'link' || opts.action === 'button';
     function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
-    var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', st.state);
+    var li = mk('li', 'day-line'); li.setAttribute('data-game', g.id); li.setAttribute('data-state', o.cancelled ? 'cancelled' : st.state);
     var dot = mk('span', 'dl-dot'); dot.setAttribute('aria-hidden', 'true'); li.appendChild(dot);
-    li.appendChild(mk('span', 'dl-time', MG.fmtTime(o.start)));
-    var t = mk('span', 'dl-title'), a = mk('a', null, s.title); a.href = 'events.html#e-' + encodeURIComponent(o.key); t.appendChild(a); li.appendChild(t);
+    var main = mk('span', 'dl-main');
+    main.appendChild(mk('span', 'dl-time', MG.fmtTime(o.start)));
+    var t = mk('span', 'dl-title'), a = mk('a', null, s.title), href = 'events.html#e-' + encodeURIComponent(o.key); a.href = href; t.appendChild(a); main.appendChild(t);
     var bits = [MG.fmtFee(s.fee)];
-    if (st.state !== 'walkin') bits.push(V.seatWords(st, s));
+    if (st.state !== 'walkin' && !(withAct && ((st.state === 'open' && !st.cap) || st.state === 'external' || st.state === 'cancelled'))) bits.push(V.seatWords(st, s));
     if (first.cancelled && o !== first) bits.push(MG.fmtDate(MG.parseYmd(first.date)) + ' cancelled');
     else if (first.note && !first.cancelled) bits.push('changed');
-    li.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    main.appendChild(mk('span', 'dl-bits', bits.join(' · ')));
+    li.appendChild(main);
+    if (withAct) li.appendChild(rowAct(o, st, 'events.html', href, opts.action));
     return li;
   };
 })();

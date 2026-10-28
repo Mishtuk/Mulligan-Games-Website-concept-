@@ -33,7 +33,6 @@
     var q = p.toString();
     return (q ? '?' + q : location.pathname.split('/').pop() || 'index.html');
   }
-  function timeWord(d) { return d.getHours() >= 17 ? 'Tonight' : 'Today'; }
 
   // keep ?now= on links to other pages (same logic as U.href in js/ui.js)
   function keepNow(path) {
@@ -140,84 +139,130 @@
     var ov = MG.hoursFor(today), w = 'Free play every day we’re open, big tables, and a crew who knows every format.';
     return ov.override && ov.note && ov.note.length <= 60 ? w + ' ' + ov.note : w;
   }
+
+  /* ---------- lead day (round 8, 3.1): today if anything is still to come or on now, else the next day with events in 7 days ---------- */
+  var leadYmd = (function () {
+    for (var i = 0; i < 7; i++) {
+      var y = MG.ymd(MG.addDays(now, i));
+      if (week.some(function (o) { return o.date === y && live(o); })) return y;
+    }
+    return null;
+  })();
+  // "Tonight" from 5 PM, or when every event still to come today starts at 5 PM or later; otherwise "Today"
+  function tonightWord() {
+    var left = week.filter(function (o) { return o.date === today && live(o); });
+    return now.getHours() >= 17 || (left.length && left.every(function (o) { return o.start >= '17:00'; })) ? 'Tonight' : 'Today';
+  }
+
+  /* ---------- 2. hero ---------- */
   function renderHero(st) {
     renderChip(st);
-    $('#hero-h').textContent = 'Shuffle up. Everyone’s welcome.';
-    $('#hero-sub').textContent = sub();
-    // next up: the next start time (or what's on now if nothing else starts tonight)
+    $('#hero-sub').textContent = sub(); // the headline and its two spans are static in index.html
+    // next up (in the strip): the next start time, or what's on now if nothing else starts
+    var nx = $('#nextup');
     var upcoming = week.filter(function (o) { return live(o) && o.startAt > now; });
     var onNow = week.filter(function (o) { return live(o) && o.startAt <= now; });
     var slot = upcoming.length ? groupByStart(upcoming)[0] : onNow.length ? { date: today, start: onNow[0].start, items: onNow, on: true } : null;
-    if (!slot) return;
+    if (!slot) { nx.hidden = true; return; }
     var titles = slot.items.map(function (o) { return o.series.title; });
     var shown = titles.slice(0, 2), more = titles.length - shown.length;
-    var rel = MG.relDay(slot.date, now);
-    $('#nextup-k').textContent = slot.on ? 'On now' : rel === 'today' ? 'Next up' : 'Next up ' + rel;
+    $('#nextup-k').textContent = slot.on ? 'On now' : slot.date === today ? tonightWord() : 'Next up ' + MG.dayShort(MG.parseYmd(slot.date));
     $('#nextup-time').textContent = MG.fmtTime(slot.start);
     $('#nextup-what').textContent = shown.join(', ') + (more ? ' and ' + more + ' more' : '');
-    $('#nextup').setAttribute('href', '#d-' + slot.date);
+    nx.hidden = false;
   }
-  // one photo per live event of a day, picked once so cards, rows and the strip agree (and a chip filter doesn't reshuffle them)
-  // Today and the next day with events (the photo-card days) share one 'used' map, so Saturday's Draft does not repeat
-  // Friday's Magic picture just above it; the one-line days each start fresh (small thumbs).
-  var phCache = {}, cardUsed = {}, cardDays = null;
-  function isCardDay(ymd) {
-    if (!cardDays) {
-      cardDays = [MG.ymd(now)];
-      for (var i = 1; i < 7; i++) { var y = MG.ymd(MG.addDays(now, i)); if (week.some(function (o) { return o.date === y; })) { cardDays.push(y); break; } }
+
+  /* ---------- 2b. Tonight band (3.1): the lead day as event cards (first 3) and rows (the rest) ---------- */
+  function renderTonight() {
+    var h2 = $('#tonight-h'), kick = $('#tonight-k'), more = $('#tonight-more'), body = $('#tonight-body');
+    body.textContent = '';
+    if (!leadYmd) { // the band never vanishes, so "See this week" and the strip link always land
+      h2.textContent = 'This week is quiet'; kick.hidden = true; more.hidden = true;
+      body.appendChild(mk('p', 'tn-lead', 'Free play every day we’re open.'));
+      var all = mk('a', 'btn btn-on-dark', 'All events'); all.href = keepNow('events.html'); body.appendChild(all);
+      return;
     }
-    return cardDays.indexOf(ymd) !== -1;
+    var d = MG.parseYmd(leadYmd);
+    kick.hidden = false; kick.textContent = MG.fmtLongDate(d); more.hidden = false;
+    h2.textContent = leadYmd === today ? tonightWord() : 'Next up: ' + MG.dayName(d);
+    var anchor = mk('span'); anchor.id = 'd-' + leadYmd; body.appendChild(anchor); // old day links still land here
+    var occs = week.filter(function (o) { return o.date === leadYmd; });
+    var tb = MG.views.tonightBand(occs, now, { href: keepNow('events.html'), photos: MG.photosForDay(occs, {}), action: 'link' });
+    if (!tb) return;
+    body.appendChild(tb.cards);
+    if (tb.restBox) body.appendChild(tb.restBox);
   }
+
+  // one photo per live event of a day, picked once so rows agree after a chip filter (a filter does not reshuffle them)
+  var phCache = {};
   function dayPh(ymd) {
-    if (!phCache[ymd]) {
-      var card = isCardDay(ymd);
-      if (card && ymd !== cardDays[0] && !phCache[cardDays[0]]) dayPh(cardDays[0]); // today always picks first
-      phCache[ymd] = MG.photosForDay(week.filter(function (o) { return o.date === ymd; }), card ? cardUsed : null);
-    }
+    if (!phCache[ymd]) phCache[ymd] = MG.photosForDay(week.filter(function (o) { return o.date === ymd; }), null);
     return phCache[ymd];
   }
   function renderDeck() {
-    var html = '';
+    var ol = $('#deck'); ol.textContent = '';
     for (var i = 0; i < 7; i++) {
       var d = MG.addDays(now, i), ymd = MG.ymd(d), h = MG.hoursFor(ymd);
       var evs = week.filter(function (o) { return o.date === ymd && live(o); });
       var closed = h.closed && !evs.length;
       var cap = closed ? 'Closed' : evs.length + (evs.length === 1 ? ' event' : ' events');
-      html += '<li style="--i:' + i + '"' + (i === 0 ? ' data-today' : '') + (closed ? ' data-closed' : '') + '>' +
-        '<a class="daycard" style="--i:' + i + '" href="#d-' + ymd + '" aria-label="' + e(MG.dayName(d) + ' ' + MG.fmtDate(d) + (i === 0 ? ', today' : '') + ', ' + cap.toLowerCase()) + '">' +
-          '<span class="dc-dow">' + (i === 0 ? 'Today' : MG.dayShort(d)) + '</span>' +
-          '<span class="dc-num">' + d.getDate() + '</span>' +
-          '<span class="dc-cap" aria-hidden="true">' + cap + '</span>' +
-        '</a></li>';
+      var li = mk('li'); li.style.setProperty('--i', i);
+      if (i === 0) li.setAttribute('data-today', ''); if (closed) li.setAttribute('data-closed', '');
+      var a = mk('a', 'daycard'); a.style.setProperty('--i', i);
+      a.href = ymd === leadYmd ? '#tonight' : '#d-' + ymd; // the lead day lives in the band above
+      a.setAttribute('aria-label', MG.dayName(d) + ' ' + MG.fmtDate(d) + (i === 0 ? ', today' : '') + ', ' + cap.toLowerCase());
+      a.appendChild(mk('span', 'dc-dow', i === 0 ? 'Today' : MG.dayShort(d)));
+      a.appendChild(mk('span', 'dc-num', d.getDate()));
+      var c = mk('span', 'dc-cap', cap); c.setAttribute('aria-hidden', 'true'); a.appendChild(c);
+      li.appendChild(a); ol.appendChild(li);
     }
-    $('#deck').innerHTML = html;
   }
 
-  /* ---------- 3. this week ---------- */
+  /* ---------- 3. this week: one cream card of dated rows (the lead day is in the band, so it is not counted or listed here) ---------- */
   function renderChips() {
-    var visible = week.filter(live);
+    var visible = week.filter(function (o) { return live(o) && o.date !== leadYmd; });
     var items = [{ id: 'all', short: 'All games' }].concat(D.games.filter(function (g) { return g.shown; }));
     $('#chips').innerHTML = items.map(function (g) {
       var n = visible.filter(function (o) { return MG.inGame(o.series, g.id); }).length;
       return '<a class="chip" href="' + e(href({ game: g.id === 'all' ? null : g.id })) + '#week" data-chip="' + g.id + '"' +
         (g.id !== 'all' ? ' data-game="' + g.id + '"' : '') + (chip === g.id ? ' aria-current="true"' : '') + '>' +
         (g.icon ? MG.icon(g.icon, 'gi') : '') + '<span>' + e(g.short) + '</span><span class="chip-n"><span class="vh">, </span>' + n +
-        '<span class="vh"> this week</span></span></a>';
+        '<span class="vh"> in this list</span></span></a>';
     }).join('');
   }
-  function dayMeta(ymd, d) {
+  function dayMeta(ymd, d, i) {
     var h = MG.hoursFor(ymd);
-    var t = MG.fmtDate(d) + (h.closed ? ', closed' : ', open ' + MG.fmtTime(h.open) + ' to ' + MG.fmtTime(h.close));
+    var t = (i < 2 ? MG.dayShort(d) + ', ' : '') + MG.fmtDate(d) + ' · ' + (h.closed ? 'closed' : MG.fmtTime(h.open) + ' to ' + MG.fmtTime(h.close));
     if (h.override && h.note) t += '. ' + h.note;
     return t;
   }
+  function dayEl(d, ymd, i) { // section.day with its head; built with createElement (the hours note is data)
+    var sec = mk('section', 'day'), hEl = mk('h3', 'day-h');
+    sec.id = 'd-' + ymd; hEl.id = 'dh-' + ymd; sec.setAttribute('aria-labelledby', hEl.id);
+    hEl.appendChild(mk('span', 'day-name', i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : MG.dayName(d)));
+    hEl.appendChild(mk('span', 'day-meta', dayMeta(ymd, d, i)));
+    sec.appendChild(hEl); return sec;
+  }
+  // boss trim (D61): with all games showing, the next two days with events are open and later days fold into one line
+  // ("5 events · A, B, C and 2 more"); a strip tile or a #d- link opens the fold. A chip filter shows every day open.
+  var OPEN_DAYS = 2;
+  function foldDay(sec, evs, ul) {
+    var det = mk('details', 'wk-fold'), sum = mk('summary', 'day-sum');
+    var t = evs.map(function (o) { return o.series.title; }), shown = t.slice(0, 3), more = t.length - shown.length;
+    sum.appendChild(mk('span', 'sum-n', evs.length + (evs.length === 1 ? ' event' : ' events')));
+    sum.appendChild(mk('span', 'sum-t', shown.join(', ') + (more ? ' and ' + more + ' more' : '')));
+    icon(sum, 'chevron', 'ic sum-ic');
+    det.appendChild(sum); det.appendChild(ul); sec.appendChild(det); sec.classList.add('day-fold');
+  }
+  function openFold(id) {
+    var el = id && document.getElementById(id), det = el && el.querySelector('details.wk-fold');
+    if (det) det.open = true;
+  }
   function renderDays() {
-    var html = '', shownAny = false, nextSeen = false, run = [], frag = document.createDocumentFragment();
-    function flush() { if (!html) return; var t = document.createElement('template'); t.innerHTML = html; frag.appendChild(t.content); html = ''; }
+    var shownAny = false, run = [], frag = document.createDocumentFragment(), opened = 0;
     // F9: consecutive closed days are one quiet line ("Monday and Tuesday · closed"); an empty span per day keeps each #d-YYYY-MM-DD anchor
     function endRun() {
       if (!run.length) return;
-      flush();
       var box = mk('div', 'day-off'), names = run.map(function (r) { return MG.dayName(r.d); });
       run.forEach(function (r) { var sp = mk('span'); sp.id = 'd-' + r.ymd; box.appendChild(sp); });
       box.appendChild(mk('p', null, (names.length > 2 ? names[0] + ' to ' + names[names.length - 1] : names.join(' and ')) + ' · closed'));
@@ -225,64 +270,40 @@
     }
     for (var i = 0; i < 7; i++) {
       var d = MG.addDays(now, i), ymd = MG.ymd(d), h = MG.hoursFor(ymd);
+      if (ymd === leadYmd) { endRun(); continue; } // shown in the Tonight band
       var all = week.filter(function (o) { return o.date === ymd; });
       var evs = all.filter(function (o) { return MG.inGame(o.series, chip); });
-      var head = '<h3 class="day-h" id="dh-' + ymd + '"><span class="day-dia" aria-hidden="true"><span>' + d.getDate() + '</span></span>' +
-        '<span class="day-name">' + (i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : MG.dayName(d)) + '</span>' +
-        '<span class="day-meta">' + e((i < 2 ? MG.dayName(d) + ', ' : '') + dayMeta(ymd, d)) + '</span></h3>';
-      if (h.closed && !all.length) {
-        if (chip === 'all') run.push({ d: d, ymd: ymd });
-        continue;
-      }
+      if (h.closed && !all.length) { if (chip === 'all') run.push({ d: d, ymd: ymd }); continue; }
       endRun();
+      var sec = dayEl(d, ymd, i);
       if (!evs.length) {
-        if (chip === 'all') html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '">' + head +
-          '<p class="day-skip">' + (i === 0 && all.length === 0 && MG.allOccurrences(today, today).some(live) ? 'Nothing else scheduled today. ' : 'No scheduled events. ') + 'Free play all day.</p></section>';
+        if (chip === 'all') { sec.appendChild(mk('p', 'day-skip', 'Free play all day.')); frag.appendChild(sec); }
         continue;
       }
       shownAny = true;
-      if (i > 0 && nextSeen) {
-        // R5: later days are one line per event
-        flush();
-        // built with createElement (owner rule): the hours note comes from data
-        var secEl = document.createElement('section'), hEl = document.createElement('h3'), dia = document.createElement('span'), num = document.createElement('span');
-        secEl.className = 'day'; secEl.id = 'd-' + ymd; secEl.setAttribute('aria-labelledby', 'dh-' + ymd);
-        hEl.className = 'day-h'; hEl.id = 'dh-' + ymd; dia.className = 'day-dia'; dia.setAttribute('aria-hidden', 'true'); num.textContent = d.getDate(); dia.appendChild(num); hEl.appendChild(dia);
-        [['day-name', MG.dayName(d)], ['day-meta', dayMeta(ymd, d)]].forEach(function (x) { var sp = document.createElement('span'); sp.className = x[0]; sp.textContent = x[1]; hEl.appendChild(sp); });
-        secEl.appendChild(hEl);
-        var ul = document.createElement('ul'); ul.className = 'day-lines';
-        evs.forEach(function (o) { ul.appendChild(MG.views.compactLine(o, now, keepNow('events.html'), dayPh(ymd)[o.key])); });
-        secEl.appendChild(ul); frag.appendChild(secEl);
-        continue;
-      }
-      if (i > 0) nextSeen = true;
-      var slots = groupByStart(evs).map(function (s) {
-        var multi = s.items.length > 1;
-        return '<div class="slot"' + (multi ? ' data-multi' : '') + '>' +
-          '<p class="slot-t"><time datetime="' + s.date + 'T' + s.start + '">' + MG.fmtTime(s.start) + '</time>' +
-          (multi ? '<span class="slot-n">' + s.items.length + ' events start at ' + MG.fmtTime(s.start) + '</span>' : '') + '</p>' +
-          '<div class="slot-cards"' + (s.items.length === 1 ? ' data-one' : '') + '>' + s.items.map(function (o) { return MG.eventCard(o, now, { compact: true, href: keepNow('events.html'), photo: dayPh(ymd)[o.key] }); }).join('') + '</div></div>';
-      }).join('');
-      html += '<section class="day" id="d-' + ymd + '" aria-labelledby="dh-' + ymd + '"' + (i === 0 ? ' data-today' : '') + '>' + head +
-        '<div class="slots">' + slots + '</div></section>';
+      var ul = mk('ul', 'day-lines');
+      evs.forEach(function (o) { ul.appendChild(MG.views.compactLine(o, now, keepNow('events.html'), dayPh(ymd)[o.key], { action: 'link' })); });
+      if (chip === 'all' && opened >= OPEN_DAYS) foldDay(sec, evs, ul); else { sec.appendChild(ul); opened++; }
+      frag.appendChild(sec);
     }
     endRun();
-    if (!shownAny && chip !== 'all') html = emptyState() + html;
-    flush();
-    var host = $('#days'); host.textContent = ''; host.appendChild(frag);
-    var n = week.filter(function (o) { return live(o) && MG.inGame(o.series, chip); }).length;
+    var host = $('#days'); host.textContent = '';
+    if (!shownAny && chip !== 'all') host.insertAdjacentHTML('beforeend', emptyState()); // escaped below; constant structure
+    host.appendChild(frag);
+    var n = week.filter(function (o) { return live(o) && o.date !== leadYmd && MG.inGame(o.series, chip); }).length;
     var g = chip === 'all' ? null : MG.game(chip);
-    $('#filter-status').textContent = (g ? 'Showing ' + g.short + ': ' : 'Showing all games: ') + n + (n === 1 ? ' event' : ' events') + ' this week.';
+    $('#filter-status').textContent = (g ? 'Showing ' + g.short + ': ' : 'Showing all games: ') + n + (n === 1 ? ' event' : ' events') + ' in this list.';
   }
   function emptyState() {
     var g = MG.game(chip);
     var future = MG.allOccurrences(MG.ymd(MG.addDays(now, 7)), MG.ymd(MG.addDays(now, 70)))
       .filter(function (o) { return live(o) && MG.inGame(o.series, chip); })[0];
-    return '<div class="empty lattice" role="note"><p class="empty-h">No ' + e(g.short) + ' events this week.</p>' +
+    return '<div class="empty lattice" role="note"><p class="empty-h">No ' + e(g.short) + ' events ' + (leadYmd ? 'on the other days' : 'this week') + '.</p>' +
       (future ? '<p>The next one is ' + e(future.series.title) + ' on ' + e(MG.dayName(MG.parseYmd(future.date)) + ', ' + MG.fmtDate(MG.parseYmd(future.date))) +
         ' at ' + MG.fmtTime(future.start) + '.</p>' : '<p>Nothing is scheduled yet. Ask at the counter or watch the Discord.</p>') +
       '<a class="btn btn-2" href="' + e(href({ game: null })) + '#week" data-chip="all">Show all games</a></div>';
   }
+
   function signupShort(s) {
     return s.inviteOnly ? 'Invite only' : s.signup === 'walkin' ? '' : s.signup === 'here' ? 'Sign up here' : s.signup === 'counter' ? 'Pre-register at the counter'
       : (s.tool && s.tool.cta) || 'Sign up on ' + ((s.tool && s.tool.name) || 'another site');
@@ -409,27 +430,34 @@
     $('#hours-why').textContent = why.join(' ');
     $('#hours-note').textContent = D.store.hoursConfirmed ? '' : 'Hours from public listings. The owners will confirm them before launch.';
   }
-  function renderCommunity() {
-    // built with createElement (owner rule): reviews and results are data
+
+  /* ---------- 3a. what we play (3.3): the cards are static in index.html; only the counts and icons are added here ---------- */
+  function renderPlay() {
+    Array.prototype.forEach.call(document.querySelectorAll('.play-card'), function (a) {
+      var ids = a.getAttribute('data-play').split(','), dates = {};
+      week.forEach(function (o) { if (live(o) && ids.indexOf(o.series.game) !== -1) dates[o.date] = 1; });
+      var n = Object.keys(dates).length, nEl = a.querySelector('.play-n'), nameEl = a.querySelector('.play-name');
+      nEl.textContent = n ? n + (n === 1 ? ' night' : ' nights') + ' this week ›' : 'Ask at the counter';
+      nameEl.insertAdjacentHTML('afterbegin', MG.icon(MG.game(ids[0]).icon, 'gi')); // constant icon markup, no data
+      var h = a.getAttribute('href');
+      if (/^events\.html/.test(h)) a.setAttribute('href', keepNow(h));
+    });
+  }
+
+  /* ---------- 5b. what people say (inside New and preorders) and the TCGplayer line ---------- */
+  function renderProof() {
+    // built with createElement (owner rule): reviews are data
     var rv = D.store.reviews, rate = $('#proof-rate'), pl = $('#proof'); rate.textContent = ''; pl.textContent = '';
     var ra = mk('a', null, rv.rating + ' on ' + rv.source + ' · ' + rv.count + ' reviews'); ra.href = MG.safeUrl(rv.url); ra.target = '_blank'; ra.rel = 'noopener';
     ra.appendChild(mk('span', 'vh', ' (opens Google Maps)')); rate.appendChild(ra);
     rv.items.forEach(function (q) { var li = mk('li'); li.appendChild(mk('q', null, q.text)); li.appendChild(mk('small', null, q.name + ', ' + q.age)); pl.appendChild(li); });
-    var ll = $('#lately'); ll.textContent = '';
-    D.results.filter(function (r) { return r.public; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 4).forEach(function (r) {
-      var s = D.series.filter(function (x) { return x.id === r.series; })[0], title = r.title || (s && s.title) || 'Event';
-      var bits = [];
-      if (r.headcount) bits.push(r.headcount + ' players.');
-      if (r.prizes) bits.push(r.prizes);
-      var li = mk('li'); li.appendChild(mk('strong', null, title)); li.appendChild(document.createTextNode(', ' + MG.fmtDate(MG.parseYmd(r.date)))); li.appendChild(mk('small', null, bits.join(' '))); ll.appendChild(li);
-    });
     // TCGplayer: one quiet line under the preorders
     var tg = D.store.tcgplayer, tl = $('#tcg-line'); tl.textContent = '';
     var ta = mk('a', null, tg.line); ta.href = MG.safeUrl(tg.url); ta.target = '_blank'; ta.rel = 'noopener'; ta.appendChild(mk('span', 'vh', ' (opens TCGplayer)'));
     tl.appendChild(ta); if (tg.positive) tl.appendChild(document.createTextNode(' · ' + tg.positive));
   }
 
-  /* ---------- chips: enhance links into in-place filters ---------- */
+  /* ---------- chips: enhance links into in-place filters (this card only; Tonight is not filtered) ---------- */
   function wireChips() {
     document.addEventListener('click', function (ev) {
       var a = ev.target.closest && ev.target.closest('[data-chip]');
@@ -447,9 +475,15 @@
     var st = MG.openStatus(now);
     U.demoBar($('#demo'), { note: 'Some seat counts, one cancellation and one change are made up.', owners: { href: keepNow('admin/index.html'), label: 'Owners: open the counter screen' } });
     U.mobileBar();
-    renderHero(st); renderDeck();
-    renderChips(); renderDays(); renderLater();
-    renderCedh(); renderReleases(); renderHours(); renderCommunity(); wireChips(); keepNowLinks();
+    renderHero(st); renderTonight(); renderDeck();
+    renderChips(); renderDays(); renderLater(); renderPlay();
+    renderCedh(); renderReleases(); renderHours(); renderProof(); wireChips(); keepNowLinks();
+    // a folded day opens when a strip tile or any #d- link points at it, and on arrival with that hash
+    document.addEventListener('click', function (ev) { var a = ev.target.closest && ev.target.closest('a[href^="#d-"]'); if (a) openFold(a.getAttribute('href').slice(1)); });
+    addEventListener('hashchange', function () { openFold(location.hash.slice(1)); });
+    if (/^#d-/.test(location.hash)) { openFold(location.hash.slice(1)); var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+    // phones: the cEDH turnout list starts folded (open in the HTML, so it shows without JS)
+    var to = $('#turnout'); if (to && !matchMedia('(min-width: 900px)').matches) to.open = false;
   }
   try { wireVideo(); } catch (err) { if (window.console) console.error(err); }
   try { init(); } catch (err) {

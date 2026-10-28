@@ -8,7 +8,7 @@ and note it here.
 Contents: 1 Concept · 2 Tokens · 3 Type · 4 Layout system · 5 Components · 6 Front page (6.1 hero video slot) · 7 Events page and event detail ·
 8 Sign-up · 9 Admin · 10 Loading, empty, error · 11 Accessibility · 12 VFW reuse and divergence · 13 Prototype files
 and data · 14 What may change · 15 Boss-ranking additions (D16 to D18: event fields, post text, per-date page, New
-here?, No-show)
+here?, No-show) · 16 Clips · 17 Hero (17.1 montage) · **18 Round 8 new look, "Card-table warm" (D55, D59 to D65)**
 
 ---
 
@@ -36,6 +36,14 @@ plate). The placeholder two-card mark of P1 is retired. Favicon `img/logo/favico
 Voice: plain, short, friendly; sentence case; times as "7 PM", never "19:00"; money as "$20", "Free". Say what happens:
 "Sign up", "Join the waitlist", "Pre-register at the counter", "Just show up". No jargon in admin ("Seats", not
 "capacity"; "Sign-ups close", not "cutoff").
+
+**Round 8, "Card-table warm" (D55, D59; full spec `docs/review/round-8-new-look.md`, summary in section 18).** Same identity
+(brick header and coursing, logo on the white plate, sign blue as the one action colour, no new colours); the new look comes
+from type, rhythm and fewer, larger shapes. **Fraunces** (a soft serif, self-hosted) for headings, names and big numbers over
+plain **Archivo** for everything you scan; public buttons are pills; the whole hero is the store montage; "Tonight" is one
+brick band; the week is one cream card of dated rows with one action each. Accent rule: sign blue marks the one thing to
+press and nothing else is blue; brick (`--kicker`, `--mark`) marks time and place; `--highlight` marks "now". Concise first
+(D36/D37, D61): everything the owners need stays on the page, but secondary detail folds or scrolls sideways on phones.
 
 ---
 
@@ -74,6 +82,18 @@ with no extra rules.
 | `--warn` / `--warn-bg` | `#8A5300` / `#FFF3D6` | `#F2B24C` / `#3A2C10` | few seats, needs players, low stock |
 | `--bad` / `--bad-bg` | `#A3291B` / `#F8E4DE` | `#F08A78` / `#3A1A14` | cancelled, errors, short stock (text and borders, never a big field) |
 | `--wait` | `#5B3FB0` | `#C1A9FF` | waitlist |
+
+**Round 8 additions (D59; values in `tokens.css`):**
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--font-display` | Fraunces, size-adjusted Georgia fallback, Georgia, serif | same | headings, card and row titles, big numerals |
+| `--kicker` | `var(--mark)` #9C4A32 | `var(--mark)` #C77A5E | sentence-case kickers on `--paper` / `--surface` only (never on `--surface-2`: 4.41 in dark) |
+| `--tn-bg` | `var(--brick)` #6B3A2C | same (fixed) | the Tonight band |
+| `--on-tn` / `--on-tn-2` | #FFFFFF / #E9DCCB | same | text on the band / its secondary text |
+| `--on-tn-k` | `var(--highlight)` #F2D58A | same | the band kicker; the current-nav underline on the header |
+| `--scrim-rgb` | `23 18 14` (#17120E) | same | hero scrim, chip and strip, as `rgb(var(--scrim-rgb) / a)` |
+| `--hero-act` / hover | #2F5FB0 / #244C8F, white text | same | the hero's filled pill (the pale dark-scheme blue washed out on video) |
 
 Retired with look A: `--flyer`, `--flyer-red*`, `--sign`, `--foil`, `--ink-navy`, `--night*`, `--cardstock`, the
 `?look=` picker and `theme-a/b/c.css`. Status is never colour alone: every status has an icon and words (section 5.3).
@@ -118,6 +138,18 @@ is a chip (not under Other as D14 listed) because Facebook shows a weekly One Pi
 | line-strong (non-text) on surface | 3.9 | 3.8 |
 | game colours (non-text) on surface | 3.6 (Pokemon, lowest) to 7.5 | 6.0 to 9.9 |
 
+Round 8 pairs (WCAG formula, 2026-10-27; `js/tests-look.js` re-checks them):
+
+| Pair | Light | Dark |
+|---|---|---|
+| Fraunces headings `--ink` on paper / surface | 13.72 / 15.34 | 15.18 / 13.75 |
+| `--kicker` on paper / surface | 5.34 / 5.96 | 5.40 / 4.90 |
+| white / cream on `--tn-bg`; `--on-tn-2`; `--on-tn-k` | 9.26 / 8.10; 6.87; 6.47 | same |
+| white on `--hero-act` / hover | 6.20 / 8.38 | same |
+| page-head lead `--ink-2` on `--surface` | 7.53 | 7.86 |
+| white over the hero scrim, worst case a pure-white pixel, alpha .62 / .70 / .80 | 5.21 / 6.93 / 10.04 | same |
+| **measured on the real montage (boss, D65):** every 0.5 s of the 18.4 s loop, text made transparent, brightest pixel under each text box | h1 3.93 at 1280 / 5.37 at 390 (large text, needs 3; 95th percentile 7.0+); sub-line 10.98 / 11.10; chip and outline button 95th percentile 5.9 / 4.9 (their max is their own white border) | hero is dark in both themes |
+
 All pass AA (text 4.5, large text and UI parts 3). Anyone changing a colour re-runs these pairs (a PowerShell snippet
 is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
 
@@ -137,6 +169,12 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
   (check-in, steppers, primary and secondary buttons, inputs); 48px floor for secondary controls that come in sets
   (chips, payment segments, row menu and its items, reminder chips, tabs, `btn-sm`), with 8px between separate targets
   (segments touch, as one control). P1.3: 56px everywhere made the roster row two lines on a tablet.
+- **Round 8 rhythm (D59, trimmed by D61):** section padding `--sec-y: clamp(2.75rem, 2rem + 3vw, 4.5rem)` = 44px at 390,
+  70px at 1280 (the spec had 56/88; D37 had 48/72). Head to content `--head-gap` 20 to 32px; panel padding `--pad` 16 to 24px.
+  Rows (`.day-line`): 48px thumb, 60px tall from 768px (8px block padding); under 768px the action sits on its own line.
+- **Round 8 radii and shadows:** `--r-panel` 18px (week card, dialog, What-we-play cards), `--r-btn` 999px (public buttons are
+  pills; the admin overrides back to `--r-ctl`), `--r-photo` 12px. `--lift-panel` (week card, dialog) and `--lift-band` (cards on
+  the brick band) join `--lift`. Motion unchanged; folds (`<details>`) turn their chevron in 140ms, instantly under reduced motion.
 
 
 ### 2.5 Header and sign plate, photos, video hero, theme switch, icons and link previews (look A)
@@ -190,24 +228,32 @@ is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
 
 ## 3. Type
 
-One family: **Archivo** (variable, weight 100 to 900, width 62% to 125%, SIL OFL). The VFW site already self-hosts it
-(`public/fonts/archivo.woff2`, 90 KB, Latin subset), so the build reuses that file and its `@font-face`
-(`font-stretch: 62% 125%`) and the CSP stays as is. The width axis gives the condensed display voice the flyers have,
-without a second font. The prototype copies the same file to `prototype/fonts/`; on `file://` some browsers refuse
-fonts from a parent folder, so the stacks fall back to Bahnschrift (Windows), DIN Condensed (Apple), Roboto Condensed
-(Android), Arial Narrow. **Licence:** ship the OFL text next to the font in the build (`public/fonts/OFL-Archivo.txt`,
-from github.com/Omnibus-Type/Archivo); the prototype folder has a note.
+Two families since round 8 (D59): **Fraunces** (display; variable opsz 9-144, weight 400-800; SIL OFL; `fonts/fraunces.woff2`,
+67 KB Latin, `OFL-Fraunces.txt` beside it) for anything you read as a name or a heading, and **Archivo** (variable, unchanged,
+`archivo.woff2` 90 KB) for everything you scan. Both are self-hosted (no third-party request; the build's CSP stays
+`font-src 'self'`) and preloaded in every page head (admin pages `../fonts/`, the 404 its absolute subpath). Fraunces has a
+size-adjusted Georgia fallback face (`Fraunces Fallback`) so the swap barely moves lines; `font-optical-sizing: auto` picks the
+display cut at large sizes. No italics, no SOFT/WONK axes. Numbers in Fraunces are `lining-nums tabular-nums`. Archivo's
+condensed widths (62%/72%, weight 900) are now used **only for the admin's counter numbers** (`.cnt-n`, `.wpos`, `.evb-t`,
+`.prod-nums dd`), which are read across a counter.
 
-| Role | Size | Width | Weight | Line height | Notes |
+| Level | Family | Weight | Size | Line height | Notes |
 |---|---|---|---|---|---|
-| Hero headline (`--t-hero`) | clamp(2.6rem ... 6.25rem) | 62% | 900 | 0.95 | max 15ch, `text-wrap: balance` |
-| Section head (`--t-2xl`) | clamp(2rem ... 3.25rem) | 62% | 900 | 1.1 | |
-| Day name, cEDH ticket date, big numbers | 1.75 to 2.5rem | 62% | 900 | 1.0 | tabular numbers |
-| Card title (`--t-lg`) | 1.3125rem (21px) | 72% | 800 | 1.1 | |
-| Body (`--t-md`) | 1.0625rem (17px) | 100% | 400 | 1.55 | max ~70ch |
-| Meta (`--t-sm`) | 0.9375rem (15px) | 100% | 500 to 650 | 1.45 | card text, notes |
-| Small (`--t-xs`) | 0.875rem (14px) | 100% | 600 to 800 | 1.45 | stat units, chip counts, tags; never paragraphs |
-| Buttons | body size | 88% | 750 | 1.1 | |
+| Hero headline `--t-hero` | Fraunces | 600 | clamp(2.75rem, 1.9rem + 3.6vw, 5rem): 44px at 390, 76 at 1280 | 1.0, -0.02em | two block spans from 600px ("Shuffle up. / Everyone's welcome.") |
+| Page head h1 `--t-page` (events, 404) | Fraunces | 600 | clamp(2.5rem, 1.9rem + 2.6vw, 4rem) | 1.02 | |
+| Section / band h2 `--t-2xl` | Fraunces | 600 | clamp(2rem, 1.55rem + 2vw, 3rem) | 1.08 | the cEDH h2 too |
+| Day name (week card h3) `--t-xl` | Fraunces | 600 | 1.5rem | 1.1 | |
+| Card title (`.ev-title`; the dialog h2 is larger) `--t-card` | Fraunces | 600 | 1.375rem | 1.15 | |
+| Row title (`.dl-title`) `--t-row` | Fraunces | 600 | 1.1875rem | 1.2 | |
+| Big numerals (strip date, stat, cEDH ticket, detail seats) | Fraunces | 600 | 1.375 / 1.75 / 2 / 2.4rem | 1.0 | lining tabular |
+| Kicker (`.kicker`) | Archivo | 700 | 0.875rem | 1.3 | sentence case, never uppercase; `--kicker` (`--on-tn-k` on the band) |
+| Lead (hero sub, page-head lead) `--t-lead` | Archivo | 400 | clamp(1.0625rem, 1rem + 0.35vw, 1.25rem) | 1.5 | max 38ch |
+| Body `--t-md` | Archivo | 400 | 1.0625rem (17px) | 1.55 | max ~70ch |
+| Row time, meta `--t-sm` | Archivo | 700 / 500 | 0.9375rem (15px) | 1.45 | tabular |
+| Small `--t-xs` | Archivo | 600 | 0.875rem (14px) | 1.45 | never paragraphs |
+| Buttons | Archivo | 700 | 1rem, width 100% | 1.1 | public pills; admin `--r-ctl` |
+| Nav, chips | Archivo | 600 | 1rem / 0.9375rem | 1.2 | width 100% |
+| Admin h1 / h2 / top title | Fraunces | 600 | clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem) / as before / 1.375rem | 1.05 | counter numbers stay Archivo condensed |
 
 Rules: sentence case everywhere (the only capitals-with-tracking is "GAMES" inside the wordmark). No label above every
 heading; the date line above the hero headline is information, not decoration. Times never break: the space before
@@ -358,6 +404,8 @@ circle is retired with look A).
 ---
 
 ## 6. Front page (prototype: `prototype/index.html`)
+
+**Round 8 (D55, D61): the order, hero and sections below are superseded by section 18.1.** Kept for the history of each rule.
 
 > **Round 4 (D37) supersedes the older section sketches below where they conflict.**
 > - **Bands (F3, F4):** `--band` is #3E2A22 light and #2A1D17 dark, with `color-scheme` set on the inner wrapper so text and controls inherit the right scheme. One section rhythm: 48px between sections on phones, 72px from 1024px. Visit is unboxed (text on the page, no card).
@@ -1276,6 +1324,7 @@ share one "used" set, strip tiles avoid showing the same picture twice, tinted s
 - Two featured TikTok clips (cEDH turnout, monthly cEDH tables): from 900px two 9:16 poster cards (about 140-170px wide) on the right of the photo, with a play badge, a TikTok badge and a two-line caption; the copy column narrows so the headline and the next-up ticket never sit under them. Under 900px one "Watch a clip" secondary button next to "This week's events" opens the first clip. Both are real links to the posts; `js/clips.js` binds any `a[data-clip-id]` to the existing click-to-load dialog (id checked against the data and the strict patterns). Nothing from TikTok loads before a click. The two clips also stay in "Clips from the shop" further down, a screen away from the hero.
 
 ### 17.1 #16 hero montage (2026-10-27, owner: "a video on the front page like VFW and Riverside")
+**Round 8 (section 18.1):** the montage, wireVideo, posters and hold rules below stand; the strip caption, the featured TikTok cards and "Watch a clip" are retired, and next-up moved into the strip.
 Replaces round 5's wide still + phone-only loop. One silent montage on EVERY width. Port mechanically from `prototype/`.
 **Markup (`#hero-media`):**
 - `<picture>`: `<source media="(max-width: 700px) and (orientation: portrait)" srcset="media/video/hero-poster-portrait.jpg">` then `<img src="media/video/hero-poster.jpg" width="1440" height="1080" fetchpriority="high">`. The poster is the first frame of each file, so there is no flash. Two `<link rel=preload as=image>` with the same media (portrait / `not all and` portrait) so only one poster is fetched. The box also has the poster as its CSS background.
@@ -1302,3 +1351,73 @@ else; admin is untouched. Front page order: hero (one button) → Tonight band (
 waits] → New and preorders → cEDH → Why players choose Mulligan (rating, 3 promises, quotes) → Find your table → Clips
 → Join in. Every tab opens with one `.pg-head` (optional fact kicker, Fraunces title, one lede, hairline). No new colour
 tokens (new pairs in the spec section 5; add them to 2.3 when built). Where the build differs from the spec, note it here.
+
+---
+
+## 18b. Round 8 in the prototype, "Card-table warm" (Laptop; D55, D59 to D65)
+
+Full spec: `docs/review/round-8-new-look-laptop.md` (designer, from both Wix passes `docs/research/wix-templates.md` /
+`wix-templates-desktop.md`, direction B). Port list for the Desktop: `docs/review/round-8-port.md`. Type, tokens and rhythm are in
+sections 1, 2.1, 2.3, 2.4 and 3 above. This section records what was built, with the boss trims (D61, D63) that took the page
+back toward "concise" (D36/D37).
+
+### 18.1 Front page (D61)
+1. **Hero:** the store montage on every width (17.1) and five things only: status chip, h1, one sub-line, two pill buttons ("See
+   this week" filled sign blue, "Plan a visit" white outline), then the strip: pause pill left, next-up ("Tonight 7 PM Draft
+   FNM, Nexus Nights") beside it, the right 76px free for the theme button (D46). No featured clips, caption or clips link. Scrim:
+   one bottom gradient under 900px, left + bottom gradients from 900px (spec 2.3). The phone hero ends above the quick-actions
+   bar at 390x844 (D52).
+2. **Tonight** (`#tonight`, brick band): the lead day (today if anything is still ahead, else the next day with events; heading
+   "Tonight" / "Today" / "Next up: Wednesday"; empty: "This week is quiet" + All events, so the band never vanishes). The first 3
+   dates are event cards, the rest rows in an "Also tonight" panel. **Phones (D61):** two or more cards are one sideways snap
+   row, 86% wide so the next card peeks (it was a 1,200px stack); from 600px 2 across, from 1024px 3.
+3. **This week** (`#week`): head + "All events and sign-ups", the one walk-in note, the 7-tile strip (D51), game chips, then one
+   cream week card of rows (the lead day is not repeated). **D61:** the next two days with events are open; later days fold into
+   one line ("5 events · Tabletop and Warhammer, D&D Open Play, Learn to Play Pokemon and 2 more" + chevron); a strip tile or any
+   `#d-` link opens its fold; a chip filter shows every day open. Closed runs stay one quiet line (F9). "Further out" (4 dates)
+   and "See every date" close the card; on phones the date leads the meta line instead of a two-line column.
+4. **What we play:** six static photo cards (Magic, cEDH, Pokemon, Warhammer and tabletop, D&D and board games, One Piece /
+   Riftbound / Hololive); only the counts are filled (textContent). **D61:** one row of six from 1100px (1:1 photos), 3 across
+   from 768px (4:3), a sideways row on phones (about 2.3 cards in view) instead of three rows of two.
+5. **cEDH band** (D4): Fraunces type. **D61:** no photo under 768px (a 2:1 strip from 768px); facts as label | text on phones;
+   the sign-up button and the registered count share a line under 480px; "Recent turnout" is a fold, closed under 900px and open
+   from 900px and without JS; "Full standings on TopDeck" stays outside it.
+6. **Clips from the shop:** unchanged row, Fraunces h2; nothing loads before a click.
+7. **New and preorders + What people say:** **D61:** the side photo only from 768 to 1199px; from 1200px the tiles are one row;
+   on phones the three quotes are a sideways row of cards. The TCGplayer line stays under the tiles.
+8. **Visit:** three columns from 1024px (Hours | Find us | Good to know). Find us has Directions, the phone, Discord and the
+   social links (from the retired "Between events"). **D61:** tighter hours rows; "Good to know" is four questions that open
+   (`<details>`, 44px+ targets) instead of four open answers; Directions and the phone share a row on phones.
+9. **Footer:** on the home page only, its Visit and Hours columns are hidden (the Visit section sits right above it; D37 "say it
+   once"); every other page keeps the four-column index.
+
+Retired: "Between events" (reviews to 7, Discord to 8, "Lately" off the home page), the second day of big cards, the hero's
+featured TikTok cards and "Watch a clip" (the clips stay in 6).
+
+### 18.2 Events page (D63)
+Page head (`.page-head`: surface band, h1 "Events", lead, then the chips and the Format / calendar / print row inside it,
+closed by the 6px brick coursing rule; no photo, F13). **Tonight** is the same brick band (`#today-wrap`, `#today-h`, `#today`
+kept) from 5 PM; its copy of the walk-in note is gone (the note stays once, above Every week). **Special events and
+tournaments (D63):** rows in one week card, grouped by date under a sentence-case brick kicker ("Sun Nov 1"), one action per row
+(Sign up button, "Sign up on TopDeck" link, or Details), bits with game, fee, seats or the TopDeck count, "Invite only", and the
+other dates ("Also Sun Nov 8, 3 PM and Sun Nov 8, 5 PM" / "Repeats: 1st Sunday of the month"); the title opens the full detail
+dialog. **Every week:** rows at every width in one week card, grouped by weekday ("Wednesday · Next Nov 4"). **Detail dialog:**
+`--r-panel`, Fraunces name and numbers, sentence-case kicker, one primary action. The 404 uses the same page head and one
+surface panel (hours + four pill actions), absolute `/Mulligan-Games-Website-concept-/` paths.
+
+### 18.3 Heights (boss, 2026-10-28, served on http, demo bar included)
+
+| Page | Width | As built | After D61 / D63 | Spec target |
+|---|---|---|---|---|
+| Front | 390 | 11,910 | 8,484 | about 7,500 |
+| Front | 1280 | 8,450 | 6,766 | about 6,000 |
+| Events | 1280 | 4,254 | 3,489 | about 3,000 |
+| Events | 390 | 6,881 | 5,370 | |
+
+What remains is content the owners need on the page (two open days of rows, the Tonight cards, three cEDH dates with sign-up,
+the hours). Tests guard the budgets: front 390 <= 8,900px, 1280 <= 7,100px; events 1280 <= 3,750px.
+
+### 18.4 Admin (light touch)
+h1, h2, roster titles, legends and the top title in Fraunces 600; "Shop admin" under the plate in Fraunces; a 3px brick top rule
+on the phone/tablet top bar and the sidebar; counter numbers stay Archivo condensed; buttons keep `--r-ctl` and the 56px counter
+targets. No layout change.

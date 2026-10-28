@@ -37,7 +37,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   VFW site, tests.
 
 ### Now working on
-- **Laptop:** round 7 pushed (3d832d0: plain compact week strip, warm hero line + status chip, featured TikToks;
+- **Laptop:** round 8 prototype built and boss-reviewed, **not committed yet** (D59/D61/D63/D65: Fraunces + Archivo, montage-only hero, Tonight band, week card with folded later days, Special events as rows; front 390 11,910 -> 8,484 px, 1280 8,450 -> 6,766; events 1280 4,254 -> 3,489; 233 tests). Port list for the Desktop: `docs/review/round-8-port.md` (port from the trimmed prototype, incl. removing the featured-clips row under the build hero). Before that: round 7 pushed (3d832d0: plain compact week strip, warm hero line + status chip, featured TikToks;
   D51/D52, port list `docs/review/round-7-port.md`). #16 prototype side done (D53): montage markup on every width with `<source media>` files, posters
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run

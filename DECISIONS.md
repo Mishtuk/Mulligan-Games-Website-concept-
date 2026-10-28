@@ -741,3 +741,60 @@ inner grid + the `details.srow` arrow; prize product name cut to "Draft boo" at 
   The hero's next-up ticket stays (D36). The Laptop's brick page-head band is not used (the header is already brick).
 - **Why:** both research passes point to the same calm order and to type, not effects, as the "new look"; each change
   either says a thing once (D37) or gives the tabs one consistent head. No new data, features or third-party requests.
+
+### D59. Round 8 look, "Card-table warm" (spec proposal "D57", renumbered: the Desktop used D57) (2026-10-28, boss)
+- Fraunces (display) + Archivo (body), both self-hosted with preloads; no third-party request. Public buttons are pills; the
+  admin keeps `--r-ctl` and 56px counter targets. One accent rule: sign blue marks the one thing to press, brick marks time and
+  place, `--highlight` marks "now". Same identity as D28 (brick header, sign plate, no new colours). DESIGN 1, 2.1, 2.3, 2.4, 3, 18.
+- Section rhythm `--sec-y` replaces D37's 48/72px, at the trimmed value of D61.
+
+
+### D61. Round 8 front page: order as the spec, then trimmed to "concise" (spec proposal "D59") (2026-10-28, boss)
+- **Order (events still lead, D1):** hero (montage only, five things + a strip with pause and next-up), Tonight (brick band),
+  This week (one cream card of rows), What we play, cEDH, Clips, New + What people say, Visit, footer. "Between events" is
+  removed (reviews to New, Discord + socials to Visit, "Lately" off the home page); the strip caption and the hero's featured
+  clips are retired (the Desktop's featured-clips row under its hero goes too: D54's row is superseded).
+- **Boss trims (the built page was longer than before, against D36/D37):** one-line reason each.
+  1. Tonight on phones = one sideways snap row of cards (86%, next peeks): three stacked cards were 1,200px of one evening.
+  2. This week = the next two days with events open, later days fold to one line naming their events (strip tile or `#d-`
+     link opens it; a chip shows all): five open days of rows was the single tallest block (2,856px at 390).
+  3. Rows 60px from 768px with a 48px thumb (was 72-80 / 56): the rows are for scanning, the dialog has the detail.
+  4. What we play = one row of six from 1100px, a sideways row on phones: six big cards are navigation, not content.
+  5. cEDH = no photo on phones, facts as label | text, button and count on one line, turnout folded under 900px: the dates
+     and sign-up are the point; the turnout and photo stay (wide screens, one tap).
+  6. New = side photo only 768-1199px, one row of tiles from 1200px, quotes as a sideways row on phones: the hero already
+     shows the shop.
+  7. Visit = tighter hours rows, "Good to know" as four questions that open, Directions + phone on one row on phones:
+     four always-open answers were the tallest part of Visit.
+  8. Home-page footer drops its Visit and Hours columns: they repeat the Visit section right above (D37 "say it once").
+  9. `--sec-y` 44/70px (spec 56/88): seven sections x two paddings was ~800px at 390.
+- Heights (served, demo bar included): front 390 **11,910 -> 8,484**, 1280 **8,450 -> 6,766** (targets ~7,500 / ~6,000; the rest
+  is content owners need). Guarded by tests.
+
+
+### D63. Round 8 events page: rows for Special events too (spec proposal "D61", extended) (2026-10-28, boss)
+- One page-head pattern (events, 404; no photo, F13 stands). Tonight is the brick band. Every week is rows at every width in
+  one week card (supersedes D36's weekly card grid and F7's 640px split).
+- **Boss trim:** Special events and tournaments become rows in a week card too, grouped by a date kicker, one action each,
+  bits with game, fee, seats or TopDeck count, "Invite only" and the other dates; the dialog keeps the full card. Reason: the
+  2-column card grid was the tall part (1,198px at 1280) and repeated the dialog. The walk-in note inside Tonight goes (it was
+  said twice on the page). Events 1280 **4,254 -> 3,489**, 390 6,881 -> 5,370.
+
+
+### D65. Round 8 review: PASS with boss trims (2026-10-28, boss, Laptop)
+**Checked (puppeteer, served on http):** tests 233/0 (budget 120000; +7 tests: folds, FAQ/turnout, page budgets, special
+rows; updated thumb/row/Tonight/What-we-play/footer tests). Dark mode at 1280 and 390: front lower sections (Tonight, week card,
+What we play, cEDH, New, Visit), events page, the 390 detail dialog, admin Events and Inventory: all read, no overflow, no
+console error. **Hero scrim over the white frames:** text made transparent, the montage paused every 0.5 s of its 18.4 s, the
+brightest pixel under each text box measured: h1 3.93:1 at 1280 (t=12 s, white room) and 5.37 at 390 (large text, needs 3; 95th
+percentile 7.0+), sub-line 10.98 / 11.10, chip and outline button 95th percentile 5.9 / 4.9 (their maximum is their own white
+border); the headline stays the clearest thing (shots `scrim-worst-*`). **404 under its absolute paths** (junction
+`.../pages/Mulligan-Games-Website-concept-` -> prototype): styled, Fraunces loaded, no 4xx, light 390 and dark 1280.
+**Network:** index and events at 390 and 1280, scrolled to the end: only our origin, no iframe, before any click.
+**Injection:** the round-8 diff adds no data-fed innerHTML (the three HTML sinks are `MG.eventCard` in a `<template>`,
+already escaped; the escaped empty state; a constant icon); special rows and folds are createElement + textContent.
+**D46 / D52:** the strip's last 76px stay free at 390 and 1280; the phone hero ends above the quick-actions bar at 390x844 (tests).
+**Noted:** game ids are written unescaped into chip `data-*` attributes (front, events, admin): fixed config, not owner-editable;
+the build renders them server-side with escaping. The montage's packed-room shots show identifiable, possibly young customers:
+owner check before a public deploy (round-8-port.md 7). The Desktop claimed round 8 (HANDOFF 71bdfeb); the port list says to
+port from the trimmed prototype.

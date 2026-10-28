@@ -279,14 +279,14 @@
   });
   var N = 'now=2026-10-28T16:00';
   pageTest('events.html loads with cards, chips and no errors', 'events.html?' + N, function (w, d) {
-    ok(d.querySelectorAll('.ev').length > 15, 'cards: ' + d.querySelectorAll('.ev').length);
-    ok(d.querySelector('#weekly .wk-next'), 'weekly cards say "Next:"');
+    ok(d.querySelectorAll('.ev, #weekly .day-line').length > 15, 'cards and rows: ' + d.querySelectorAll('.ev, #weekly .day-line').length);
+    ok(d.querySelector('#weekly .wk-next'), 'weekly day heads say "next"');
     eq(d.querySelectorAll('.chip').length, 9);
   });
   pageTest('events.html: a game chip filters, a format filters', 'events.html?' + N + '&game=magic', function (w, d) {
-    ok(d.querySelectorAll('.ev').length > 5 && d.querySelectorAll('.ev:not([data-game="magic"]):not([data-game="cedh"])').length === 0, 'only Magic and cEDH cards');
+    var shown = d.querySelectorAll('.ev, #special .day-line'); ok(shown.length > 5 && d.querySelectorAll('.ev:not([data-game="magic"]):not([data-game="cedh"]), #special .day-line:not([data-game="magic"]):not([data-game="cedh"])').length === 0, 'only Magic and cEDH cards and rows: ' + shown.length);
     setVal(w, d.getElementById('fmt'), 'Draft'); // option exists for Magic
-    ok(d.querySelectorAll('.ev').length >= 2 && d.querySelectorAll('.ev').length < 8, 'Draft only: ' + d.querySelectorAll('.ev').length);
+    ok(d.querySelectorAll('.ev, #weekly .day-line').length >= 2 && d.querySelectorAll('.ev, #weekly .day-line').length < 8, 'Draft only: ' + d.querySelectorAll('.ev, #weekly .day-line').length);
   });
   pageTest('events.html: filter with nothing shows the empty state', 'events.html?' + N + '&game=hololive&format=Bloom%20Cup', function (w, d) {
     ok(d.querySelector('#ep-empty .empty'), 'empty state'); ok(d.querySelector('#ep-empty').textContent.indexOf('Show all games') !== -1);
@@ -297,7 +297,7 @@
     ok(dlg.querySelector('.det-dates a'), 'other dates'); ok(dlg.querySelector('[data-signup]').textContent.indexOf('Join the waitlist') !== -1, 'full: waitlist button');
   });
   pageTest('events.html: sign up, get waitlisted #4, see the same on the admin roster', 'events.html?' + N + '#e-fnm-draft%402026-10-30', function (w, d) {
-    frameClick(d.querySelector('[data-signup]'));
+    frameClick(d.querySelector('#det-body [data-signup]'));
     var form = d.querySelector('.su'); ok(form, 'form'); ok(form.textContent.indexOf('Wizards ID (Companion)') !== -1, 'player ID field from the tool');
     form.elements.name.value = 'Testy T.'; form.elements.email.value = 'testy@example.com';
     form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
@@ -307,7 +307,7 @@
     });
   });
   pageTest('events.html: sign-up errors sit under the field and nothing is saved', 'events.html?' + N + '#e-pauper%402026-10-28', function (w, d) {
-    frameClick(d.querySelector('[data-signup]'));
+    frameClick(d.querySelector('#det-body [data-signup]'));
     var form = d.querySelector('.su'), before = w.MG.data.registrations.length;
     form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
     eq(d.getElementById('e-name').hidden, false); ok(d.getElementById('e-name').textContent.indexOf('Enter your name') !== -1);
@@ -315,7 +315,7 @@
     eq(form.elements.name.getAttribute('aria-invalid'), 'true'); eq(w.MG.data.registrations.length, before);
   });
   pageTest('events.html: a seat in Pauper says "You\'re in", Add to calendar builds a .ics', 'events.html?' + N + '#e-pauper%402026-10-28', function (w, d) {
-    frameClick(d.querySelector('[data-signup]'));
+    frameClick(d.querySelector('#det-body [data-signup]'));
     var form = d.querySelector('.su'); form.elements.name.value = 'Pat P.'; form.elements.phone.value = '215-555-0123';
     form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
     return T.wait(900).then(function () {
@@ -334,6 +334,16 @@
     ok(Array.prototype.some.call(d.querySelectorAll('.rrow-wait .rr-name'), function (n) { return n.textContent === 'Testy T.'; }), 'the waitlisted test sign-up is on the waitlist');
     var btn = d.querySelector('.rrow[data-status="in"] .chk56'); frameClick(btn);
     ok(d.querySelector('.rrow[data-checked]'), 'a row is checked in'); ok(d.querySelector('.toast.on .toast-btn'), 'toast with Undo');
+  });
+  pageTest('admin chrome (round 8): h1 and h2 in Fraunces, counter numbers stay Archivo condensed, buttons keep the control radius, brick rule on the sidebar', 'admin/index.html?now=2026-10-30T19:30', function (w, d) {
+    var h1 = d.getElementById('today-h'); eq(h1.tagName, 'H1'); ok(h1.textContent.indexOf('Today, Friday Oct 30') === 0, 'h1 text unchanged: ' + h1.textContent);
+    ok(/Fraunces/.test(w.getComputedStyle(h1).fontFamily), 'h1 Fraunces: ' + w.getComputedStyle(h1).fontFamily);
+    var h2 = d.querySelector('.adm h2'); if (h2) ok(/Fraunces/.test(w.getComputedStyle(h2).fontFamily) && w.getComputedStyle(h2).fontWeight === '600', 'h2 Fraunces 600');
+    var n = d.querySelector('.cnt-n, .evb-t, .wpos'); ok(n, 'a counter number'); ok(/Archivo/.test(w.getComputedStyle(n).fontFamily) && w.getComputedStyle(n).fontWeight === '900', 'counter numbers stay Archivo 900: ' + w.getComputedStyle(n).fontFamily);
+    var b = d.querySelector('.adm .btn'); ok(parseFloat(w.getComputedStyle(b).borderTopLeftRadius) < 20, 'admin buttons are not pills: ' + w.getComputedStyle(b).borderTopLeftRadius);
+    var side = d.querySelector('.adm-side'); eq(w.getComputedStyle(side).borderTopWidth, '3px', 'sidebar brick rule');
+    ok(d.querySelector('link[rel="preload"][href="../fonts/fraunces.woff2"]'), 'Fraunces preload');
+    ok(d.querySelector('.side-name').textContent === 'Shop admin' && w.getComputedStyle(d.querySelector('.side-name')).textTransform === 'none', 'Shop admin, not uppercase');
   });
   pageTest('admin Today: nothing on a closed day says what is next', 'admin/index.html?now=2026-10-26T12:00', function (w, d) {
     ok(d.getElementById('today-empty').textContent.indexOf('Nothing on today') !== -1 && d.getElementById('today-empty').textContent.indexOf('Tabletop and Warhammer') !== -1, d.getElementById('today-empty').textContent);

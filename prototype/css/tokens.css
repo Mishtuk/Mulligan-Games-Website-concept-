@@ -10,7 +10,30 @@
  *          white on brick mark 6.1, white on header brick 9.3, error text 7.1 (5.9 on its tint)
  *   dark:  ink 15.2, ink-2 7.1 on surface-2, accent text 9.0, ink on accent 9.4, ink on brick mark 5.4,
  *          error text 6.6; borders that must show (inputs, stat box): 3.9 light, 3.8 dark.
+ * Round 8 "Card-table warm" additions (docs/review/round-8-new-look.md 1.2; js/tests-look.js re-checks these pairs):
+ *   Fraunces headings, ink on paper/surface 13.7/15.3 light, 15.2/13.8 dark; kicker (--kicker) on paper/surface 5.3/6.0 light,
+ *   5.4/4.9 dark (never on surface-2: 4.41 in dark); white on the Tonight band --tn-bg 9.3, cream 8.1, --on-tn-2 6.9,
+ *   --on-tn-k on band 6.5; white on --hero-act 6.2 (hover 8.4); the hero scrim is designed for a pure-white pixel under the text.
  */
+
+/* Fraunces: display face for headings, card and row titles and big numerals. Self-hosted (no third-party request, CSP font-src 'self').
+ * SIL OFL 1.1, see fonts/OFL-Fraunces.txt. Variable: opsz 9-144, wght 400-800 (Latin subset). */
+@font-face {
+  font-family: 'Fraunces';
+  src: url('../fonts/fraunces.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+/* the fallback is sized to Fraunces so the swap moves little (starting values; tune by overlay) */
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Georgia');
+  size-adjust: 104%;
+  ascent-override: 94%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
 
 @font-face {
   font-family: 'Archivo';
@@ -43,8 +66,19 @@
   --act:         light-dark(var(--sign-blue), #9DB8F2); /* the ONE accent: buttons, links that act, focus of a choice */
   --act-hover:   light-dark(#244C8F, #BBCEF7);
   --on-act:      light-dark(#FFFFFF, #16120F);
-  --mark:        light-dark(#9C4A32, #C77A5E);   /* brick: date diamonds only */
+  --mark:        light-dark(#9C4A32, #C77A5E);   /* brick: date diamonds, and (round 8) time and place text via --kicker */
   --on-mark:     light-dark(#FFFFFF, #1B1715);
+  --kicker:      var(--mark);                    /* kicker text on --paper / --surface only, never on --surface-2 (4.41 in dark) */
+
+  /* round 8: the Tonight band is brick in both themes (like the header); its text is fixed cream/white */
+  --tn-bg:       var(--brick);
+  --on-tn:       #FFFFFF;
+  --on-tn-2:     #E9DCCB;
+  --on-tn-k:     var(--highlight);               /* the kicker on the band, the current-nav underline on the header */
+  /* the hero is dark in both themes: scrim colour as `rgb(var(--scrim-rgb) / a)`; the primary button is fixed sign blue */
+  --scrim-rgb:   23 18 14;
+  --hero-act:    #2F5FB0;                        /* white on it 6.20; hover below 8.38 */
+  --hero-act-hover: #244C8F;
 
   --band:        light-dark(#3E2A22, #2A1D17);   /* open-now strip, cEDH band, footer: the band resolves in the page scheme, its inner wrapper is color-scheme: dark */
   --on-band:     #F5EFE4;
@@ -78,18 +112,23 @@
 
   /* ---------- type ---------- */
   --font: 'Archivo', 'Bahnschrift', 'DIN Alternate', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-cond: 'Archivo', 'Bahnschrift', 'DIN Condensed', 'Roboto Condensed', 'Arial Narrow', sans-serif;
-  --wdth-display: 62%;   /* hero, day names, big numbers */
-  --wdth-head: 72%;      /* section heads, card titles */
+  --font-cond: 'Archivo', 'Bahnschrift', 'DIN Condensed', 'Roboto Condensed', 'Arial Narrow', sans-serif; /* round 8: admin counter numbers only */
+  --font-display: 'Fraunces', 'Fraunces Fallback', Georgia, 'Times New Roman', serif;                       /* round 8: headings, titles, big numerals */
+  --wdth-display: 62%;   /* admin counter numbers only (round 8) */
+  --wdth-head: 72%;      /* admin counter numbers only (round 8) */
   --wdth-body: 100%;
-  /* scale: 1.25 steps from 17px body; display sizes are fluid */
+  /* scale: 17px body; display sizes are fluid. Round 8: Fraunces 600 for every heading level */
   --t-xs: 0.875rem;   /* 14: stat units, footnotes (never body) */
   --t-sm: 0.9375rem;  /* 15: meta lines */
   --t-md: 1.0625rem;  /* 17: body */
-  --t-lg: 1.3125rem;  /* 21: card title */
-  --t-xl: 1.75rem;    /* 28: day name, stat number */
-  --t-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);    /* section head */
-  --t-hero: clamp(2.6rem, 1.5rem + 5.6vw, 6.25rem); /* page headline */
+  --t-lg: 1.3125rem;  /* 21: dialog title, admin */
+  --t-row: 1.1875rem; /* 19: row title (.dl-title) */
+  --t-card: 1.375rem; /* 22: card title (.ev-title, Tonight cards) */
+  --t-xl: 1.5rem;     /* 24: day name in the week card */
+  --t-2xl: clamp(2rem, 1.55rem + 2vw, 3rem);          /* 32 to 48: section / band h2 */
+  --t-page: clamp(2.5rem, 1.9rem + 2.6vw, 4rem);      /* 40 to 64: page head h1 (events, 404) */
+  --t-hero: clamp(2.75rem, 1.9rem + 3.6vw, 5rem);     /* 44 to 80: hero headline */
+  --t-lead: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); /* 17 to 20: hero sub, page-head lead */
   --lh-tight: 0.95;
   --lh-head: 1.1;
   --lh-body: 1.55;
@@ -105,9 +144,18 @@
   --r-ctl: 10px;    /* buttons, inputs */
   --r-box: 6px;     /* stat box, tags, the sign plate */
   --r-pill: 999px;  /* chips, cost pip, theme switch */
+  --r-panel: 18px;  /* round 8: the week card, the dialog, the What-we-play cards */
+  --r-btn: 999px;   /* round 8: public buttons are pills (admin sets .btn back to --r-ctl) */
+
+  /* ---------- round 8 rhythm ---------- */
+  --sec-y: clamp(2.75rem, 2rem + 3vw, 4.5rem);      /* section padding: 44 at 390, 70 at 1280 (round-8 boss trim, D61; spec had 56/88) */
+  --head-gap: clamp(1.25rem, 1rem + 1vw, 2rem);     /* section head to content */
+  --pad: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);       /* panel padding */
 
   /* ---------- elevation ---------- */
   --lift: 0 1px 0 light-dark(#DED3C2, #0006), 0 8px 20px -14px light-dark(#3E2A2266, #000c);
+  --lift-panel: 0 1px 0 light-dark(#DED3C2, #0006), 0 24px 48px -28px light-dark(#3E2A2259, #000d);
+  --lift-band: 0 1px 0 rgb(0 0 0 / 0.2), 0 18px 32px -18px rgb(0 0 0 / 0.6);
 
   /* ---------- motion ---------- */
   --ease-deal: cubic-bezier(.2, .9, .25, 1.15);

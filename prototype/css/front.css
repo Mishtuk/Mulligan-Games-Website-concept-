@@ -1,67 +1,58 @@
-/* Front page only (index.html): the photo-led layout (D27), look A (D28). Loads after tokens.css and site.css;
- * colours come only from tokens. The header, the round theme button and the event card live in site.css.
+/* Front page only (index.html): round 8, "Card-table warm" (docs/review/round-8-new-look.md, D55).
+ * Loads after tokens.css and site.css; colours come only from tokens. The header, the buttons, the Tonight band (.tn-band),
+ * the week card (.wk-card), the event rows and the round theme button live in site.css (package A).
  */
 
-/* ---------- hero (round 3, D36): full-bleed photo / video, the copy on a dark scrim, a strip along the bottom ----------
+/* ---------- hero: the store montage on every width (spec 2) ----------
  * Dark in both themes (like the open-now strip and the cEDH band), so the white headline always reads. */
 .phero {
   position: relative; isolation: isolate; overflow: hidden; color-scheme: dark;
-  display: grid; grid-template-rows: 1fr auto; min-height: clamp(28rem, 62svh, 40rem);
+  display: grid; grid-template-rows: 1fr auto; min-height: 30rem;
   background: #17110E; color: #FFFFFF;
 }
 .phero-media {
-  position: absolute; inset: 0; z-index: -2;
+  position: absolute; inset: 0; z-index: -1;
   /* the poster is also the box background, so the frame is never empty or black while the image decodes */
-  background: #17110E url("../media/video/hero-poster.jpg") 50% 30% / cover no-repeat;
+  background: #17110E url("../media/video/hero-poster.jpg") 50% 50% / cover no-repeat;
 }
-@media (max-width: 700px) and (orientation: portrait) { .phero-media { background-image: url("../media/video/hero-poster-portrait.jpg"); background-position: 50% 38%; } }
-.phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
-.phero-media img { object-position: 50% 30%; } /* wide: the sealed wall on top, the lit cases on the right */
-@media (max-width: 700px) and (orientation: portrait) { .phero-media img { object-position: 50% 38%; } }
+@media (max-width: 700px) and (orientation: portrait) { .phero-media { background-image: url("../media/video/hero-poster-portrait.jpg"); } }
+.phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
 .phero-media video { opacity: 0; transition: opacity 600ms; }
 .phero-media.is-on video { opacity: 1; }
-/* phone: darkest at the bottom where the copy sits */
-.phero::before {
-  content: ""; position: absolute; inset: 0; z-index: -1;
-  background: linear-gradient(to top, rgb(18 12 9 / 0.94) 0%, rgb(18 12 9 / 0.8) 42%, rgb(18 12 9 / 0.38) 78%, rgb(18 12 9 / 0.3) 100%);
+/* scrim (2.3): designed for a pure-white pixel under every line of text. No backdrop-filter, no blend modes. */
+.phero-media::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(0deg, rgb(var(--scrim-rgb) / 0.90) 0%, rgb(var(--scrim-rgb) / 0.80) 45%, rgb(var(--scrim-rgb) / 0.55) 75%, rgb(var(--scrim-rgb) / 0.30) 100%),
+    linear-gradient(rgb(var(--scrim-rgb) / 0.12), rgb(var(--scrim-rgb) / 0.12));
 }
-.phero-in { align-self: end; width: 100%; padding-block: var(--s8) var(--s6); }
-.phero-copy { max-width: 40rem; }
-.phero-date { margin: 0 0 var(--s3); font-size: var(--t-sm); font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(255 255 255 / 0.85); }
-.phero-h {
-  font-size: clamp(2.5rem, 1.3rem + 4.8vw, 5.25rem); font-stretch: var(--wdth-display); font-weight: 900; line-height: 0.96; letter-spacing: -0.01em;
-  max-width: 14ch; color: #FFFFFF; text-shadow: 0 2px 24px rgb(0 0 0 / 0.45);
-}
-.phero-sub { margin: var(--s4) 0 var(--s5); font-size: 1.125rem; line-height: 1.5; max-width: 42ch; color: rgb(255 255 255 / 0.92); }
-.phero-acts { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--s3); }
-.next {
-  flex: 1 1 15rem; max-width: 24rem; display: flex; align-items: center; gap: var(--s4); padding: var(--s3) var(--s4);
-  background: rgb(255 255 255 / 0.1); color: #FFFFFF; border: 1px solid rgb(255 255 255 / 0.28); border-left: 4px solid var(--act);
-  border-radius: var(--r-card); text-decoration: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-}
-.next:hover { background: rgb(255 255 255 / 0.16); }
-.next-time { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 2.25rem; line-height: 1; white-space: nowrap; }
-.next-in { display: grid; min-width: 0; }
-.next-k { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: rgb(255 255 255 / 0.8); }
-.next-what { font-weight: 700; line-height: 1.3; }
-.next:hover .next-what { text-decoration: underline; }
-.phero-acts .btn { min-height: 3.25rem; }
+.phero-in { align-self: end; width: 100%; padding-block: 1.5rem; }
+.phero-copy { max-width: 46rem; }
 
-/* the strip along the bottom of the photo */
-.phero-strip { min-width: 0; background: rgb(12 9 7 / 0.72); border-top: 1px solid rgb(255 255 255 / 0.14); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-.phero-strip-in { display: flex; align-items: center; gap: var(--s2) var(--s5); min-height: 3.5rem; padding-block: var(--s1); font-size: var(--t-sm); }
-.phero-strip p { margin: 0; }
-/* D52: free play is said once, in the sub-line; the strip keeps what's on screen (left), the clips link and Pause (right) */
-.media-cap { min-width: 0; color: rgb(255 255 255 / 0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.clips-link { margin-left: auto; }
-@media (max-width: 767px) { .phero-strip-in { min-height: 3rem; padding-block: 2px; font-size: var(--t-xs); } }
-/* D53: under 600px the caption cut to "445 Y..." (390); the address already leads the bar above the header, so the strip is the pill alone */
-@media (max-width: 599px) { .media-cap { display: none; } }
-@media (max-width: 899px) { .cap-k { display: none; } } /* 600-899: "Mulligan Games, 445 York Rd" fits beside the clips link and pill, even with a scrollbar */
+.phero-chip {
+  display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.25rem; margin: 0 0 1rem; padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+  border-radius: var(--r-pill); background: rgb(var(--scrim-rgb) / 0.6); border: 1px solid rgb(255 255 255 / 0.28); color: #FFFFFF;
+  font-size: var(--t-sm); font-weight: 700; line-height: 1.3;
+}
+.chip-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; border: 2px solid rgb(255 255 255 / 0.75); flex: none; }
+.phero-chip[data-open] .chip-dot { background: #6FD49A; border-color: #6FD49A; box-shadow: 0 0 0 3px #6FD49A40; }
+
+.phero-h {
+  margin: 0 0 0.75rem; font-size: var(--t-hero); line-height: 1; letter-spacing: -0.02em; font-weight: 600;
+  color: #FFFFFF; text-shadow: 0 2px 24px rgb(var(--scrim-rgb) / 0.35); /* decoration only; contrast is counted without it */
+}
+.phero-sub { margin: 0 0 1.25rem; font-size: var(--t-lead); line-height: 1.5; max-width: 38ch; color: #FFFFFF; }
+.phero-acts { margin: 0; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.phero-acts .btn { min-height: 3rem; }
+@media (max-width: 420px) { .phero-acts { column-gap: 0.5rem; } .phero-acts .btn { padding-inline: 1rem; } } /* D52: 360 to 420, both buttons share one row */
+
+/* the strip along the bottom: pause left, next-up beside it, the right 76px free for the round theme button (D46) */
+.phero-strip { min-width: 0; background: rgb(var(--scrim-rgb) / 0.72); border-top: 1px solid rgb(255 255 255 / 0.14); }
+.phero-strip-in { display: flex; align-items: center; gap: 0.75rem; min-height: 3.25rem; padding-right: calc(var(--gutter) + 60px); }
 .vid-btn {
-  margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--tap); padding: 0 1rem;
-  border: 1px solid rgb(255 255 255 / 0.4); border-radius: var(--r-pill); background: transparent; color: #FFFFFF;
-  font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; visibility: hidden;
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-width: 2.75rem; min-height: 2.75rem; padding: 0 0.7rem;
+  border: 1.5px solid rgb(255 255 255 / 0.6); border-radius: var(--r-pill); background: transparent; color: #FFFFFF;
+  font: inherit; font-size: var(--t-sm); font-weight: 700; cursor: pointer; visibility: hidden;
 }
 .vid-btn.is-ready { visibility: visible; }
 .vid-btn:hover { background: rgb(255 255 255 / 0.12); }
@@ -69,83 +60,137 @@
 .vid-btn .i-play { display: none; }
 .vid-btn[data-paused] .i-play { display: block; }
 .vid-btn[data-paused] .i-pause { display: none; }
-@media (max-width: 420px) { .vid-btn #vid-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .vid-btn { padding: 0 0.8rem; } }
-
-@media (min-width: 768px) { .clips-link + .vid-btn { margin-left: 0; } }
-@media (min-width: 900px) {
-  /* wide: the copy on the left, the photo shows through on the right */
-  .phero { min-height: clamp(34rem, 78svh, 50rem); }
-  .phero::before {
-    background:
-      linear-gradient(90deg, rgb(18 12 9 / 0.9) 0%, rgb(18 12 9 / 0.74) 36%, rgb(18 12 9 / 0.22) 68%, rgb(18 12 9 / 0.08) 100%),
-      linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
-  }
-  .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
+@media (max-width: 419px) { .vid-btn #vid-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .vid-btn { width: 2.75rem; padding: 0; } }
+.next {
+  flex: 1 1 0; min-width: 0; display: flex; align-items: baseline; gap: 0.5rem; min-height: 3rem; align-content: center; align-items: center;
+  color: #F5EFE4; text-decoration: none; white-space: nowrap;
 }
+.next-k { flex: none; font-size: var(--t-xs); font-weight: 700; color: var(--on-tn-k); }
+.next-time { flex: none; font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; line-height: 1; font-variant-numeric: lining-nums tabular-nums; color: #FFFFFF; }
+.next-what { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--t-sm); font-weight: 600; }
+.next:hover .next-what { text-decoration: underline; }
+.next:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; border-radius: 6px; }
+.next[hidden] { display: none; }
 
-/* the week, seven cards (first thing in "This week") */
+@media (min-width: 600px) {
+  .phero { min-height: clamp(30rem, 70svh, 40rem); }
+  .phero-in { padding-block: 2rem; }
+  .phero-h span { display: block; }
+  .phero-strip-in { min-height: 3.5rem; }
+}
+@media (min-width: 900px) {
+  .phero { min-height: clamp(34rem, calc(100svh - 8.5rem), 54rem); }
+  .phero-in { padding-block: 3rem 3.5rem; }
+  .phero-chip { margin-bottom: 1.25rem; }
+  .phero-h { margin-bottom: 1rem; }
+  .phero-sub { margin-bottom: 1.75rem; }
+  .phero-strip-in { min-height: 4rem; }
+  .phero-media::after {
+    background:
+      linear-gradient(90deg, rgb(var(--scrim-rgb) / 0.82) 0%, rgb(var(--scrim-rgb) / 0.66) 60%, rgb(var(--scrim-rgb) / 0.30) 85%, rgb(var(--scrim-rgb) / 0.15) 100%),
+      linear-gradient(0deg, rgb(var(--scrim-rgb) / 0.72) 0%, rgb(var(--scrim-rgb) / 0.40) 28%, transparent 55%),
+      linear-gradient(rgb(var(--scrim-rgb) / 0.12), rgb(var(--scrim-rgb) / 0.12));
+  }
+}
+@media (min-width: 1200px) {
+  .phero-media::after {
+    background:
+      linear-gradient(90deg, rgb(var(--scrim-rgb) / 0.82) 0%, rgb(var(--scrim-rgb) / 0.68) 45%, rgb(var(--scrim-rgb) / 0.28) 75%, rgb(var(--scrim-rgb) / 0.12) 100%),
+      linear-gradient(0deg, rgb(var(--scrim-rgb) / 0.72) 0%, rgb(var(--scrim-rgb) / 0.40) 28%, transparent 55%),
+      linear-gradient(rgb(var(--scrim-rgb) / 0.12), rgb(var(--scrim-rgb) / 0.12));
+  }
+}
+@media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } } /* the montage still plays (DESIGN 17); only the fade is dropped */
+
+/* D52: on the home page the bar above the header carries no open / closed text (the hero chip does); the address leads it,
+ * on phones too ("445 York Rd"; ", Warminster" from 600px) */
+.ob-front .ob-addr { display: block; margin-right: auto; color: var(--on-band); font-weight: 600; }
+
+/* ---------- This week: the compact strip (D51), restyled; the card itself is .wk-card in site.css ---------- */
+.week-note { margin: 0 0 var(--s4); color: var(--ink-2); }
 .wdeck { min-width: 0; margin-bottom: var(--s4); }
-/* round 7: compact text-only tiles (day, date, count), no photos or pips; seven fit across at 360 px */
+/* seven fitted text tiles (day, date, count); seven fit across at 360 px */
 .wdeck ol { list-style: none; margin: 0; padding: var(--s1) 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; max-width: 34rem; }
 .wdeck li { display: grid; }
 .wdeck .daycard {
-  color-scheme: inherit; width: auto; min-height: 3.5rem; padding: 0.3rem 0.1rem; gap: 0.1rem; grid-template-rows: auto auto auto; align-content: center; border-radius: 8px;
-  background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: none; animation: none; text-align: center;
+  color-scheme: inherit; width: auto; min-height: 3.5rem; padding: 0.3rem 0.1rem; gap: 0.1rem; grid-template-rows: auto auto auto; align-content: center; border-radius: var(--r-ctl);
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: none; animation: none; text-align: center; text-decoration: none;
 }
 .wdeck .daycard:hover { border-color: var(--ink); }
-.wdeck .dc-dow { font-size: 0.6875rem; color: var(--ink-2); }
-.wdeck .dc-num { font-size: 1.35rem; }
-.wdeck .dc-cap { font-size: 0.625rem; color: var(--ink-2); font-weight: 650; }
+.wdeck .dc-dow { font-size: 0.6875rem; color: var(--ink-2); font-weight: 600; }
+.wdeck .dc-num { font-size: 1.375rem; line-height: 1; }
+.wdeck .dc-cap { font-size: 0.625rem; color: var(--ink-2); font-weight: 600; }
 .wdeck li[data-today] .daycard { border: 2px solid var(--act); }
-.wdeck li[data-today] .dc-dow, .wdeck li[data-today] .dc-cap { color: var(--ink); font-weight: 800; }
-.wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); transform: none; animation: none; }
+.wdeck li[data-today] .dc-dow, .wdeck li[data-today] .dc-cap { color: var(--ink); font-weight: 700; }
+.wdeck li[data-closed] .daycard { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-2); }
 @media (max-width: 479px) { .wdeck ol { gap: 2px; margin-inline: -0.5rem; } } /* a little wider than the text column so 7 tiles stay >= 44 px at 360 */
 @media (min-width: 768px) { .wdeck .dc-dow { font-size: 0.75rem; } .wdeck .dc-cap { font-size: 0.6875rem; } }
 
-/* ---------- this week: a calmer layout on wide screens (round 3) ----------
- * The day stays on the left; the start time sits above its cards instead of in a third column, so cards get the width. */
-@media (min-width: 1024px) {
-  #days .day { grid-template-columns: 12rem minmax(0, 1fr); column-gap: var(--s6); }
-  #days .day-name { font-size: 2rem; }
-  /* a day's cards flow into one two-column grid in time order (each card shows its own time), so no slot leaves half a row empty */
-  #days .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
-  #days .slot, #days .slot-cards { display: contents; }
+/* Further out: the date shown inline ("Fri 6 Nov") in Archivo 700 */
+.week .later-list li { padding-block: var(--s2); }
+.week .later-list li { grid-template-columns: 5.25rem minmax(0, 1fr); }
+.week .later-date { grid-row: span 2; display: flex; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 0.3rem; text-align: left; font-weight: 700; }
+.week .later-date b { display: inline; font-family: var(--font); font-size: inherit; font-weight: 700; }
+@media (min-width: 768px) {
+  .week .later-list li { grid-template-columns: 6.5rem minmax(0, 1fr) auto; min-height: 3.25rem; }
+  .week .later-date { grid-row: auto; flex-wrap: nowrap; }
 }
 
-/* ---------- inside the shop: photo gallery ---------- */
-.shop { background: var(--surface); border-block: 1px solid var(--line); }
-.shots { position: relative; list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) var(--s2); display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: var(--s3); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
-.shot { scroll-snap-align: start; }
-.shot figure { position: relative; margin: 0; height: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
-.shot img { width: 100%; height: 100%; object-fit: cover; }
-.shot figcaption {
-  position: absolute; left: var(--s3); right: var(--s3); bottom: var(--s3); width: fit-content; max-width: calc(100% - 1.5rem);
-  padding: 0.35rem 0.7rem; border-radius: var(--r-box); background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
+/* ---------- What we play (3.3): six photo cards ---------- */
+.play { background: var(--surface); }
+.play-lead { margin-top: var(--s2); }
+.play-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.play-grid li { display: grid; min-width: 0; }
+.play-card {
+  display: grid; grid-template-rows: auto 1fr; min-width: 0; overflow: hidden; background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--r-panel); text-decoration: none;
 }
-.shot-corgi img { object-position: 50% 30%; }
-.shot-case img { object-position: 30% 60%; }
-.shot-crew img { object-position: 50% 55%; }
+.play-ph { display: block; aspect-ratio: 1 / 1; overflow: hidden; background: var(--surface-2); border-bottom: 3px solid var(--gc, var(--g-other)); }
+.play-ph img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-photo) var(--r-photo) 0 0; }
+.play-body { display: grid; align-content: start; gap: 0.15rem; padding: 0.75rem 0.875rem 1rem; }
+.play-name { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; line-height: 1.15; }
+.play-name .gi { width: 1.1em; height: 1.1em; margin-right: 0.35rem; vertical-align: -0.12em; color: var(--gc); }
+.play-n { font-size: var(--t-sm); font-weight: 500; color: var(--ink-2); line-height: 1.4; }
+.play-card:hover .play-name { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+.play-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (min-width: 768px) {
-  .shots {
-    margin-inline: 0; padding-inline: 0; overflow: visible; grid-auto-flow: row; grid-auto-columns: auto;
-    grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 17rem 15rem;
-    grid-template-areas: "banner case corgi" "banner crew crew";
-  }
-  .shot figure { aspect-ratio: auto; }
-  .shot-banner { grid-area: banner; } .shot-case { grid-area: case; } .shot-corgi { grid-area: corgi; } .shot-crew { grid-area: crew; }
+  .play-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+  .play-ph { aspect-ratio: 4 / 3; }
 }
-@media (min-width: 1024px) { .shots { grid-template-rows: 19rem 17rem; } }
 
 /* ---------- cEDH: a photo from the tables ---------- */
-.cedh-photo { margin: 0 0 var(--s5); aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--r-photo); background: #000; }
+.cedh-photo { margin: 0 0 var(--s5); aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--r-photo); background: var(--band); }
 .cedh-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
 
-/* ---------- visit: one card, three columns (round 3; like the owner's VFW "New here?" block) ---------- */
+/* ---------- New and preorders (+ What people say) ---------- */
+.rel-photo { margin: 0 0 var(--s4); max-height: 220px; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
+.rel-photo img { display: block; width: 100%; height: 220px; object-fit: cover; object-position: 50% 50%; }
+@media (min-width: 1024px) {
+  .new .wrap { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 0 var(--s6); align-items: stretch; }
+  .new .sec-head, .new .tcg-line, .new .new-proof { grid-column: 1 / -1; }
+  .rel-photo { max-height: none; height: 100%; margin: 0; grid-row: 2; }
+  .rel-photo img { height: 100%; min-height: 20rem; object-fit: cover; }
+  .rel-list { grid-column: 2; grid-row: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.new-proof { margin-top: var(--s6); padding-top: var(--s5); border-top: 1px solid var(--line); }
+.new-proof h3 { font-size: 1.25rem; margin: 0 0 var(--s2); }
+.new-proof .proof-rate { margin: 0 0 var(--s4); }
+.new-proof .proof { gap: var(--s5); }
+.new-proof .proof li { padding-left: 0; }
+.new-proof .proof li::before { content: none; }
+.new-proof .proof q { display: block; font-family: var(--font-display); font-weight: 400; font-size: 1.125rem; line-height: 1.45; }
+.new-proof .proof small { margin-top: var(--s2); font-size: var(--t-xs); font-weight: 600; color: var(--ink-2); }
+@media (min-width: 900px) { .new-proof .proof { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s6); } }
+
+/* ---------- Visit: three unboxed columns from 1024 (round 3), now with Discord and the social links ---------- */
 .visit .sec-head h2 { margin-bottom: 0; }
-.visit-in { display: grid; gap: var(--s6); } /* no card box: the band is the container (F3); the columns keep their hairlines */
-.visit .visit-in h3 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 850; margin: 0 0 var(--s3); }
+.visit-in { display: grid; gap: var(--s6); }
+.visit .visit-in h3 { font-size: var(--t-xl); margin: 0 0 var(--s3); }
 .visit address { font-size: 1.2rem; }
-.visit-small { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
+.visit-acts { margin: var(--s4) 0 0; display: flex; flex-wrap: wrap; gap: var(--s2); }
+.visit-acts + .visit-acts { margin-top: var(--s2); }
+.visit .socials { margin-top: var(--s2); }
+.visit-small { margin: var(--s3) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
 .visit-small strong { color: var(--ink); }
 .visit .faq dd:last-child { margin-bottom: 0; }
 @media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; } .visit-faq { grid-column: 1 / -1; } }
@@ -155,91 +200,124 @@
   .visit-in > div + div { border-left: 1px solid var(--line); margin-left: calc(-1 * var(--s7) / 2); padding-left: calc(var(--s7) / 2); }
 }
 
-@media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } } /* the montage still plays (DESIGN 17); only the fade is dropped */
-
-/* ---------- compact week (R5): later days are one line per event ---------- */
-/* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
-@media (max-width: 1023px) {
-  #days .day-closed, #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
-  #days .day-closed .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
-  #days .day-closed .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
-  #days .day-closed .day-meta, #days .day:has(> .day-lines) .day-meta { padding-left: 3rem; margin-top: -0.4rem; }
-  #days .day-closed .day-skip { display: none; } /* the header already says "closed" */
+/* ---------- inside the shop: photo gallery (not on the home page now; kept for the other pages that may borrow it) ---------- */
+.shop { background: var(--surface); border-block: 1px solid var(--line); }
+.shots { position: relative; list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) var(--s2); display: grid; grid-auto-flow: column; grid-auto-columns: 78%; gap: var(--s3); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+.shot { scroll-snap-align: start; }
+.shot figure { position: relative; margin: 0; height: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
+.shot img { width: 100%; height: 100%; object-fit: cover; }
+.shot figcaption {
+  position: absolute; left: var(--s3); right: var(--s3); bottom: var(--s3); width: fit-content; max-width: calc(100% - 1.5rem);
+  padding: 0.35rem 0.7rem; border-radius: var(--r-box); background: var(--scrim); color: #FFFFFF; font-size: var(--t-sm); font-weight: 650; line-height: 1.3;
 }
-/* a wide single card keeps its text readable */
-.slot-cards[data-one] .ev-text { max-width: 60ch; }
-
-/* ---------- a real photo beside New and preorders (R27) ---------- */
-.rel-photo { margin: 0 0 var(--s4); max-height: 220px; overflow: hidden; border-radius: var(--r-photo); background: var(--surface-2); }
-.rel-photo img { display: block; width: 100%; height: 220px; object-fit: cover; object-position: 50% 50%; }
-@media (min-width: 1024px) {
-  .new .wrap { display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); gap: 0 var(--s6); align-items: stretch; }
-  .new .sec-head { grid-column: 1 / -1; }
-  .rel-photo { max-height: none; height: 100%; margin: 0; grid-row: 2; }
-  .rel-photo img { height: 100%; min-height: 20rem; object-fit: cover; }
-  .rel-list { grid-column: 2; grid-row: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-/* ---------- round 3: calmer week on wide screens ----------
- * days that are only one-line rows get the same light header as closed days; "Further out" rows are one line high */
-@media (min-width: 1024px) {
-  #days .day:has(> .day-lines) { padding-block: var(--s4) var(--s5); }
-  #days .day:has(> .day-lines) .day-h { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); }
-  #days .day:has(> .day-lines) .day-dia { width: 2.6rem; height: 2.6rem; font-size: 1.15rem; }
-  #days .day:has(> .day-lines) .day-name { font-size: var(--t-xl); }
-  #days .day:has(> .day-lines) .day-meta { flex-basis: 100%; font-size: var(--t-xs); }
-}
-.week .later { padding: var(--s5); }
-.week .later-list li { padding-block: var(--s2); }
-.week .later-date { display: flex; flex-direction: column; align-items: center; }
 @media (min-width: 768px) {
-  .week .later-list li { grid-template-columns: 6.5rem minmax(0, 1fr) auto; min-height: 3.25rem; }
-  .week .later-date { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 0.3rem; text-align: left; }
-  .week .later-date b { display: inline; font-size: 1.35rem; }
+  .shots { margin-inline: 0; padding-inline: 0; overflow: visible; grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 17rem 15rem; grid-template-areas: "banner case corgi" "banner crew crew"; }
+  .shot figure { aspect-ratio: auto; }
+  .shot-banner { grid-area: banner; } .shot-case { grid-area: case; } .shot-corgi { grid-area: corgi; } .shot-crew { grid-area: crew; }
 }
 
-/* D46: the round theme button sits fixed in the bottom-right corner; the hero strip keeps that corner free so the
- * Pause / Play control is never under it on first load (390: button 334-378 x 732-776 vs pause 328-373 x 740-788). */
-.phero-strip-in { padding-right: calc(var(--gutter) + 3.75rem); }
+/* ---------- round 8 boss trims (D61): the same content, about a third shorter ---------- */
+/* This week: days after the next two with events fold into one line; the strip tile or a #d- link opens them */
+.wk-fold > summary { list-style: none; }
+.wk-fold > summary::-webkit-details-marker { display: none; }
+.day-sum {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem 0.6rem; min-height: var(--tap); padding: 0.4rem 2.25rem 0.4rem 0; position: relative;
+  cursor: pointer; border-radius: var(--r-ctl); color: var(--ink);
+}
+.day-sum .sum-n { font-weight: 700; white-space: nowrap; }
+.day-sum .sum-t { min-width: 0; color: var(--ink-2); font-size: var(--t-sm); }
+.day-sum .sum-ic { position: absolute; right: 0.25rem; top: 50%; width: 1.25rem; height: 1.25rem; margin-top: -0.625rem; transform: rotate(90deg); transition: transform 140ms; }
+.wk-fold[open] > .day-sum .sum-ic { transform: rotate(-90deg); }
+.day-sum:hover .sum-n { text-decoration: underline; text-underline-offset: 0.2em; }
+.day-sum:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.wk-fold[open] > .day-sum { margin-bottom: var(--s1); }
+.wk-card .day-fold { padding-block: var(--s3); }
+@media (max-width: 899px) { .wk-card .day-fold .day-h { position: static; padding-bottom: 0; } }
+@media (min-width: 900px) { .wk-card .day-fold { align-items: center; } .wk-card .day-fold:has(> .wk-fold[open]) { align-items: start; } }
+@media (prefers-reduced-motion: reduce) { .day-sum .sum-ic { transition: none; } }
 
-/* ---------- round 7 (D51): status chip above the headline, featured TikTok clips in the hero ---------- */
-.phero-chip {
-  display: inline-flex; align-items: center; gap: 0.5rem; margin: 0 0 var(--s4); padding: 0.3rem 0.85rem 0.3rem 0.65rem;
-  border-radius: var(--r-pill); background: rgb(0 0 0 / 0.5); border: 1px solid rgb(255 255 255 / 0.3); color: #FFFFFF;
-  font-size: var(--t-sm); font-weight: 750; line-height: 1.4; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+/* Further out on phones: the title on top, then "Fri 6 Nov" leading the meta line (was a 2-line date column) */
+@media (max-width: 767px) {
+  .week .later-list li { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "what what" "date meta"; row-gap: 0.15rem; column-gap: 0.6rem; align-items: baseline; }
+  .week .later-what { grid-area: what; }
+  .week .later-date { grid-area: date; grid-row: auto; font-size: var(--t-sm); }
+  .week .later-meta { grid-area: meta; }
 }
-.chip-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; border: 2px solid rgb(255 255 255 / 0.75); flex: none; }
-.phero-chip[data-open] .chip-dot { background: #6FD49A; border-color: #6FD49A; box-shadow: 0 0 0 3px #6FD49A40; }
-.phero-acts .btn-clip {
-  background: rgb(255 255 255 / 0.1); color: #FFFFFF; border: 1px solid rgb(255 255 255 / 0.55); gap: 0.45rem;
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+
+/* What we play: 4:3 photos on phones; one row of six from 1100 */
+.play-ph { aspect-ratio: 4 / 3; }
+.play-body { padding: 0.625rem 0.75rem 0.75rem; }
+@media (max-width: 767px) { .play-grid { gap: 0.75rem; } .play-name { font-size: 1.125rem; } }
+@media (min-width: 1100px) {
+  .play-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem; }
+  .play-ph { aspect-ratio: 1 / 1; }
+  .play-name { font-size: 1.125rem; }
 }
-.phero-acts .btn-clip:hover { background: rgb(255 255 255 / 0.2); border-color: #FFFFFF; }
-.phero-acts .btn-clip .ic { width: 1.25rem; height: 1.25rem; }
-.phero-feat { display: none; }
-@media (min-width: 900px) {
-  .phero-acts .btn-clip { display: none; }
-  .phero-in { position: relative; }
-  .phero-copy { max-width: min(40rem, calc(100% - 23rem)); }
-  .phero-feat {
-    display: flex; gap: var(--s3); list-style: none; margin: 0; padding: 0; position: absolute; right: var(--gutter); top: 50%;
-    transform: translateY(-46%);
-  }
-  .phero-feat li { width: clamp(8.75rem, 11.5vw, 10.5rem); }
-  .fclip { display: grid; gap: 0.5rem; color: #FFFFFF; text-decoration: none; border-radius: var(--r-photo); }
-  .fclip .clip-ph { box-shadow: 0 8px 28px rgb(0 0 0 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.25); }
-  .fclip .clip-play { width: 2.75rem; height: 2.75rem; }
-  /* D52: a dark backing, the captions sit over the light counter and wall on the right of the photo */
-  .fclip-cap { font-size: var(--t-sm); font-weight: 700; line-height: 1.3; text-shadow: 0 1px 8px rgb(0 0 0 / 0.7); padding: 0 0.3rem; border-radius: 3px; background: rgb(12 9 7 / 0.62); box-shadow: 0 0 0 0.25rem rgb(12 9 7 / 0.62); margin-top: 0.25rem;
-    display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .fclip:hover .clip-play { background: var(--act); border-color: #FFFFFF; }
-  .fclip:hover .fclip-cap { text-decoration: underline; }
-  .fclip:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 3px; }
+
+/* cEDH: no photo on phones (the band, the dates and the sign-up are the point); facts as label | text; turnout folds */
+@media (max-width: 767px) {
+  .cedh-photo { display: none; }
+  .cedh-lede { margin-bottom: var(--s4); }
+  .cedh-facts { gap: var(--s2); }
+  .cedh-facts > div { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); gap: var(--s2); align-items: baseline; }
+  .cedh-facts dt { font-size: 1rem; }
+  .cedh-facts dd { font-size: var(--t-sm); line-height: 1.45; }
 }
-/* D52: from 360 to 420px the two hero buttons still share one row (trimmed padding and gap), so the hero stays short */
-@media (max-width: 420px) { .phero-acts { column-gap: var(--s2); } .phero-acts .btn { padding-inline: 0.85rem; } }
-/* D52: on phones the hero is as tall as its copy (no 62svh floor), so the strip and Pause end above the quick-actions bar (D33) at 390x844 */
-@media (max-width: 899px) { .phero { min-height: clamp(24rem, 52svh, 40rem); } .phero-in { padding-block: var(--s5); } .phero-chip { margin-bottom: var(--s3); } .phero-sub { margin-block: var(--s3) var(--s4); } }
-/* D52: on the home page the bar above the header carries no open / closed text (the hero chip does); the address leads it,
- * on phones too ("445 York Rd"; ", Warminster" from 600px) */
-.ob-front .ob-addr { display: block; margin-right: auto; color: var(--on-band); font-weight: 600; }
+.turnout-fold > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: var(--tap); cursor: pointer; }
+.turnout-fold > summary::-webkit-details-marker { display: none; }
+.turnout-fold > summary h4 { margin: 0; }
+.turnout-fold .sum-ic { width: 1.25rem; height: 1.25rem; transform: rotate(90deg); transition: transform 140ms; }
+.turnout-fold[open] .sum-ic { transform: rotate(-90deg); }
+.turnout-fold > summary:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
+.turnout-fold[open] > summary { margin-bottom: var(--s1); }
+
+/* New and preorders: the photo only from 768; quotes are a sideways row on phones */
+@media (max-width: 767px) { .rel-photo { display: none; } }
+@media (max-width: 899px) {
+  .new-proof .proof { grid-auto-flow: column; grid-auto-columns: minmax(15rem, 80%); overflow-x: auto; scroll-snap-type: x mandatory; margin-inline: calc(-1 * var(--gutter)); padding: 0 var(--gutter) var(--s2); scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+  .new-proof .proof li { scroll-snap-align: start; padding: var(--s4); background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-card); }
+  .new-proof .proof q { font-size: 1.0625rem; }
+  .new-proof { margin-top: var(--s5); padding-top: var(--s4); }
+}
+
+/* Visit: tighter hours rows; the four questions open one at a time */
+.visit .hours th, .visit .hours td { padding-block: 0.45rem; }
+.faq-fold details { border-bottom: 1px solid var(--line); }
+.faq-fold details:first-child { border-top: 1px solid var(--line); }
+.faq-fold summary { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: var(--tap); padding-block: 0.35rem; font-weight: 700; cursor: pointer; list-style: none; }
+.faq-fold summary::-webkit-details-marker { display: none; }
+.faq-fold summary::after { content: "+"; flex: none; font-size: 1.25rem; font-weight: 500; line-height: 1; color: var(--ink-2); }
+.faq-fold details[open] summary::after { content: "\2212"; }
+.faq-fold summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.faq-fold p { margin: 0 0 var(--s3); color: var(--ink-2); }
+.visit-where .visit-acts .btn { min-height: var(--tap); }
+@media print { .faq-fold details::details-content, .wk-fold::details-content { content-visibility: visible; display: block; } }
+
+/* What we play on phones: one sideways row (about 2.3 cards in view) instead of three rows of two */
+@media (max-width: 767px) {
+  .play-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 42%; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    margin-inline: calc(-1 * var(--gutter)); padding: 0 var(--gutter) var(--s2); scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+  .play-grid li { scroll-snap-align: start; }
+  .play-ph { aspect-ratio: 1 / 1; }
+}
+/* cEDH dates on phones: the button and the registered count share a line */
+@media (max-width: 479px) {
+  .tix-acts { gap: var(--s2) var(--s3); }
+  .tix-acts .btn { padding-inline: 0.875rem; font-size: 0.9375rem; }
+  .tix-acts .ev-stat .ic { display: none; }
+  .tix-acts .ev-stat-big { font-size: 1.375rem; }
+  .tix { padding: var(--s3) var(--s3) var(--s3) var(--s4); }
+  .tix-acts .ev-stat { min-width: 0; padding-inline: 0; }
+}
+/* Visit on phones: Directions and the phone number share a row */
+@media (max-width: 599px) { .visit-acts .btn { padding-inline: 0.875rem; } .visit-acts { gap: var(--s2); } }
+/* the home page's Visit section sits right above the footer, so the footer does not repeat the address and hours there (D37: once) */
+.home .foot-visit, .home .foot-hours { display: none; }
+@media (min-width: 900px) { .home .foot-in { grid-template-columns: 1.3fr 2fr; } }
+/* wide screens: the cEDH photo is a 2:1 strip; New and preorders is one row of tiles (no side photo; the hero already shows the shop) */
+@media (min-width: 768px) { .cedh-photo { aspect-ratio: 2 / 1; } }
+@media (min-width: 1200px) {
+  .new .wrap { display: block; }
+  .new .rel-photo { display: none; }
+  .new .rel-list { grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr)); }
+}

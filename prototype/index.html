@@ -23,6 +23,7 @@
   <meta property="og:image:alt" content="The Mulligan Games logo on its sign plate, next to the play room doorway">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
   <!-- LCP hint (#16): portrait phones fetch the portrait poster, every other screen the wide one (never both) -->
   <link rel="preload" as="image" href="media/video/hero-poster-portrait.jpg" media="(max-width: 700px) and (orientation: portrait)" fetchpriority="high">
   <link rel="preload" as="image" href="media/video/hero-poster.jpg" media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high">
@@ -38,7 +39,7 @@
   <script src="js/front.js" defer></script>
   <script src="js/clips.js" defer></script>
 </head>
-<body>
+<body class="home">
   <a class="skip" href="#week">Skip to this week's events</a>
 
   <!-- Concept only: not part of the real site. Lets the owners see the page at different times. -->
@@ -73,7 +74,7 @@
   </header>
 
   <main id="main">
-    <!-- 2. Hero (round 3, D36): the room on a cEDH night fills the whole width; the copy sits on a dark scrim -->
+    <!-- 2. Hero (round 8, D55): the whole hero is the store montage; five things (chip, headline, sub-line, two buttons) on a scrim, then a strip -->
     <section class="phero" aria-labelledby="hero-h">
       <div class="phero-media" id="hero-media">
         <!-- #16 hero montage (DESIGN 6 and 17): the silent montage plays on every width. The poster <img> (the first frame of each
@@ -92,68 +93,114 @@
       <div class="wrap phero-in">
         <div class="phero-copy">
           <p class="phero-chip" id="hero-chip" role="status"><span class="chip-dot" aria-hidden="true"></span><span id="hero-chip-t">Hours: Wednesday to Sunday</span></p>
-          <h1 class="phero-h" id="hero-h">Shuffle up. Everyone’s welcome.</h1>
+          <h1 class="phero-h" id="hero-h"><span>Shuffle up.</span> <span>Everyone’s welcome.</span></h1>
           <p class="phero-sub" id="hero-sub">Free play every day we’re open, big tables, and a crew who knows every format.</p>
-          <div class="phero-acts">
-            <a class="next" id="nextup" href="#week">
-              <span class="next-time" id="nextup-time">Wed</span>
-              <span class="next-in">
-                <span class="next-k" id="nextup-k">Next up</span>
-                <span class="next-what" id="nextup-what">See this week</span>
-              </span>
-            </a>
-            <a class="btn btn-act" href="#week">This week's events</a>
-            <a class="btn btn-clip" id="hero-clip" href="https://www.tiktok.com/@mulligangames/video/7456651666096704814" data-clip-id="7456651666096704814" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Watch a clip<span class="vh"> (TikTok, opens a video)</span></a>
-          </div>
+          <p class="phero-acts">
+            <a class="btn btn-hero" id="hero-cta" href="#week">See this week</a>
+            <a class="btn btn-on-dark" id="hero-visit" href="#visit">Plan a visit</a>
+          </p>
         </div>
-        <!-- D51: two featured TikTok clips, from 900px on the right of the photo. Plain links; js/clips.js opens the click-to-load dialog. -->
-        <ul class="phero-feat" id="hero-feat" role="list" aria-label="Clips from the shop">
-          <li><a class="fclip" href="https://www.tiktok.com/@mulligangames/video/7456651666096704814" data-clip-id="7456651666096704814" target="_blank" rel="noopener">
-            <span class="clip-ph"><img src="media/social/tt-7456651666096704814.webp" width="240" height="427" alt="" decoding="async" style="object-position:50% 50%">
-              <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span><span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span></span>
-            <span class="fclip-cap"><span class="vh">Play video: </span>A full room for the monthly cEDH</span></a></li>
-          <li><a class="fclip" href="https://www.tiktok.com/@mulligangames/video/7467024512442289451" data-clip-id="7467024512442289451" target="_blank" rel="noopener">
-            <span class="clip-ph"><img src="media/social/tt-7467024512442289451.webp" width="240" height="427" alt="" decoding="async" style="object-position:50% 50%">
-              <span class="clip-badge"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/></svg>TikTok</span><span class="clip-play" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span></span>
-            <span class="fclip-cap"><span class="vh">Play video: </span>February’s cEDH night and its prizes</span></a></li>
-        </ul>
       </div>
-      <!-- the strip along the bottom of the photo: what's on screen, the clips link, the pause control (free play is in the sub-line, D52) -->
+      <!-- the strip: pause on the left, what's next beside it; the right 76px stay free for the round theme button (D46) -->
       <div class="phero-strip">
         <div class="wrap phero-strip-in">
-          <p class="media-cap"><span class="cap-k">On screen: </span>Mulligan Games, 445 York Rd</p>
-          <a class="clips-link" href="#clips">Watch clips from the shop<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
           <button class="vid-btn" id="vid-btn" type="button" data-paused>
             <svg class="ic i-pause" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
             <svg class="ic i-play" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
             <span id="vid-label">Play video</span>
           </button>
+          <a class="next" id="nextup" href="#tonight"><span class="next-k" id="nextup-k">Next up</span><span class="next-time" id="nextup-time">Wed</span><span class="next-what" id="nextup-what">See this week</span></a>
         </div>
       </div>
     </section>
 
-    <!-- 3. This week: the seven-day strip first, then the days -->
+    <!-- 2b. Tonight (round 8, 3.1): a brick band. js/front.js fills #tonight-body with the lead day (today, else the next day with events) -->
+    <section class="tn-band" id="tonight" aria-labelledby="tonight-h">
+      <div class="wrap">
+        <div class="tn-head">
+          <div>
+            <p class="kicker" id="tonight-k" hidden></p>
+            <h2 id="tonight-h">Tonight</h2>
+          </div>
+          <a class="tn-more" id="tonight-more" href="#week">See the whole week<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
+        </div>
+        <div id="tonight-body"></div>
+      </div>
+    </section>
+
+    <!-- 3. This week: one cream card of dated rows, one button each. The lead day is in the band above. -->
     <section class="sec week" id="week" aria-labelledby="week-h">
       <div class="wrap">
         <div class="sec-head">
           <h2 id="week-h">This week</h2>
-          <a class="more" href="events.html">All events and sign-ups<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
+          <a class="sec-link" href="events.html">All events and sign-ups<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
         </div>
-        <p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
+        <p class="sec-note week-note">Most nights are walk-in. A Sign up button holds a seat.</p>
         <nav class="wdeck" aria-labelledby="wdeck-k">
           <p class="wdeck-k vh" id="wdeck-k">The next seven days</p>
           <ol id="deck"></ol>
         </nav>
-        <nav class="chips" id="chips" aria-label="Show one game"></nav>
+        <nav class="chips" id="chips" aria-label="Show one game in this list"></nav>
         <p class="vh" id="filter-status" role="status" aria-live="polite"></p>
-        <div class="days" id="days">
-          <p class="loading" id="days-loading"><span class="spin" aria-hidden="true"></span>Loading this week's events...</p>
+        <div class="wk-card">
+          <div class="days" id="days">
+            <p class="loading" id="days-loading"><span class="spin" aria-hidden="true"></span>Loading this week's events...</p>
+          </div>
+          <aside class="later" aria-labelledby="later-h">
+            <h3 id="later-h">Further out</h3>
+            <ul class="later-list" id="later"></ul>
+            <a class="more" href="events.html">See every date<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
+          </aside>
         </div>
-        <aside class="later" aria-labelledby="later-h">
-          <h3 id="later-h">Further out</h3>
-          <ul class="later-list" id="later"></ul>
-          <a class="more" href="events.html">See every date<svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>
-        </aside>
+      </div>
+    </section>
+
+    <!-- 3a. What we play (round 8, 3.3): six static cards; front.js fills only the counts -->
+    <section class="sec play" id="play" aria-labelledby="play-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <h2 id="play-h">What we play</h2>
+            <p class="lead play-lead">Pick a game to see its nights.</p>
+          </div>
+        </div>
+        <ul class="play-grid" role="list">
+          <li><a class="play-card" data-play="magic" data-game="magic" href="events.html?game=magic"><span class="play-ph"><img src="img/social/event-magic-night-800.webp" width="800" height="600" alt="Players at a Magic night" loading="lazy" decoding="async"></span><span class="play-body"><span class="play-name">Magic</span><span class="play-n">Magic nights</span></span></a></li>
+          <li><a class="play-card" data-play="cedh" data-game="cedh" href="#cedh"><span class="play-ph"><img src="img/social/event-cedh-tables-800.webp" width="800" height="600" alt="cEDH pods at the long tables" loading="lazy" decoding="async"></span><span class="play-body"><span class="play-name">cEDH</span><span class="play-n">cEDH nights</span></span></a></li>
+          <li><a class="play-card" data-play="pokemon" data-game="pokemon" href="events.html?game=pokemon"><span class="play-ph"><img src="img/social/pokemon-sealed-shelf-800.webp" width="800" height="600" alt="The sealed Pokemon shelf" loading="lazy" decoding="async"></span><span class="play-body"><span class="play-name">Pokemon</span><span class="play-n">Pokemon nights</span></span></a></li>
+          <li><a class="play-card" data-play="warhammer" data-game="warhammer" href="events.html?game=warhammer"><span class="play-ph"><img src="img/social/warhammer-battle-800.webp" width="800" height="600" alt="A Warhammer battle on a painted table" loading="lazy" decoding="async"></span><span class="play-body"><span class="play-name">Warhammer and tabletop</span><span class="play-n">Warhammer nights</span></span></a></li>
+          <li><a class="play-card" data-play="other" data-game="other" href="events.html?game=other"><span class="play-ph"><img src="img/social/dnd-table-800.webp" width="800" height="600" alt="A Dungeons and Dragons table" loading="lazy" decoding="async"></span><span class="play-body"><span class="play-name">D&amp;D and board games</span><span class="play-n">D&amp;D nights</span></span></a></li>
+          <li><a class="play-card" data-play="onepiece,riftbound,hololive" data-game="onepiece" href="events.html"><span class="play-ph"><img src="img/social/event-tables-fb-800.webp" width="800" height="600" alt="Players at a card game night" loading="lazy" decoding="async"></span><span class="play-body"><span class="play-name">One Piece, Riftbound, Hololive</span><span class="play-n">Card game nights</span></span></a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 4. cEDH strip (D4) -->
+    <section class="cedh" id="cedh" aria-labelledby="cedh-h">
+      <div class="wrap cedh-in">
+        <div class="cedh-copy">
+          <h2 id="cedh-h">cEDH at Mulligan</h2>
+          <p class="cedh-lede">A monthly Championship Series, 5K weekends and a November invitational. Forty to 120 players an event, and a dual land on the line every month.</p>
+          <figure class="cedh-photo"><img src="media/video/cedh-monthly-event-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="Close-up of a cEDH game at Mulligan: playmats, sleeved decks and cards in play"></figure>
+          <dl class="cedh-facts">
+            <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
+            <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
+            <div><dt>Entry</dt><dd id="cedh-fees">Championship Series $60, 5K $100, Redemption $35 ($25 after the 5K). A $10 online deposit holds a spot; the rest is paid at the door.</dd></div>
+            <div><dt>Parking</dt><dd>Any lot next to the shop except the RISE lot.</dd></div>
+          </dl>
+        </div>
+        <div class="cedh-next">
+          <h3>Next cEDH events</h3>
+          <ol class="cedh-list" id="cedh-list"></ol>
+          <p class="cedh-last" id="cedh-last"></p>
+          <div class="turnout">
+            <details class="turnout-fold" id="turnout" open>
+              <summary><h4>Recent turnout</h4><svg class="ic sum-ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary>
+              <ul class="turnout-list" id="cedh-turnout"></ul>
+            </details>
+            <a class="turnout-more" href="https://topdeck.gg/circuit/mulligans" target="_blank" rel="noopener">Full standings on TopDeck<span class="vh"> (opens TopDeck)</span></a>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -271,33 +318,6 @@
       </div>
     </section>
 
-    <!-- 4. cEDH strip (D4) -->
-    <section class="cedh" id="cedh" aria-labelledby="cedh-h">
-      <div class="wrap cedh-in">
-        <div class="cedh-copy">
-          <h2 id="cedh-h">cEDH at Mulligan</h2>
-          <p class="cedh-lede">A monthly Championship Series, 5K weekends and a November invitational. Forty to 120 players an event, and a dual land on the line every month.</p>
-          <figure class="cedh-photo"><img src="media/video/cedh-monthly-event-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="Close-up of a cEDH game at Mulligan: playmats, sleeved decks and cards in play"></figure>
-          <dl class="cedh-facts">
-            <div><dt>Prizes</dt><dd>Every Championship Series guarantees a dual land. Each winner gets an invitational seat.</dd></div>
-            <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
-            <div><dt>Entry</dt><dd id="cedh-fees">Championship Series $60, 5K $100, Redemption $35 ($25 after the 5K). A $10 online deposit holds a spot; the rest is paid at the door.</dd></div>
-            <div><dt>Parking</dt><dd>Any lot next to the shop except the RISE lot.</dd></div>
-          </dl>
-        </div>
-        <div class="cedh-next">
-          <h3>Next cEDH events</h3>
-          <ol class="cedh-list" id="cedh-list"></ol>
-          <p class="cedh-last" id="cedh-last"></p>
-          <div class="turnout">
-            <h4>Recent turnout</h4>
-            <ul class="turnout-list" id="cedh-turnout"></ul>
-            <a class="turnout-more" href="https://topdeck.gg/circuit/mulligans" target="_blank" rel="noopener">Full standings on TopDeck<span class="vh"> (opens TopDeck)</span></a>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- 5. New and preorders -->
     <section class="sec new" id="new" aria-labelledby="new-h">
       <div class="wrap">
@@ -308,6 +328,11 @@
         <figure class="rel-photo"><img src="media/video/sealed-packs-counter-poster.webp" width="720" height="1280" loading="lazy" decoding="async" alt="Sealed product on the counter at Mulligan Games"></figure>
         <ul class="rel-list" id="rel-list"></ul>
         <p class="tcg-line" id="tcg-line"></p>
+        <div class="new-proof">
+          <h3>What people say</h3>
+          <p class="proof-rate" id="proof-rate"></p>
+          <ul class="proof" id="proof"></ul>
+        </div>
       </div>
     </section>
 
@@ -340,54 +365,25 @@
             <a class="btn btn-2" href="https://www.google.com/maps/search/?api=1&amp;query=Mulligan+Games+445+York+Rd+Warminster+PA+18974" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions<span class="vh"> (opens Google Maps)</span></a>
             <a class="btn btn-2" href="tel:+12157893299"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h3.5l1.5 4.5-2.3 1.5a11 11 0 0 0 6.8 6.8l1.5-2.3 4.5 1.5V19a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2z"/></svg>(215) 789-3299</a>
           </p>
+          <p class="visit-acts"><a class="btn btn-2" href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>Chat with the regulars on Discord<span class="vh"> (opens Discord)</span></a></p>
+          <ul class="socials">
+            <li><a href="https://www.facebook.com/profile.php?id=100085975454414" target="_blank" rel="noopener">Facebook</a></li>
+            <li><a href="https://www.instagram.com/mulligangames" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://www.tiktok.com/@mulligangames" target="_blank" rel="noopener">TikTok</a></li>
+            <li><a href="https://topdeck.gg/mulligangames" target="_blank" rel="noopener">TopDeck</a></li>
+          </ul>
           <p class="visit-small"><strong>Parking:</strong> any lot next to the shop except the RISE lot. Look for the sign on the roof; the door is right below it.</p>
         </div>
         <div class="visit-faq">
           <h3>Good to know</h3>
-          <dl class="faq">
-            <dt>Can kids come?</dt>
-            <dd>Yes. Learn to Play Pokemon on Wednesdays at 7 PM is a good first night.</dd>
-            <dt>Do I need to sign up?</dt>
-            <dd>Most weekly nights are walk-in. Drafts and Pauper have a seat limit, so sign up here to hold a seat. Pay at the store.</dd>
-            <dt>Can I just come and play?</dt>
-            <dd>Yes. Free play all day, every day we're open.</dd>
-            <dt>How do preorders work?</dt>
-            <dd>In store or by phone. Each preorder has a last day, shown above.</dd>
-          </dl>
-        </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 7. Community -->
-    <section class="sec community" id="community" aria-labelledby="comm-h">
-      <div class="wrap">
-        <div class="sec-head">
-          <h2 id="comm-h">Between events</h2>
-          <p class="sec-note">Chat with the regulars, find a pod and hear about new events first on the shop Discord.</p>
-        </div>
-        <div class="comm-in">
-          <div class="comm-discord">
-            <h3>Join the Discord</h3>
-            <p><a class="btn btn-act" href="https://discord.gg/YJAW4aTwaZ" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01"/></svg>Join the Discord<span class="vh"> (opens Discord)</span></a></p>
-            <p class="note">Invite link to be confirmed by the owners.</p>
-            <ul class="socials">
-              <li><a href="https://www.facebook.com/profile.php?id=100085975454414" target="_blank" rel="noopener">Facebook</a></li>
-              <li><a href="https://www.instagram.com/mulligangames" target="_blank" rel="noopener">Instagram</a></li>
-              <li><a href="https://www.tiktok.com/@mulligangames" target="_blank" rel="noopener">TikTok</a></li>
-              <li><a href="https://x.com/MulliganGames" target="_blank" rel="noopener">X</a></li>
-              <li><a href="https://topdeck.gg/mulligangames" target="_blank" rel="noopener">TopDeck</a></li>
-            </ul>
+          <!-- boss trim (D61): four one-line questions that open, instead of four always-open answers -->
+          <div class="faq faq-fold">
+            <details><summary>Can kids come?</summary><p>Yes. Learn to Play Pokemon on Wednesdays at 7 PM is a good first night.</p></details>
+            <details><summary>Do I need to sign up?</summary><p>Most weekly nights are walk-in. Drafts and Pauper have a seat limit, so sign up here to hold a seat. Pay at the store.</p></details>
+            <details><summary>Can I just come and play?</summary><p>Yes. Free play all day, every day we're open.</p></details>
+            <details><summary>How do preorders work?</summary><p>In store or by phone. Each preorder has a last day, shown above.</p></details>
           </div>
-          <div class="comm-proof">
-            <h3>What people say</h3>
-            <p class="proof-rate" id="proof-rate"></p>
-            <ul class="proof" id="proof"></ul>
-          </div>
-          <div class="comm-lately">
-            <h3>Lately at the shop</h3>
-            <ul class="lately" id="lately"></ul>
-          </div>
+        </div>
         </div>
       </div>
     </section>

@@ -83,21 +83,59 @@
   });
 
   /* ---------- the weekly list ---------- */
-  pageTest('Every week at 1280: cards say the time without "Every" or "Walk in"; the day heading carries the next date', 'events.html?' + N, function (w, d) {
-    var cards = d.querySelectorAll('#weekly .ev'); ok(cards.length > 10, 'cards: ' + cards.length);
-    Array.prototype.forEach.call(cards, function (c) {
-      ok(!/Every/.test(c.querySelector('.ev-when').textContent), 'no "Every": ' + c.querySelector('.ev-when').textContent);
-      ok(!/Walk in/i.test(c.textContent), 'no "Walk in" on ' + c.querySelector('.ev-title').textContent);
+  pageTest('Every week at 1280 (round 8): rows in one .wk-card, no cards, one action per row, no "Every" or "Walk in"; the day head carries the next date', 'events.html?' + N, function (w, d) {
+    var card = d.querySelector('#weekly.wk-card'); ok(card, 'one week card');
+    eq(d.querySelectorAll('#weekly .ev').length, 0, 'no cards in Every week');
+    var rows = d.querySelectorAll('#weekly .day-line'); ok(rows.length > 10, 'rows: ' + rows.length);
+    Array.prototype.forEach.call(rows, function (r) {
+      var t = r.querySelector('.dl-title a').textContent;
+      ok(!/Every/.test(r.querySelector('.dl-bits').textContent), 'no "Every": ' + t);
+      ok(!/Walk in/i.test(r.textContent), 'no "Walk in" on ' + t);
+      ok(r.querySelector('.dl-title a').getAttribute('href').indexOf('#e-') !== -1, 'title links to the next date: ' + t);
+      ok(r.querySelectorAll('.btn-act').length <= 1 && r.querySelectorAll('.dl-act button, .dl-act a.btn, .dl-act .dl-more, .dl-act .stamp').length === 1, 'one action on ' + t);
     });
+    var sign = d.querySelector('#weekly .dl-act button[data-signup]'); ok(sign, 'Sign up is a button that opens the form');
     ok(/^next [A-Z][a-z]{2} \d+$/.test(d.querySelector('#weekly .wk-next').textContent), d.querySelector('#weekly .wk-next').textContent);
-    ok(d.querySelectorAll('#weekly .ev-next').length < 4, 'a "Next:" line only for cancelled or changed dates: ' + d.querySelectorAll('#weekly .ev-next').length);
+    ok(d.querySelector('#weekly-wrap .sec-note').textContent.indexOf('A Sign up button holds a seat') !== -1, 'the one note');
+    var h = d.querySelector('#weekly .day-h'), l = h.getBoundingClientRect(), r0 = d.querySelector('#weekly .day-line').getBoundingClientRect();
+    ok(r0.left > l.right - 1, 'at 1280 the day head is a left column, rows to its right');
+    ok(d.documentElement.scrollWidth <= d.documentElement.clientWidth + 1, 'no sideways scroll');
   });
-  pageTest('Every week at 390: one .day-line row per series, no cards; Tonight still has cards', 'events.html?' + N, function (w, d) {
+  pageTest('Every week at 390: the same rows, no cards, the day head sits above its rows; Tonight keeps cards', 'events.html?' + N, function (w, d) {
     ok(d.querySelectorAll('#weekly .day-line').length > 10, 'rows'); eq(d.querySelectorAll('#weekly .ev').length, 0, 'no cards in Every week');
     ok(d.querySelectorAll('#today .ev').length > 0, 'Tonight keeps cards');
     var row = d.querySelector('#weekly .day-line'); ok(row.querySelector('.dl-title a').getAttribute('href').indexOf('#e-') !== -1, 'title links to the next date');
+    ok(d.querySelector('#weekly .day-h').getBoundingClientRect().bottom <= d.querySelector('#weekly .day-line').getBoundingClientRect().top + 1, 'head above rows');
     ok(d.documentElement.scrollWidth <= d.documentElement.clientWidth + 1, 'no sideways scroll');
   }, 390);
+  pageTest('Every week: the title link opens the detail dialog and Sign up opens the form', 'events.html?' + N, function (w, d) {
+    click(d.querySelector('#weekly .dl-title a')); ok(d.getElementById('det-dlg').open, 'detail opens from a row title');
+    click(d.getElementById('det-x')); eq(d.getElementById('det-dlg').open, false, 'X closes it');
+    var sign = d.querySelector('#weekly .dl-act button[data-signup]'); click(sign);
+    ok(d.querySelector('dialog[open] form.su'), 'the form opens');
+  });
+
+  /* ---------- the page head and the Tonight band (round 8, 4.1 and 4.2) ---------- */
+  pageTest('events page head: header.page-head holds the h1, the lead, the chips, the format select and the calendar tools', 'events.html?' + N, function (w, d) {
+    var head = d.querySelector('header.page-head'); ok(head, 'page head');
+    eq(head.querySelector('h1').textContent, 'Events'); ok(head.querySelector('.lead').textContent.indexOf('Every game night at the shop') === 0, 'lead');
+    ok(head.querySelector('#chips') && head.querySelector('#fmt') && head.querySelector('#cal-menu'), 'filter bar is inside the head');
+    var cs = w.getComputedStyle(head.querySelector('h1')); ok(/Fraunces/.test(cs.fontFamily), 'h1 in Fraunces: ' + cs.fontFamily);
+    eq(w.getComputedStyle(head, '::after').height, '6px', 'coursing rule');
+    eq(head.getBoundingClientRect().width, d.documentElement.clientWidth, 'full width');
+    ok(d.querySelector('link[rel="preload"][href="fonts/fraunces.woff2"]'), 'Fraunces preload');
+  });
+  pageTest('events Tonight: a full-bleed brick band under the head with its ids, kicker date and cards', 'events.html?' + N, function (w, d) {
+    var band = d.getElementById('today-wrap'); ok(band && band.matches('section.tn-band') && !band.hidden, 'band');
+    eq(d.getElementById('today-h').textContent, 'Tonight'); eq(d.getElementById('today-k').textContent, 'Friday, October 30');
+    eq(band.getBoundingClientRect().width, d.documentElement.clientWidth, 'edge to edge');
+    ok(band.getBoundingClientRect().top >= d.querySelector('header.page-head').getBoundingClientRect().bottom - 1, 'under the head');
+    var n = d.querySelectorAll('#today .tn-cards .ev').length; ok(n >= 1 && n <= 3, 'up to 3 cards: ' + n);
+    ok(d.querySelector('#today .tn-cards .ev-title a'), 'card titles are links');
+  });
+  pageTest('events Tonight before 5 PM is called Today', 'events.html?now=2026-10-30T12:00', function (w, d) {
+    eq(d.getElementById('today-h').textContent, 'Today');
+  });
   pageTest('Closed Monday and Tuesday are one .day-off row with both anchors', 'events.html?' + N, function (w, d) {
     var off = d.querySelectorAll('#weekly .day-off'); eq(off.length, 1, 'one row');
     ok(off[0].querySelector('#wk-1') && off[0].querySelector('#wk-2'), 'both anchors');
@@ -110,9 +148,13 @@
     ok(d.querySelectorAll('#special .day').length >= 2, 'other dates remain');
     eq(d.querySelectorAll('#special .day-dia').length, 0, 'no diamonds');
   });
-  pageTest('Special events at 1280: two dates across', 'events.html?' + N, function (w, d) {
-    var days = d.querySelectorAll('#special .day'); ok(days.length >= 2);
-    eq(Math.round(days[0].getBoundingClientRect().top), Math.round(days[1].getBoundingClientRect().top), 'first two dates share a row');
+  pageTest('Special events at 1280: rows in one week card (D63), one action each, extra dates and counts in the bits', 'events.html?' + N, function (w, d) {
+    var days = d.querySelectorAll('#special .day'); ok(days.length >= 2); ok(d.getElementById('special').classList.contains('wk-card'), 'week card');
+    eq(d.querySelectorAll('#special .ev').length, 0, 'no cards'); var rows = d.querySelectorAll('#special .day-line'); ok(rows.length >= 5, 'rows ' + rows.length);
+    Array.prototype.forEach.call(rows, function (r) { ok(r.querySelectorAll('.btn').length <= 1, 'one action: ' + r.textContent); ok(r.getBoundingClientRect().height <= 72, 'row height ' + r.getBoundingClientRect().height); });
+    ok(/registered/.test(d.getElementById('special').textContent), 'TopDeck counts kept'); ok(/Also |Repeats: /.test(d.getElementById('special').textContent), 'other dates kept'); ok(/Invite only/.test(d.getElementById('special').textContent), 'invite only kept');
+    var cdh = d.querySelector('#special .day-line[data-game="cedh"] a.btn'); ok(cdh && cdh.rel === 'noopener' && cdh.target === '_blank', 'TopDeck link opens a new tab');
+    var cs = w.getComputedStyle(days[0].querySelector('.day-name')); ok(cs.textTransform === 'none' && cs.fontWeight === '700', 'date head is a sentence-case kicker');
   });
 
   /* ---------- hostile text ---------- */

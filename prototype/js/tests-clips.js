@@ -151,9 +151,8 @@
     d.querySelector('dialog').close();
   });
 
-  pageTest('the hero links to #clips, the section exists and the week heading is "This week"', function (w, d) {
-    var link = d.querySelector('.clips-link');
-    ok(link && link.getAttribute('href') === '#clips', 'hero link');
+  pageTest('the hero has no clip links; the section exists, the week heading is "This week"', function (w, d) {
+    eq(d.querySelectorAll('.phero .clips-link, .phero [data-clip-id]').length, 0, 'no clip links in the hero');
     ok(d.getElementById('clips'), 'target exists');
     eq(d.getElementById('week-h').textContent, 'This week');
     eq(d.getElementById('clips-h').textContent, 'Clips from the shop');

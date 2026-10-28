@@ -23,6 +23,7 @@
   <meta property="og:image:alt" content="The Mulligan Games logo on its sign plate, next to the play room doorway">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/site.css">
   <link rel="stylesheet" href="css/ui.css">
@@ -70,37 +71,44 @@
   </header>
 
   <main id="main">
-    <div class="wrap ep">
-      <div class="ep-head">
+    <header class="page-head">
+      <div class="wrap">
         <h1>Events</h1>
-        <p class="ep-lede">Every game night at the shop. Pick a game, check the seats, pay at the store.</p>
+        <p class="lead">Every game night at the shop. Pick a game, check the seats, pay at the store.</p>
+        <nav class="chips" id="chips" aria-label="Show one game"></nav>
+        <div class="ep-format">
+          <label for="fmt">Format</label><select id="fmt"><option value="">All formats</option></select>
+          <span class="ep-tools">
+            <details class="cal-menu" id="cal-menu">
+              <summary class="btn btn-2"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Add to my calendar</summary>
+              <div class="cal-pop"><button type="button" class="btn btn-2" id="cal-all"><span id="cal-game">All events</span><span class="vh"> (saves a calendar file)</span></button></div>
+            </details>
+            <button type="button" class="btn btn-2 no-print ep-print" id="print-btn">Print the schedule</button>
+          </span>
+        </div>
       </div>
-      <nav class="chips" id="chips" aria-label="Show one game"></nav>
-      <div class="ep-format">
-        <label for="fmt">Format</label><select id="fmt"><option value="">All formats</option></select>
-        <span class="ep-tools">
-          <details class="cal-menu" id="cal-menu">
-            <summary class="btn btn-2"><svg class="ic" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Add to my calendar</summary>
-            <div class="cal-pop"><button type="button" class="btn btn-2" id="cal-all"><span id="cal-game">All events</span><span class="vh"> (saves a calendar file)</span></button></div>
-          </details>
-          <button type="button" class="btn btn-2 no-print ep-print" id="print-btn">Print the schedule</button>
-        </span>
-      </div>
-      <p class="loading" id="loading"><span class="spin" aria-hidden="true"></span>Loading the events...</p>
+    </header>
+    <div class="wrap"><p class="loading" id="loading"><span class="spin" aria-hidden="true"></span>Loading the events...</p></div>
 
-      <section class="ep-sec" id="today-wrap" aria-labelledby="today-h" hidden>
-        <h2 id="today-h">Tonight</h2>
-        <p class="sec-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
+    <section class="tn-band" id="today-wrap" aria-labelledby="today-h" hidden>
+      <div class="wrap">
+        <div class="tn-head">
+          <div><p class="kicker" id="today-k"></p><h2 id="today-h">Tonight</h2></div>
+          <a class="tn-more" href="#weekly-wrap">Every week &rsaquo;</a>
+        </div>
         <div id="today"></div>
-      </section>
+      </div>
+    </section>
+
+    <div class="wrap ep">
       <section class="ep-sec" id="special-wrap" aria-labelledby="special-h" hidden>
         <h2 id="special-h">Special events and tournaments</h2>
-        <div id="special"></div>
+        <div id="special" class="wk-card"></div>
       </section>
       <section class="ep-sec" id="weekly-wrap" aria-labelledby="weekly-h" hidden>
         <h2 id="weekly-h">Every week</h2>
-        <p class="sec-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>
-        <div id="weekly"></div>
+        <p class="sec-note">Most nights are walk-in. A Sign up button holds a seat.</p>
+        <div id="weekly" class="wk-card"></div>
       </section>
       <div id="ep-empty" hidden></div>
       <p class="print-only">Mulligan Games · 445 York Rd, Warminster PA · (215) 789-3299 · Wed-Thu 2-10 PM, Fri-Sat 2 PM-midnight, Sun 1-10 PM</p>

@@ -57,23 +57,8 @@
     $('#cal-game').textContent = game === 'all' ? 'All events' : MG.game(game).short + ' events';
   }
 
-  /* ---------- the two lists (built with createElement; the cards themselves come from MG.eventCard's escaped markup) ---------- */
+  /* ---------- the two lists: rows in a .wk-card each (built with createElement + textContent) ---------- */
   function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
-  function cardNode(html) { var tpl = document.createElement('template'); tpl.innerHTML = html; return tpl.content.firstElementChild; }
-  function slotNode(items) {
-    var groups = [], last, wrap = mk('div', 'slots');
-    items.forEach(function (o) { if (last && last.start === o.start) last.items.push(o); else { last = { start: o.start, items: [o] }; groups.push(last); } });
-    groups.forEach(function (gr) {
-      var multi = gr.items.length > 1, slot = mk('div', 'slot'), p = mk('p', 'slot-t'), tm = mk('time', null, MG.fmtTime(gr.start)), cards = mk('div', 'slot-cards');
-      if (multi) slot.setAttribute('data-multi', '');
-      p.appendChild(tm);
-      if (multi) p.appendChild(mk('span', 'slot-n', gr.items.length + ' events start at ' + MG.fmtTime(gr.start)));
-      slot.appendChild(p);
-      gr.items.forEach(function (x) { cards.appendChild(x.node); });
-      slot.appendChild(cards); wrap.appendChild(slot);
-    });
-    return wrap;
-  }
   function alsoNote(s, occs) {
     var rest = occs.slice(1).filter(function (o) { return !o.cancelled; });
     if (!rest.length) return '';
@@ -93,10 +78,14 @@
     D.series.filter(function (s) { return passes(s) && !isWeekly(s); }).forEach(function (s) {
       var occs = MG.occurrences(s, today, to).filter(function (o) { return o.endAt > now && !(skipToday && o.date === today); });
       if (!occs.length) return;
-      var o = occs[0], art = cardNode(MG.eventCard(o, now, { href: 'events.html' }));
-      var note = alsoNote(s, occs);
-      if (note) { var when = art.querySelector('.ev-when'); if (when) when.insertAdjacentElement('afterend', mk('p', 'ev-also', note)); }
-      (byDate[o.date] = byDate[o.date] || []).push({ start: o.start, node: art, title: s.title });
+      // boss trim (D63): one row per special event (time, title, bits, one action), like Every week; the title opens the full detail
+      var o = occs[0], row = V.compactLine(o, now, 'events.html', null, { action: 'button' });
+      var st = MG.seatState(o, now), bits = row.querySelector('.dl-bits'), extra = [];
+      if (s.inviteOnly) extra.push('Invite only');
+      else if (st.state === 'external' && st.count) extra.push(st.count + ' registered');
+      var note = alsoNote(s, occs); if (note) extra.push(note.replace(/\.$/, ''));
+      if (extra.length) bits.textContent += ' · ' + extra.join(' · ');
+      (byDate[o.date] = byDate[o.date] || []).push({ start: o.start, node: row, title: s.title });
       if (dates.indexOf(o.date) === -1) dates.push(o.date);
       count++;
     });
@@ -108,17 +97,18 @@
       sec.id = 'd-' + ymd; sec.setAttribute('aria-labelledby', 'dh-' + ymd); h.id = 'dh-' + ymd;
       h.appendChild(mk('span', 'day-name', MG.dayShort(d) + ' ' + MG.fmtDate(d)));
       if (MG.relDay(ymd, now) === 'today') h.appendChild(mk('span', 'tag tag-today', 'Today'));
-      sec.appendChild(h); sec.appendChild(slotNode(items)); host.appendChild(sec);
+      var ul = mk('ul', 'day-lines'); items.forEach(function (x) { ul.appendChild(x.node); });
+      sec.appendChild(h); sec.appendChild(ul); host.appendChild(sec);
     });
     $('#special-wrap').hidden = !count;
     return count;
   }
-  var PHONE = window.matchMedia ? window.matchMedia('(max-width: 639px)') : { matches: false };
   function listJoin(names) { return names.length === 2 ? names[0] + ' and ' + names[1] : names[0] + ' to ' + names[names.length - 1]; }
+  // Every week (round 8, 4.2): rows at every width, grouped by weekday inside one .wk-card (same component as the front page)
   function renderWeekly() {
     var to = MG.ymd(MG.addDays(now, 70)), count = 0, todayDow = now.getDay(), host = $('#weekly'), run = [];
     host.textContent = '';
-    function flushClosed() { // consecutive closed days with no cards become one quiet row (F9)
+    function flushClosed() { // consecutive closed days with no rows become one quiet line (F9)
       if (!run.length) return;
       var row = mk('div', 'day-off');
       run.forEach(function (dow) { var a = mk('span'); a.id = 'wk-' + dow; row.appendChild(a); });
@@ -128,7 +118,7 @@
     [1, 2, 3, 4, 5, 6, 0].forEach(function (dow) {
       var list = D.series.filter(function (s) { return passes(s) && isWeekly(s) && s.recurrence.day === dow; })
         .sort(function (a, b) { return a.start < b.start ? -1 : a.start > b.start ? 1 : a.title.localeCompare(b.title); });
-      var items = list.map(function (s) { return PHONE.matches ? V.weeklyRow(s, now, today, to) : V.weeklyCardEl(s, now, today, to); }).filter(Boolean);
+      var items = list.map(function (s) { return V.weeklyRow(s, now, today, to, { action: 'button' }); }).filter(Boolean);
       var closed = D.store.hours[dow].closed, name = R.DAYS[dow];
       if (!items.length) {
         if (closed && game === 'all' && !format) run.push(dow); else flushClosed();
@@ -137,12 +127,13 @@
       flushClosed();
       count += items.length;
       var next = list.map(function (s) { var n = V.weeklyNext(s, now, today, to); return n && n.shown.date; }).filter(Boolean).sort()[0];
-      var sec = mk('section', 'wk'), h = mk('h3', 'wk-name', name);
+      var sec = mk('section', 'day wk'), h = mk('h3', 'day-h');
       sec.setAttribute('aria-labelledby', 'wk-' + dow); h.id = 'wk-' + dow;
+      h.appendChild(mk('span', 'day-name', name));
       if (dow === todayDow) h.appendChild(mk('span', 'tag tag-today', 'Today'));
-      else if (next) h.appendChild(mk('span', 'wk-next', 'next ' + MG.fmtDate(MG.parseYmd(next))));
+      else if (next) h.appendChild(mk('span', 'day-meta wk-next', 'next ' + MG.fmtDate(MG.parseYmd(next))));
       sec.appendChild(h);
-      var box = mk(PHONE.matches ? 'ul' : 'div', PHONE.matches ? 'day-lines' : 'wk-cards');
+      var box = mk('ul', 'day-lines');
       items.forEach(function (n) { box.appendChild(n); });
       sec.appendChild(box); host.appendChild(sec);
     });
@@ -150,16 +141,18 @@
     $('#weekly-wrap').hidden = !count;
     return count;
   }
-  /* R16: everything on today's date first, specials and weekly nights together, in time order */
+  /* R16 + round 8: everything on today's date first, in time order: the first 3 as cards, the rest as rows, in the brick band */
   function renderToday() {
     var occs = MG.allOccurrences(today, today).filter(function (o) { return passes(o.series) && o.endAt > now; });
     var host = $('#today'), wrap = $('#today-wrap');
     host.textContent = '';
-    var block = V.todayBlock(occs, now, { href: 'events.html' });
-    wrap.hidden = !block;
-    if (!block) return;
+    var band = V.tonightBand(occs, now, { href: 'events.html', action: 'button' });
+    wrap.hidden = !band;
+    if (!band) return;
     $('#today-h').textContent = now.getHours() >= 17 ? 'Tonight' : 'Today';
-    host.appendChild(block);
+    $('#today-k').textContent = MG.fmtLongDate(now);
+    host.appendChild(band.cards);
+    if (band.restBox) host.appendChild(band.restBox);
   }
   function renderEmpty(total) {
     var host = $('#ep-empty');
@@ -337,7 +330,7 @@
       var cp = t.closest('[data-copy]');
       if (cp) { U.copy(cp.getAttribute('data-copy'), function (ok) { U.toast(ok ? 'Event code copied.' : 'Couldn’t copy. Select the code and copy it.'); }); return; }
       if (t.closest('#cal-all')) { downloadAll(); $('#cal-menu').open = false; return; }
-      var cardLink = t.closest('.ev-title a, .ev .btn[href^="events.html"]');
+      var cardLink = t.closest('.ev-title a, .ev .btn[href^="events.html"], .day-line .dl-title a, .day-line a.dl-more');
       if (cardLink && /#e-/.test(cardLink.getAttribute('href'))) { ev.preventDefault(); openDetail(decodeURIComponent(cardLink.getAttribute('href').split('#e-')[1]), true); }
       var dateLink = t.closest('.det-dates a');
       if (dateLink) { ev.preventDefault(); openDetail(decodeURIComponent(dateLink.getAttribute('href').split('#e-')[1]), true); }
@@ -347,7 +340,6 @@
     dlg.addEventListener('click', function (ev) { if (ev.target === dlg || ev.target.closest('#det-x') || ev.target.closest('[data-close]')) { document.title = baseTitle; dlg.close(); } });
     dlg.addEventListener('close', closeDetail);
     window.addEventListener('hashchange', fromHash);
-    if (PHONE.addEventListener) PHONE.addEventListener('change', function () { renderWeekly(); });
     MG.state.subscribe(function () { now = MG.now(); render(); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && $('#cal-menu').open) $('#cal-menu').open = false; });
   }
