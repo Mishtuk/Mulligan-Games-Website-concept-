@@ -12,10 +12,12 @@
 .phero-media {
   position: absolute; inset: 0; z-index: -2;
   /* the poster is also the box background, so the frame is never empty or black while the image decodes */
-  background: #17110E;
+  background: #17110E url("../media/video/hero-poster.jpg") 50% 30% / cover no-repeat;
 }
-@media (max-width: 899px) { .phero-media { background: #17110E url("../media/video/cedh-players-tables-loop-poster.webp") 50% 38% / cover no-repeat; } }
+@media (max-width: 700px) and (orientation: portrait) { .phero-media { background-image: url("../media/video/hero-poster-portrait.jpg"); background-position: 50% 38%; } }
 .phero-media img, .phero-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
+.phero-media img { object-position: 50% 30%; } /* wide: the sealed wall on top, the lit cases on the right */
+@media (max-width: 700px) and (orientation: portrait) { .phero-media img { object-position: 50% 38%; } }
 .phero-media video { opacity: 0; transition: opacity 600ms; }
 .phero-media.is-on video { opacity: 1; }
 /* phone: darkest at the bottom where the copy sits */
@@ -53,13 +55,15 @@
 .media-cap { min-width: 0; color: rgb(255 255 255 / 0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .clips-link { margin-left: auto; }
 @media (max-width: 767px) { .phero-strip-in { min-height: 3rem; padding-block: 2px; font-size: var(--t-xs); } }
+/* D53: under 600px the caption cut to "445 Y..." (390); the address already leads the bar above the header, so the strip is the pill alone */
+@media (max-width: 599px) { .media-cap { display: none; } }
+@media (max-width: 899px) { .cap-k { display: none; } } /* 600-899: "Mulligan Games, 445 York Rd" fits beside the clips link and pill, even with a scrollbar */
 .vid-btn {
   margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--tap); padding: 0 1rem;
   border: 1px solid rgb(255 255 255 / 0.4); border-radius: var(--r-pill); background: transparent; color: #FFFFFF;
   font: inherit; font-size: var(--t-sm); font-weight: 750; cursor: pointer; visibility: hidden;
 }
 .vid-btn.is-ready { visibility: visible; }
-.cap-wide { display: none; }
 .vid-btn:hover { background: rgb(255 255 255 / 0.12); }
 .vid-btn:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; }
 .vid-btn .i-play { display: none; }
@@ -69,10 +73,6 @@
 
 @media (min-width: 768px) { .clips-link + .vid-btn { margin-left: 0; } }
 @media (min-width: 900px) {
-  .cap-narrow { display: none; } .cap-wide { display: inline; }
-  .vid-btn { display: none; } /* no video on wide screens, so no pause control */
-}
-@media (min-width: 900px) {
   /* wide: the copy on the left, the photo shows through on the right */
   .phero { min-height: clamp(34rem, 78svh, 50rem); }
   .phero::before {
@@ -81,8 +81,6 @@
       linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
   }
   .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
-  .phero-media video { display: none; }
-  .phero-media img { object-position: 50% 30%; } /* the sealed wall on top, the lit cases on the right */
 }
 
 /* the week, seven cards (first thing in "This week") */
@@ -157,7 +155,7 @@
   .visit-in > div + div { border-left: 1px solid var(--line); margin-left: calc(-1 * var(--s7) / 2); padding-left: calc(var(--s7) / 2); }
 }
 
-@media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .phero-media video { transition: none; } } /* the montage still plays (DESIGN 17); only the fade is dropped */
 
 /* ---------- compact week (R5): later days are one line per event ---------- */
 /* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */

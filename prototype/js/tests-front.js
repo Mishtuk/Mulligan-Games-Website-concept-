@@ -104,21 +104,86 @@
     ok(!/Preorders in store only/.test(d.getElementById('rel-list').textContent), 'preorder tiles do not repeat the section note');
     eq(d.querySelectorAll('.rel-art').length, 0, 'no tinted icon band on the tiles');
   });
-  // round 5: the wide hero is the landscape still; the portrait video is phone-only
-  pageTest('at 1280 px the hero uses the shop-floor still, the video has no source and is not started, no pause control', 'index.html', function (w, d) {
-    var img = d.querySelector('#hero-media img'); ok(/shop-floor-cases/.test(img.currentSrc), 'hero image is ' + img.currentSrc);
-    var v = d.getElementById('hero-video'); eq(v.querySelectorAll('source').length, 0, 'no <source>'); ok(!v.getAttribute('src') && !v.getAttribute('poster'), 'no src or poster'); ok(v.paused, 'not playing'); eq(v.currentSrc, '', 'nothing loaded');
-    eq(w.getComputedStyle(d.getElementById('vid-btn')).display, 'none', 'pause control hidden');
-    ok(/shop floor at 445 York Rd/.test(d.querySelector('.cap-wide').textContent) && w.getComputedStyle(d.querySelector('.cap-wide')).display !== 'none' && w.getComputedStyle(d.querySelector('.cap-narrow')).display === 'none', 'wide caption');
+  // #16: the hero plays the silent montage on every width (poster first, <source media> by screen)
+  function heroChecks(w, d, label) {
+    var v = d.getElementById('hero-video'), src = [].slice.call(v.querySelectorAll('source'));
+    ok(v && v.muted && v.loop && v.playsInline, label + ': muted, loop, playsinline'); eq(v.getAttribute('preload'), 'metadata');
+    eq(src.map(function (s) { return s.getAttribute('media') || ''; }).join('|'), '(max-width: 700px) and (orientation: portrait)|(max-width: 1100px)|', label + ': <source media> set');
+    eq(src.map(function (s) { return s.getAttribute('data-src'); }).join('|'), 'media/video/hero-portrait.mp4|media/video/hero-720.mp4|media/video/hero.mp4', label + ': file names');
+    ok(!v.hasAttribute('autoplay') && !v.getAttribute('src'), 'no autoplay attribute, no src on the element');
+    eq(d.querySelectorAll('.cap-wide, .cap-narrow').length, 0, 'old two-caption switch is gone');
+    eq(d.querySelector('.media-cap').textContent.trim(), 'On screen: Mulligan Games, 445 York Rd', 'strip caption');
+    return v;
+  }
+  pageTest('at 1280 px the hero has the montage video with the three <source media> files; poster first; wide placeholders have no src (fall back to the poster)', 'index.html', function (w, d) {
+    var v = heroChecks(w, d, '1280');
+    var img = d.querySelector('#hero-media img'); ok(/hero-poster.jpg$/.test(img.currentSrc), 'wide poster ' + img.currentSrc);
+    eq(w.getComputedStyle(v).opacity, '0', 'the video is invisible until a frame has painted: the poster shows first');
+    return T.wait(900).then(function () {
+      var withSrc = [].filter.call(v.querySelectorAll('source'), function (s) { return s.getAttribute('src'); }).map(function (s) { return s.getAttribute('src'); });
+      eq(withSrc.join('|'), '', 'no source gets a src on a screen with no file (wide files pending #16); nothing is requested');
+      eq(v.currentSrc, '', 'no file for a wide screen: nothing loaded'); ok(v.paused, 'not playing');
+      ok(!d.getElementById('vid-btn').classList.contains('is-ready') && w.getComputedStyle(d.getElementById('vid-btn')).visibility === 'hidden', 'no pause pill while there is nothing to pause');
+    });
   });
-  pageTest('at 390 px the hero keeps the portrait poster and the video loop, with the pause control', 'index.html', function (w, d) {
-    var img = d.querySelector('#hero-media img'); ok(/cedh-players-tables-loop-poster/.test(img.currentSrc), 'poster ' + img.currentSrc);
-    var v = d.getElementById('hero-video');
-    return T.wait(700).then(function () {
-      eq(v.querySelectorAll('source').length, 2, 'video sources added');
-      ok(d.getElementById('vid-btn').classList.contains('is-ready'), 'pause control ready');
+  pageTest('at 390 px the hero has the portrait poster, then the portrait montage starts after load; the pause pill toggles Pause video / Play video', 'index.html', function (w, d) {
+    var v = heroChecks(w, d, '390'), btn = d.getElementById('vid-btn');
+    var img = d.querySelector('#hero-media img'); ok(/hero-poster-portrait.jpg$/.test(img.currentSrc), 'portrait poster ' + img.currentSrc);
+    eq(w.getComputedStyle(v).opacity, '0', 'poster first');
+    return T.wait(1500).then(function () {
+      ok(/hero-portrait.mp4$/.test(v.currentSrc), 'portrait file chosen: ' + v.currentSrc);
+      ok(btn.classList.contains('is-ready') && w.getComputedStyle(btn).visibility === 'visible', 'pause pill shown');
+      var lab = d.getElementById('vid-label');
+      if (v.paused || v.currentTime === 0) return; // this browser would not autoplay in the test frame: the pill is still checked above
+      return T.wait(200).then(function () {
+        eq(lab.textContent, 'Pause video'); btn.click(); return T.wait(200);
+      }).then(function () { ok(v.paused, 'paused'); eq(lab.textContent, 'Play video'); btn.click(); return T.wait(600); })
+        .then(function () { ok(!v.paused, 'playing again'); eq(lab.textContent, 'Pause video'); });
     });
   }, 390);
+  // D53: Save-Data / slow links hold the montage. The page is written into an about:blank frame whose navigator.connection is
+  // overridden first (document.open keeps the same Window), so wireVideo sees the hint. Skipped where file reads are blocked.
+  function heldPage(conn) {
+    return new Promise(function (resolve, reject) {
+      var x = new XMLHttpRequest();
+      try { x.open('GET', BASE + 'index.html', false); x.send(); } catch (err) { reject(new Error('NOACCESS')); return; }
+      if (!x.responseText) { reject(new Error('NOACCESS')); return; }
+      var f = document.createElement('iframe'), errors = [];
+      f.style.cssText = 'position:absolute;left:-9999px;width:390px;height:844px';
+      document.body.appendChild(f);
+      var w = f.contentWindow;
+      try { Object.defineProperty(w.navigator, 'connection', { get: function () { return conn; }, configurable: true }); } catch (err) { f.remove(); reject(new Error('NOACCESS')); return; }
+      var ce = w.console.error; w.console.error = function () { errors.push(Array.prototype.join.call(arguments, ' ')); ce.apply(w.console, arguments); };
+      w.document.open(); // erases the window listeners, so the load listener goes on after it
+      w.addEventListener('load', function () { setTimeout(function () { resolve({ w: w, d: w.document, errors: errors, frame: f }); }, 300); });
+      w.document.write(x.responseText.replace('<head>', '<head><base href="' + BASE + '">')); w.document.close();
+    });
+  }
+  [['Save-Data on 4g', { saveData: true, effectiveType: '4g' }], ['3g', { saveData: false, effectiveType: '3g' }]].forEach(function (cse) {
+    T.async('D53: ' + cse[0] + ' at 390 keeps the portrait poster, gives no <source> a src, and shows "Play video"', function () {
+      return heldPage(cse[1]).then(function (p) {
+        var v = p.d.getElementById('hero-video'), btn = p.d.getElementById('vid-btn');
+        if (!v || !p.w.MG) { p.frame.remove(); return T.SKIP; } // the written page did not boot here
+        return T.wait(900).then(function () {
+          eq([].filter.call(v.querySelectorAll('source'), function (s) { return s.getAttribute('src'); }).length, 0, 'no source has a src');
+          eq(v.currentSrc, '', 'nothing requested'); ok(v.paused, 'held');
+          ok(/hero-poster-portrait.jpg$/.test(p.d.querySelector('#hero-media img').currentSrc), 'portrait poster');
+          ok(btn.classList.contains('is-ready'), 'pill shown'); eq(p.d.getElementById('vid-label').textContent, 'Play video');
+          eq(p.errors.join(' | '), '', 'console errors'); p.frame.remove();
+        }, function (err) { p.frame.remove(); throw err; });
+      }, function (err) { if (err && err.message === 'NOACCESS') return T.SKIP; throw err; });
+    });
+  });
+  pageTest('D53: under 600 px the strip is the pill alone (the caption cut to "445 Y..."), from 600 px the caption fits', 'index.html', function (w, d) {
+    eq(w.getComputedStyle(d.querySelector('.media-cap')).display, 'none', 'caption hidden at 390');
+    var s = d.querySelector('.phero-strip').getBoundingClientRect(); ok(s.width <= w.innerWidth, 'strip width ' + s.width);
+  }, 390);
+  [768, 900].forEach(function (px) {
+    pageTest('D53: at ' + px + ' px the strip caption shows in full ("On screen:" from 900 px)', 'index.html', function (w, d) {
+      var cap = d.querySelector('.media-cap'); ok(w.getComputedStyle(cap).display !== 'none' && cap.scrollWidth <= cap.clientWidth, 'caption ' + cap.scrollWidth + ' / ' + cap.clientWidth);
+      eq(w.getComputedStyle(d.querySelector('.cap-k')).display === 'none', px < 900, 'lead-in shown only from 900');
+    }, px);
+  });
   pageTest('tiles without a note have no empty body, and the footers line up on a shared row', 'index.html', function (w, d) {
     w.MG.data.releases.filter(function (r) { return r.id === 'delta-reign'; })[0].note = '';
     var s2 = d.createElement('script'); s2.src = BASE + 'js/front.js'; // render again with the note gone

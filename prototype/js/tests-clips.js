@@ -77,6 +77,7 @@
     var fr = dlg.querySelectorAll('iframe');
     eq(fr.length, 1, 'one iframe');
     ok(fr[0].src.indexOf('https://www.tiktok.com/player/v1/7456651666096704814?') === 0, fr[0].src);
+    eq(fr[0].getAttribute('sandbox'), 'allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox', 'D49 sandbox tokens');
     eq(dlg.querySelector('#clip-dlg-h').textContent, D.clips[0].caption);
     eq(dlg.querySelector('#clip-out').getAttribute('href'), D.clips[0].url);
     ok(/Open on TikTok/.test(dlg.querySelector('#clip-out').textContent), 'Open on TikTok');

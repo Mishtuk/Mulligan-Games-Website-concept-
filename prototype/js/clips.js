@@ -70,6 +70,7 @@
     var f = document.createElement('iframe');
     f.title = name + ' video: ' + clip.caption;
     f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture'; f.allowFullscreen = true;
+    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox'); // D49 (Desktop build fix)
     f.referrerPolicy = 'strict-origin-when-cross-origin';
     f.addEventListener('load', function () { clearTimeout(timer); fail.hidden = true; });
     f.src = src;

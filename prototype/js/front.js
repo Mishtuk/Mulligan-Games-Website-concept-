@@ -52,30 +52,41 @@
     });
   }
 
-  /* ---------- hero video (DESIGN 6.1): poster first; the loop starts after load unless motion or data is limited ---------- */
+  /* ---------- hero montage (#16, DESIGN 6 and 17): poster first; the file starts after load unless data is limited ---------- */
+  // PLACEHOLDER MANIFEST: wide files pending #16 Desktop encode. Flip hero.mp4 and hero-720.mp4 to true when the Desktop
+  // commits the real encodes (the build port reads the same three names). A false entry keeps its <source> without a src,
+  // so the browser skips it and that screen keeps the poster; no request, no console error.
+  var HERO_FILES = { 'media/video/hero-portrait.mp4': true, 'media/video/hero-720.mp4': false, 'media/video/hero.mp4': false };
   function wireVideo() {
     var v = $('#hero-video'), btn = $('#vid-btn'), box = $('#hero-media');
     if (!v || !btn || !v.play) return;
-    // Round 5: the portrait loop is for phones. From 900px the landscape still shows and the video is never loaded.
-    var narrow = matchMedia('(max-width: 899px)');
-    function addSources() {
-      if (v.querySelector('source')) return;
-      v.poster = 'media/video/cedh-players-tables-loop-poster.webp';
-      [['cedh-players-tables-loop.mp4', 'video/mp4'], ['cedh-players-tables-loop.webm', 'video/webm']].forEach(function (s) {
-        var el = document.createElement('source'); el.src = 'media/video/' + s[0]; el.type = s[1]; v.appendChild(el);
-      });
-      v.load();
-    }
-    var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null;
-    var hold = rm.matches || c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
+    var c = navigator.connection || {}, pref = null;
+    // Save-Data and slow links keep the poster (a visitor can still press Play). Reduced motion does NOT hold: like the VFW and
+    // Riverside heroes the silent montage plays and the pause control is always shown (DESIGN 17).
+    var hold = !!c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
     try { pref = sessionStorage.getItem('mg-video'); } catch (err) { /* not stored */ }
+    var armed = false;
+    // Give the <source>s that exist a src (once).
+    function arm() {
+      if (!armed) {
+        armed = true;
+        [].forEach.call(v.querySelectorAll('source[data-src]'), function (s) {
+          if (HERO_FILES[s.getAttribute('data-src')]) s.src = s.getAttribute('data-src');
+        });
+        v.load();
+      }
+    }
+    // Would the browser find a file here? It skips a <source> with no src, so any matching source that has one is enough.
+    function hasFile() {
+      return [].some.call(v.querySelectorAll('source[data-src]'), function (s) { return HERO_FILES[s.getAttribute('data-src')] && (!s.media || matchMedia(s.media).matches); });
+    }
     function label(playing) {
       $('#vid-label').textContent = playing ? 'Pause video' : 'Play video';
       if (playing) btn.removeAttribute('data-paused'); else btn.setAttribute('data-paused', '');
     }
-    function start() { if (!narrow.matches) return; addSources(); v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
+    function start() { arm(); v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
     // Reveal the video only once a real frame has been painted. Until then (and if it never plays: blocked autoplay,
-    // headless capture, a decode error) the poster <img> and the box's poster background stay in view.
+    // headless capture, a decode error) the poster <img> and the box background stay in view.
     function reveal() { box.classList.add('is-on'); }
     function onFrame() {
       if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(reveal);
@@ -89,9 +100,7 @@
       try { sessionStorage.setItem('mg-video', go ? 'play' : 'pause'); } catch (err) { /* not stored */ }
       if (go) start(); else v.pause();
     });
-    try { rm.addEventListener('change', function (ev) { if (ev.matches) v.pause(); }); } catch (err) { /* old browsers */ }
-    try { narrow.addEventListener('change', function (ev) { if (!ev.matches) v.pause(); }); } catch (err) { /* old browsers */ }
-    if (!narrow.matches) return; // wide: no video, no pause control (the button stays hidden)
+    if (!hasFile()) return; // placeholder: no file for this screen yet. Poster only, pause control stays hidden
     btn.classList.add('is-ready'); label(false);
     if ((hold && pref !== 'play') || pref === 'pause') return;
     var later = function () { setTimeout(start, 300); };

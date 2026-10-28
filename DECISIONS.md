@@ -646,3 +646,21 @@ ellipsis. +3 tests (each fact once; events.html keeps status; 390x844 hero above
 **Noted:** with the concept-only demo bar on top, a 360x740 phone or an 820px tablet still puts the hero's end under
 the quick-actions bar; without the demo bar (the real site) both clear it. Port list: `docs/review/round-7-port.md`.
 - **Open (owner to choose):** the build (Desktop D49) opens "Welcome to Mulligan Games." + "A friendly game store in Warminster with a big play room, free play every day we're open, and card nights all week. Come say hi."; the prototype opens "Shuffle up. Everyone's welcome." (from docs/research/opening-lines.md). One line for both once the owner picks.
+
+### D53. #16 hero montage, prototype side: PASS with boss fixes (2026-10-27, boss)
+**Checked (real Chrome via puppeteer, served on http):** 390x844 / 360x740 portrait: the portrait poster paints, then after load
+`hero-portrait.mp4` gets its src and plays (currentTime advances; no `--autoplay-policy` flag needed, muted autoplay is allowed
+headless); the pill reads Pause video / Play video and the frame freezes while paused. Save-Data on 4g and effectiveType 3g:
+no video request at all, portrait poster, pill "Play video"; a press loads and plays. Reduced motion: plays (DESIGN 17.1, as
+VFW / Riverside), pill visible and works. 1280 / 1920 / 844x390 landscape: only `hero-poster.jpg` is fetched, no request for
+`hero.mp4` / `hero-720.mp4` (HERO_FILES false), no console error, pill hidden, no horizontal overflow. One poster per screen.
+Headline still the largest, clearest thing; featured TikTok cards clear the copy at 900 / 1280 / 1920; D46 corner test passes.
+Injection: no new data-fed innerHTML (the hero code is textContent / attributes from a fixed manifest).
+**Boss fixes:** (1) the strip caption cut to "445 Y..." at 390 -> hidden under 600px (the strip is the pill alone; the address
+already leads the bar above the header), and 600-899px drops the "On screen:" lead-in (`.cap-k`), which was 8px short at 768
+with a scrollbar. (2) +5 tests (198/0): Save-Data and 3g holds (the page is written into an about:blank frame whose
+`navigator.connection` is overridden first; `document.open` keeps the Window but erases its listeners), caption hidden at 390,
+caption whole at 768 and 900. (3) DESIGN 17.1: the build note no longer says to put `src` straight on the `<source>`s (that
+would fetch before the poster and skip the hold); "For the Desktop" port note added (what to copy, the two HERO_FILES flags).
+**Noted:** at 900x800 the theme button sits on the edge of the second featured card's caption backing (not its text); landscape
+phones still open on the concept-only demo bar (D52 note).
