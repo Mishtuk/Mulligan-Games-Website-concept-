@@ -645,7 +645,9 @@ cEDH" at 1024); (5) the strip could be wider than a 360 screen (nowrap caption a
 ellipsis. +3 tests (each fact once; events.html keeps status; 390x844 hero above the bar). README test command updated.
 **Noted:** with the concept-only demo bar on top, a 360x740 phone or an 820px tablet still puts the hero's end under
 the quick-actions bar; without the demo bar (the real site) both clear it. Port list: `docs/review/round-7-port.md`.
-- **Open (owner to choose):** the build (Desktop D49) opens "Welcome to Mulligan Games." + "A friendly game store in Warminster with a big play room, free play every day we're open, and card nights all week. Come say hi."; the prototype opens "Shuffle up. Everyone's welcome." (from docs/research/opening-lines.md). One line for both once the owner picks.
+- **Owner picked (2026-10-27): "Shuffle up. Everyone's welcome."** for both the prototype and the build. The build's
+  "Welcome to Mulligan Games." headline (Desktop D49) is replaced; its lede can stay as the sub-line if it fits on two lines
+  at 390, otherwise use the prototype's sub-line. The status stays in the chip / eyebrow, not the headline.
 
 ### D53. #16 hero montage, prototype side: PASS with boss fixes (2026-10-27, boss)
 **Checked (real Chrome via puppeteer, served on http):** 390x844 / 360x740 portrait: the portrait poster paints, then after load
