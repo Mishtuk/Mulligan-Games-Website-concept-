@@ -35,3 +35,10 @@ portrait casino-dice clip 100406, and anything with a visible face.
 
 Direct file pattern (Mixkit): `https://assets.mixkit.co/videos/<id>/<id>-1080.mp4` for the older ids (5xxx) and
 `https://assets.mixkit.co/active_storage/video_items/<id>/<stamp>/<id>-video-1080.mp4` for the 100xxx ids (the stamp is on the clip page).
+
+## Superseded (2026-10-27, main session)
+The prototype hero now uses the Desktop's store-footage montage (`public/media/video/hero*`, from the store's own
+Instagram / TikTok clips, AI-upscaled; copied into `prototype/media/video/`). Side by side, the stock cut (playing-card
+shuffles, Catan, Sequence) read as a casino / board-game ad, while the store cut shows the sign, the shop floor, cEDH
+playmats, the packed room and the Warhammer table. The Mixkit clips stay in `source/stock/` as spares; the Mixkit licence
+text still needs one read in a browser before any of them is used.
