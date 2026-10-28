@@ -3,43 +3,30 @@
   'use strict';
   /* the light/dark button is src/components/ThemeFab.astro (reused from the VFW site, D46) */
 
-  /* front page hero video: the poster shows until a real frame is painted; held back for reduced motion / Save-Data / slow links */
-  var v = document.getElementById('hero-video'), vbtn = document.getElementById('vid-btn'), box = document.getElementById('hero-media');
-  if (v && vbtn && box && v.play) {
-    /* the portrait loop is for phones: from 900px the landscape still shows and the video is never loaded */
-    var narrow = matchMedia('(max-width: 899px)');
-    var addSources = function () {
-      if (v.querySelector('source')) return;
-      v.poster = '/media/video/cedh-players-tables-loop-poster.webp';
-      var el = document.createElement('source'); el.src = '/media/video/cedh-players-tables-loop.mp4'; el.type = 'video/mp4'; v.appendChild(el);
-      v.load();
-    };
-    var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null, vlab = document.getElementById('vid-label');
+  /* front page hero video (#16): plays by itself like the VFW and Riverside heroes, but is held back (poster only, Play button) for reduced motion,
+   * Save-Data and 2g/3g, unless the visitor chose Play this session. The <source>s carry data-src: nothing is fetched until arm(), so a held
+   * screen downloads no video. The poster is the box's CSS background (one file per screen). No inline script (CSP D24). */
+  var v = document.getElementById('hero-video'), vbtn = document.getElementById('vid-btn'), vlab = document.getElementById('vid-label');
+  if (v && vbtn && vlab && v.play) {
+    var rm = matchMedia('(prefers-reduced-motion: reduce)'), c = navigator.connection || {}, pref = null;
     var hold = rm.matches || c.saveData || /^(slow-2g|2g|3g)$/.test(c.effectiveType || '');
     try { pref = sessionStorage.getItem('mg-video'); } catch (e) { /* not stored */ }
-    var label = function (playing) { vlab.textContent = playing ? 'Pause video' : 'Play video'; if (playing) vbtn.removeAttribute('data-paused'); else vbtn.setAttribute('data-paused', ''); };
-    var start = function () { if (!narrow.matches) return; addSources(); v.preload = 'auto'; var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); };
-    var reveal = function () { box.classList.add('is-on'); };
-    v.addEventListener('playing', function () {
-      label(true);
-      if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(reveal);
-      else v.addEventListener('timeupdate', function t() { if (v.currentTime > 0) { v.removeEventListener('timeupdate', t); reveal(); } });
-    });
-    ['error', 'emptied', 'abort'].forEach(function (n) { v.addEventListener(n, function () { box.classList.remove('is-on'); label(false); }); });
-    v.addEventListener('pause', function () { label(false); });
+    var sync = function () { vlab.textContent = v.paused ? 'Play video' : 'Pause video'; if (v.paused) vbtn.setAttribute('data-paused', ''); else vbtn.removeAttribute('data-paused'); };
+    var start = function () {
+      if (!v.currentSrc) { Array.prototype.forEach.call(v.querySelectorAll('source[data-src]'), function (s) { s.src = s.getAttribute('data-src'); }); v.preload = 'auto'; v.load(); }
+      var p = v.play(); if (p && p.catch) p.catch(sync);
+    };
+    v.addEventListener('play', sync); v.addEventListener('pause', sync);
     vbtn.addEventListener('click', function () {
       var go = v.paused;
       try { sessionStorage.setItem('mg-video', go ? 'play' : 'pause'); } catch (e) { /* not stored */ }
       if (go) start(); else v.pause();
     });
     try { rm.addEventListener('change', function (ev) { if (ev.matches) v.pause(); }); } catch (e) { /* old browsers */ }
-    try { narrow.addEventListener('change', function (ev) { if (!ev.matches) v.pause(); }); } catch (e) { /* old browsers */ }
-    if (narrow.matches) { /* phones only: on wide screens the video is never loaded and the pause control stays hidden */
-      vbtn.classList.add('is-ready'); label(false);
-      if (!((hold && pref !== 'play') || pref === 'pause')) {
-        var later = function () { setTimeout(start, 300); };
-        if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
-      }
+    vbtn.classList.add('is-ready'); sync();
+    if (!((hold && pref !== 'play') || pref === 'pause')) { /* after load, so the poster and the page come first */
+      var later = function () { setTimeout(function () { if (v.paused && !v.currentSrc) start(); }, 300); };
+      if (document.readyState === 'complete') later(); else window.addEventListener('load', later);
     }
   }
 
@@ -57,7 +44,7 @@
   /* front page: game chips filter in place. Only from "All games": a page the server already filtered doesn't have the other cards. */
   var chips = document.getElementById('chips'), days = document.getElementById('days');
   if (!chips || !days) return;
-  var curChip = chips.querySelector('[aria-current]'); /* not "start": var is function-wide and would overwrite the hero's start() */
+  var curChip = chips.querySelector('[aria-current]');
   if (!curChip || curChip.getAttribute('data-chip') !== 'all') return;
   var empty = document.getElementById('filter-empty'), status = document.getElementById('filter-status');
   function apply(id, link) {

@@ -8,7 +8,9 @@ import { expand, occurrences, safeUrl } from './events.js';
 import { endM, seatState, startM } from './seats.js';
 import { hoursFor, openStatus } from './store-hours.js';
 import { MAX, RETENTION_DAYS, playerIdLabel } from './registrations.js';
-import { photoFor, photosForDay, photoName, photoPos } from './photos.js';
+import { validClip, FEATURED } from './clips.js';
+import clipData from '../content/clips.json' with { type: 'json' };
+import { photoFor, photosForDay, photoPos } from './photos.js';
 
 // ---------- the escaping template tag ----------
 class Html { constructor(s) { this.s = s; } toString() { return this.s; } }
@@ -182,35 +184,32 @@ export function strip(ctx) {
   return h`<p class="ob-status" id="ob-status"${s.open ? h` data-open=""` : ''}><span class="ob-dot" aria-hidden="true"></span><span>${s.body}</span></p>`;
 }
 
-function hoursStatus(ctx, st) {
+/** The hero chip, from the hours only: "Open now · till midnight", "Opens 2 PM today", "Closed today · back Wed 2 PM", "Closed · back tomorrow 2 PM". */
+export function chipText(ctx, st) {
   const { now } = ctx;
-  if (!st.known) return '';
-  if (st.open) return st.closeHm === '24:00' ? 'Open till midnight tonight' : `Open till ${fmtTime(st.closeHm)} tonight`;
-  if (!st.next) return st.laterUnknown ? (st.today.closed ? 'Closed today' : 'Closed for the night') : 'Closed this week';
+  if (!st.known) return { open: false, text: 'Hours coming soon' };
+  if (st.open) return { open: true, text: `Open now · till ${fmtTime(st.closeHm)}` };
+  if (!st.next) return { open: false, text: st.laterUnknown ? (st.today.closed ? 'Closed today' : 'Closed') : 'Closed this week' };
   const rel = relDay(st.next.date, now.ymd), t = fmtTime(st.next.hm);
-  if (rel === 'today') return `Open today from ${t}`;
-  return st.today.closed ? `Closed today, back ${rel} at ${t}` : `Closed for the night, back ${rel} at ${t}`;
+  if (rel === 'today') return { open: false, text: `Opens ${t} today` };
+  const when = rel === 'tomorrow' ? rel : `${dayShort(st.next.date)}${rel.includes(' ') ? ` ${fmtDate(st.next.date)}` : ''}`; // over a week away adds the date
+  return { open: false, text: `${st.today.closed ? 'Closed today' : 'Closed'} · back ${when} ${t}` };
 }
 const groupByStart = (list) => {
   const out = [];
   for (const o of list) { const l = out[out.length - 1]; if (l && l.date === o.date && l.start === o.start) l.items.push(o); else out.push({ date: o.date, start: o.start, items: [o] }); }
   return out;
 };
-const names = (items) => list(items.map((o) => o.title));
+const SUB = 'Welcome to Mulligan Games, Warminster’s friendly game store: a big play room, free play every day we’re open, and card nights all week. Come say hi.';
+// Phones: one secondary button to the first featured clip (the hero strip's clips link is hidden under 768px). A plain link; clips.js opens the dialog. Nothing when the clip is gone or invalid.
+const fc = clipData.find((c) => c.id === FEATURED[0] && validClip(c));
+const CLIP_BTN = fc ? h`<a class="btn btn-clip" href="${fc.url}" ${fc.file ? h`data-file="${fc.file}"` : h`data-tt="${fc.id}"`} data-caption="${fc.caption}" target="_blank" rel="noopener">${icon('play')}Watch a clip<span class="vh"> (TikTok, opens a video)</span></a>` : '';
 
 export function hero(ctx) {
   const { now, store } = ctx, st = openStatus(store, now), week = upcoming(ctx, addDays(now.ymd, -1), addDays(now.ymd, 6)); // from yesterday: an event that runs past midnight is still On now
-  const todays = week.filter((o) => o.date <= now.ymd && live(o)), on = todays.filter((o) => startM(o) !== null && startM(o) <= now.m), later = todays.filter((o) => startM(o) === null || startM(o) > now.m);
-  const parts = [];
-  if (on.length) parts.push(`On now: ${names(on)}.`);
-  if (later.length) parts.push(`${now.m - dayMin(now.ymd) >= 17 * 60 ? 'Tonight' : 'Today'}: ${groupByStart(later).slice(0, 3).map((g) => `${names(g.items)}${g.start ? ` at ${fmtTime(g.start)}` : ''}`).join('; ')}.`);
-  if (!parts.length) {
-    const next = week.find((o) => o.date > now.ymd && live(o));
-    if (next) { const same = week.filter((o) => o.date === next.date && live(o)), shown = same.slice(0, 3), more = same.length - shown.length; parts.push(`Next up ${relDay(next.date, now.ymd)}: ${shown.map((o) => o.title).join(', ')}${more ? ` and ${more} more` : ''}.`); }
-    else parts.push('Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer.');
-  }
-  const ov = hoursFor(store, now.ymd);
-  if (ov.override && ov.note) parts.push(ov.note);
+  const on = week.filter((o) => o.date <= now.ymd && live(o) && startM(o) !== null && startM(o) <= now.m);
+  const ov = hoursFor(store, now.ymd), chip = chipText(ctx, st);
+  const sub = `${SUB}${ov.override && ov.note && ov.note.length <= 60 ? ` ${ov.note}` : ''}`; // a short date-override note (early close) is the only thing added
   // next up diamond: the next start time (or what is on now when nothing else starts tonight)
   const upcomingEvents = week.filter((o) => live(o) && startM(o) !== null && startM(o) > now.m);
   const slot = upcomingEvents.length ? groupByStart(upcomingEvents)[0] : on.length ? { date: now.ymd, start: on[0].start, items: on, on: true } : null;
@@ -219,28 +218,16 @@ export function hero(ctx) {
     const shown = slot.items.slice(0, 2).map((o) => o.title), more = slot.items.length - shown.length, rel = relDay(slot.date, now.ymd);
     next = h`<a class="next" id="nextup" href="#d-${slot.date}"><span class="next-time">${fmtTime(slot.start)}</span><span class="next-in"><span class="next-k">${slot.on ? 'On now' : rel === 'today' ? 'Next up' : `Next up ${rel}`}</span><span class="next-what">${shown.join(', ')}${more ? ` and ${more} more` : ''}</span></span></a>`;
   } else next = h`<a class="next" id="nextup" href="#week"><span class="next-time">Soon</span><span class="next-in"><span class="next-k">Next up</span><span class="next-what">See this week</span></span></a>`;
-  return h`<div class="phero-copy"><p class="phero-date" id="hero-date">${[fmtLong(now.ymd), hoursStatus(ctx, st)].filter(Boolean).join(' · ')}</p><h1 class="phero-h" id="hero-h">Welcome to Mulligan Games.</h1><p class="phero-lede">A friendly game store in Warminster with a big play room, free play every day we’re open, and card nights all week. Come say hi.</p><p class="phero-sub" id="hero-sub">${parts.join(' ')}</p><div class="phero-acts">${next}<a class="btn btn-act" href="#week">This week’s events</a></div></div>`;
+  return h`<div class="phero-copy"><p class="phero-chip" id="hero-chip" role="status"${chip.open ? h` data-open=""` : ''}><span class="chip-dot" aria-hidden="true"></span><span id="hero-chip-t">${chip.text}</span></p><h1 class="phero-h" id="hero-h">Shuffle up. Everyone’s welcome.</h1><p class="phero-sub" id="hero-sub">${sub}</p><div class="phero-acts">${next}<a class="btn btn-act" href="#week">This week’s events</a>${CLIP_BTN}</div></div>`;
 }
 
-/** The day's main event for the strip: featured, then sign-up here / external, then the earliest start. */
-function mainEvent(evs) {
-  let best = null, bs = -1;
-  for (const o of evs) { const sc = (o.featured ? 4 : 0) + (o.signup === 'here' || o.signup === 'external' ? 2 : 0); if (!best || sc > bs || (sc === bs && (o.start || '') < (best.start || ''))) { best = o; bs = sc; } }
-  return best;
-}
-/** The strip shows the main event's card photo unless another tile already shows that file; then the next photo of its list. */
-function stripPhoto(main, p, used) {
-  if (!used[photoName(p)]) { used[photoName(p)] = true; return p; }
-  return photoFor(main, used);
-}
-/** The seven-day strip at the top of "This week": one small card per day with a dot for each event. */
-function deck(ctx, week, photos) {
-  const { now, store } = ctx, items = [], used = {};
+/** The seven-day strip at the top of "This week" (round 7): one plain tile per day, with the day, date and event count. */
+function deck(ctx, week) {
+  const { now, store } = ctx, items = [];
   for (let i = 0; i < 7; i++) {
     const ymd = addDays(now.ymd, i), hrs = hoursFor(store, ymd), evs = week.filter((o) => o.date === ymd && live(o)), closed = hrs.known && hrs.closed && !evs.length;
     const cap = closed ? 'Closed' : `${evs.length} ${evs.length === 1 ? 'event' : 'events'}`;
-    const main = mainEvent(evs.filter(live)), mp = main ? stripPhoto(main, photos.get(ymd).get(idKey(main)), used) : null;
-    items.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${i === 0 ? 'Today' : dayShort(ymd)} ${dayNum(ymd)}: ${dayName(ymd)} ${fmtDate(ymd)}, ${cap.toLowerCase()}`}">${mp ? h`<span class="dc-ph ph" aria-hidden="true" data-game="${main.game}"${tintAttr(mp)}>${photoImg(mp)}</span>` : ''}<span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span> <span class="dc-num">${dayNum(ymd)}</span><span class="dc-pips" aria-hidden="true">${evs.slice(0, 8).map((o) => h`<i data-game="${o.game}"></i>`)}</span></a><span class="dc-cap" aria-hidden="true">${cap}</span></li>`);
+    items.push(h`<li style="--i:${i}"${i === 0 ? h` data-today=""` : ''}${closed ? h` data-closed=""` : ''}><a class="daycard" style="--i:${i}" href="#d-${ymd}" aria-label="${`${dayName(ymd)} ${fmtDate(ymd)}${i === 0 ? ', today' : ''}, ${cap.toLowerCase()}`}"><span class="dc-dow">${i === 0 ? 'Today' : dayShort(ymd)}</span><span class="dc-num">${dayNum(ymd)}</span><span class="dc-cap" aria-hidden="true">${cap}</span></a></li>`);
   }
   return h`<nav class="wdeck" aria-labelledby="wdeck-k"><p class="wdeck-k vh" id="wdeck-k">The next seven days</p><ol id="deck">${items}</ol></nav>`;
 }
@@ -341,7 +328,7 @@ export function week(ctx) {
   const n = liveAll.filter((o) => inGame(ctx, o, chip)).length, g = chip === 'all' ? null : gameOf(ctx, chip);
   const empty = !shownAny && chip !== 'all' ? emptyPanel(ctx, chip, g) : '';
   const rows = laterRows(ctx, chip);
-  return h`<p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>${deck(ctx, all, photos)}<nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
+  return h`<p class="sec-note week-note">Most nights are walk-in. Cards with a Sign up button hold seats.</p>${deck(ctx, all)}<nav class="chips" id="chips" aria-label="Show one game">${chips}</nav>
 <p class="vh" id="filter-status" role="status" aria-live="polite">${g ? `Showing ${g.short}: ` : 'Showing all games: '}${n} ${n === 1 ? 'event' : 'events'} this week.</p>
 <div class="days" id="days">${empty}${days}</div>
 <div class="empty lattice" id="filter-empty" role="note" hidden><p class="empty-h">Nothing for this game this week.</p><p>Try another game, or look at every date.</p><a class="btn btn-2" href="${keep(ctx, '', {})}#week" data-chip="all">Show all games</a></div>

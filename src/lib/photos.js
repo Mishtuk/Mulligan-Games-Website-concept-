@@ -55,6 +55,5 @@ export function photosForDay(occs, key, used = {}) {
   for (const o of [...occs].sort((a, b) => (a.start || '').localeCompare(b.start || '') || String(a.title).localeCompare(String(b.title)))) out.set(key(o), photoFor(o, used));
   return out;
 }
-export const photoName = (p) => p.file + (p.tint ? ':tint' : '');
 /** Position must look like "50% 60%", anything else falls back (it goes into a style attribute). */
 export const photoPos = (p) => (/^\d{1,3}% \d{1,3}%$/.test(p.pos || '') ? p.pos : '50% 50%');

@@ -666,3 +666,13 @@ caption whole at 768 and 900. (3) DESIGN 17.1: the build note no longer says to 
 would fetch before the poster and skip the hold); "For the Desktop" port note added (what to copy, the two HERO_FILES flags).
 **Noted:** at 900x800 the theme button sits on the edge of the second featured card's caption backing (not its text); landscape
 phones still open on the concept-only demo bar (D52 note).
+
+### D54. Build hero: the montage video, held screens fetch no video, featured clips under the hero (2026-10-27, Desktop + boss)
+- **Video (#16):** the VFW/Riverside pattern on every width: `hero.mp4` 1080p / `hero-720.mp4` / `hero-portrait.mp4`
+  by `<source media>`, poster = first frame (CSS background, one poster per screen), pause pill. Sources sit in
+  `data-src` and `preload="none"`; site.js attaches and plays them unless reduced motion, Save-Data or 2g/3g, so held
+  screens and no-JS fetch 0 video bytes and show the poster with Play. Contrast of the h1 / sub-line measured over
+  every 0.5 s of the moving loop: AA at every width (worst h1 4.67, sub-line 8.04).
+- **Featured clips (D51 item 4):** with a moving hero, the two featured clips are a compact row directly under the
+  hero instead of cards on top of the video (still "near the top"); phones keep "Watch a clip". Laptop may mirror or
+  overrule in the prototype.

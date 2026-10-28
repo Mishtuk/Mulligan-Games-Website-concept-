@@ -77,7 +77,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'mg-store-'));
 const dist = join(tmp, 'dist'), data = join(tmp, 'data');
 const put = (path, body) => { mkdirSync(join(dist, path), { recursive: true }); writeFileSync(join(dist, path, 'index.html'), body); };
 const frame = (inner) => `<!doctype html><html><head><!--mg:head--><title>t</title><meta property="og:image" content="<!--mg:origin-->http://baked.example<!--/mg:origin-->/i.jpg"><!--mg:shop-ld--></head><body><!--mg:strip--><p>baked</p><!--/mg:strip--><div class="openbar"><!--mg:bar--><p>baked bar</p><!--/mg:bar--></div>${inner}<footer><!--mg:foot-addr--><p>baked foot</p><!--/mg:foot-addr--><ul><!--mg:socials--><!--/mg:socials--></ul></footer></body></html>`;
-put('', frame('<main><!--mg:hero--><!--/mg:hero--><div><!--mg:free-play--><p class="freeplay2">baked free</p><!--/mg:free-play--></div><dl><!--mg:cedh-live--><!--/mg:cedh-live--></dl><section><!--mg:visit--><div>baked visit</div><!--/mg:visit--></section><div><!--mg:discord--><!--/mg:discord--></div></main>'));
+put('', frame('<main><!--mg:hero--><!--/mg:hero--><dl><!--mg:cedh-live--><!--/mg:cedh-live--></dl><section><!--mg:visit--><div>baked visit</div><!--/mg:visit--></section><div><!--mg:discord--><!--/mg:discord--></div></main>'));
 put('events', frame('<main><!--mg:events-->PLACEHOLDER<!--/mg:events--></main>'));
 put('new-here', frame('<main><ul><!--mg:nh-toc--><!--/mg:nh-toc--></ul><!--mg:nh-free--><!--/mg:nh-free--><!--mg:nh-kids--><!--/mg:nh-kids--><!--mg:nh-here--><!--/mg:nh-here--><!--mg:nh-directions--><a href="old">baked old directions</a><!--/mg:nh-directions--><!--mg:nh-ask--><!--/mg:nh-ask--></main>'));
 put('event-page', frame('<main><!--mg:event--><!--/mg:event--></main>'));
@@ -172,10 +172,10 @@ test('F4 + B1: hours not set and a special day: /events/ still renders, the fron
   const ev = await text('/events/?now=2026-11-25T12:00'); // the seven days ahead include the special days
   assert.ok(ev.includes('class="ep-head"') && !ev.includes('PLACEHOLDER'), '/events/ is rendered, not the loading placeholder');
   const closed = await text('/?now=2026-11-26T12:00');
-  assert.ok(closed.includes('<strong>Closed today.</strong>') && /id="hero-date">[^<]*· Closed today/.test(closed) && closed.includes('id="hero-h">Welcome to Mulligan Games.</h1>'), 'closed special day');
+  assert.ok(closed.includes('<strong>Closed today.</strong>') && closed.includes('id="hero-chip-t">Closed today') && closed.includes('id="hero-h">Shuffle up. Everyone’s welcome.</h1>'), 'closed special day');
   assert.ok(!closed.includes('Closed this week') && !closed.includes('<strong>Closed</strong>'));
   const after = await text('/?now=2026-11-30T17:00'); // special hours are over; the next day is unknown, so it says nothing about the week
-  assert.ok(/id="hero-date">[^<]*· Closed for the night</.test(after) && after.includes('<strong>Closed now.</strong>') && !after.includes('Closed this week'));
+  assert.ok(/id="hero-chip-t">Closed</.test(after) && after.includes('<strong>Closed now.</strong>') && !after.includes('Closed this week'));
   assert.ok((await text('/?now=2026-11-25T12:00')).includes('Hours coming soon.'), 'a day with no special day stays unknown');
   assert.equal((await save({ hours: HOURS, hourOverrides: [] })).status, 200);
 });
@@ -195,7 +195,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
     links: { facebook: 'https://www.facebook.com/shop', discord: 'https://discord.gg/abc' }, photo: 'room-a.webp', photoAlt: 'Tables set for draft' });
   assert.equal(r.status, 200);
   const home = await text(`/?now=${NOW}`);
-  for (const t of ['9 Test Ln, Hatboro', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln<br>Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', '<p class="freeplay2">Free play after 3</p>', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
+  for (const t of ['9 Test Ln<span class="ob-long">, Hatboro</span>', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln<br>Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
   assert.ok(!home.includes('445 York') && !home.includes('baked bar') && !home.includes('baked foot') && !home.includes('baked visit'));
   assert.ok(home.includes('<figure class="photo has-img"><img src="/media/photos/room-a.webp" alt="Tables set for draft"') && !home.includes('no-photo'));
   const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(home)[1]);
@@ -208,7 +208,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
   assert.ok((await text('/events/fnm?date=2026-10-30&now=' + NOW)).includes('9 Test Ln, Hatboro, PA 19040'));
   await save({ freePlay: '', photo: null, photoAlt: '', links: { facebook: '' } }); // fields can be cleared: the sections go away
   const after = await text(`/?now=${NOW}`), nh2 = await text(`/new-here/?now=${NOW}`);
-  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('Can I just come and play?') && !after.includes('freeplay2') && !after.includes('facebook.com'));
+  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('Can I just come and play?') && !after.includes('facebook.com'));
   assert.ok(!nh2.includes('id="free"') && !nh2.includes('href="#free"'));
   assert.equal((await api('DELETE', 'photos/room-a.webp')).status, 404); // not an upload, never touched
 });
@@ -279,10 +279,10 @@ test('F9: an event that runs past midnight is still "On now" at 00:30', async ()
   const { hero } = await import('../src/lib/render.js');
   const { GAMES } = await import('../src/lib/games.js');
   const { etNow } = await import('../src/lib/clock.js');
-  const s = { id: 'late', title: 'Late Draft', game: 'magic', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', end: '01:00', signup: 'walkin' };
+  const s = { id: 'late', title: 'Late Draft', game: 'magic', kind: 'weekly', recurrence: { type: 'dates', dates: [{ date: '2026-10-30', start: '19:00' }] }, start: '19:00', end: '01:00', signup: 'walkin' };
   const at = (t) => String(hero({ games: GAMES, store: seed, series: [s], exceptions: [], now: etNow(t), keepNow: null, query: new URLSearchParams() }));
-  assert.ok(at('2026-10-31T00:30').includes('On now: Late Draft.'), 'Friday 7 PM to 1 AM, seen at 00:30 Saturday');
-  assert.ok(!at('2026-10-31T01:30').includes('On now'), 'over at 1 AM');
+  assert.ok(at('2026-10-31T00:30').includes('<span class="next-k">On now</span><span class="next-what">Late Draft</span>'), 'Friday 7 PM to 1 AM, seen at 00:30 Saturday');
+  assert.ok(!at('2026-10-31T01:30').includes('next-k">On now'), 'over at 1 AM');
 });
 test('round 4 F10: the footer hours group neighbouring days with the same hours', async () => {
   const { hoursLines } = await import('../src/lib/store-render.js');

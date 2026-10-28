@@ -32,17 +32,22 @@ test('preorder tile without a note or event has no rel-text', () => {
   assert.equal(s.split('class="rel-text"').length, 2);
 });
 
-test('site.js: one function-wide `start` (a second var overwrote the hero start() and the loop never played)', () => {
+test('site.js: hero video poster swap and hold rules live in the file (no inline script, CSP D24); no innerHTML', () => {
   const js = readFileSync(new URL('../public/js/site.js', import.meta.url), 'utf8');
-  assert.equal(js.match(/\bvar start\b/g).length, 1);
+  assert.ok(js.includes("getAttribute('data-src')") && js.includes('prefers-reduced-motion') && js.includes('saveData') && js.includes('2g|3g'));
+  assert.ok(!/innerHTML/.test(js.replace(/\/\*[^]*?\*\//, '')));
 });
 
-test('front page: reviews come from proof.json, hero still on wide and video only on phones', { skip: !built }, () => {
+test('front page: reviews come from proof.json, hero video with phone sources and posters', { skip: !built }, () => {
   const h = page();
   assert.match(h, /4\.9 on Google · 81 reviews/);
   for (const q of proof.reviews.items) assert.ok(h.includes(q.text) && h.includes(`${q.name}, ${q.age}`), q.name);
   assert.ok(h.includes('href="https://www.google.com/maps/search/'));
-  assert.match(h, /<source media="\(min-width: 900px\)" srcset="\/img\/social\/shop-floor-cases-800\.webp 800w/);
-  assert.match(h, /<video id="hero-video"[^>]*><\/video>/, 'no <source> or poster in the HTML');
+  // no autoplay, src or poster in the HTML: a held screen (reduced motion, Save-Data, 2g/3g) or no JS fetches no video; site.js arms the sources
+  assert.match(h, /<video id="hero-video" muted loop playsinline preload="none" tabindex="-1">/);
+  const vid = h.match(/<video id="hero-video"[^]*?<\/video>/)[0];
+  assert.ok(!/autoplay|poster=|\ssrc=/.test(vid), 'no autoplay / poster / src in the markup');
+  assert.ok(vid.indexOf('media="(max-width: 700px) and (orientation: portrait)" data-src="/media/video/hero-portrait.mp4"') < vid.indexOf('media="(max-width: 700px)" data-src="/media/video/hero-720.mp4"') && vid.includes('<source data-src="/media/video/hero.mp4"'));
+  assert.ok(h.includes('rel="preload" as="image" href="/media/video/hero-poster-portrait.jpg"') && !h.includes('cedh-players-tables-loop') && !h.includes('<picture'));
   assert.ok(!/t-?shirt/i.test(h) && h.includes('Shop Pokemon Japan and Magic cards online on TCGplayer') && h.includes('mg:turnout'));
 });

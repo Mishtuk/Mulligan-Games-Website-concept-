@@ -8,7 +8,7 @@ import store from '../content/store.json';
 import { safeUrl } from '../lib/events.js';
 import proof from '../content/proof.json';
 import { entryText } from '../lib/store-render.js';
-import { validClip, clipPos, NAMES } from '../lib/clips.js';
+import { validClip, clipPos, NAMES, FEATURED } from '../lib/clips.js';
 import clipData from '../content/clips.json';
 
 const a = store.address;
@@ -17,34 +17,35 @@ const tel = safeUrl(store.phoneHref);
 const discord = safeUrl(store.links?.discord);
 const rv = proof.reviews, reviewUrl = safeUrl(rv.url);
 const tcg = safeUrl(proof.tcgplayer.url);
-const clips = clipData.filter(validClip), tiktok = safeUrl(store.links?.tiktok);
+const clips = clipData.filter(validClip), feat = FEATURED.map((id) => clips.find((c) => c.id === id)).filter(Boolean), tiktok = safeUrl(store.links?.tiktok);
 const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
 ---
 <Base title="Mulligan Games, Warminster PA: events this week" description="Card and game shop in Warminster, PA. Magic, cEDH, Pokemon, One Piece, Riftbound, Hololive and Warhammer nights every week. See what's on, sign up and plan your visit." current="home" skip="#week" skipLabel="Skip to this week's events">
   <Fragment slot="head">
     <Fragment set:html="<!--mg:shop-ld-->" />
-    <!-- LCP hint per screen: phones fetch the portrait poster, wide screens the landscape still (never both) -->
-    <link rel="preload" as="image" href="/media/video/cedh-players-tables-loop-poster.webp" media="(max-width: 899px)" fetchpriority="high" />
-    <link rel="preload" as="image" imagesrcset="/img/social/shop-floor-cases-800.webp 800w, /img/social/shop-floor-cases.webp 1440w" imagesizes="100vw" media="(min-width: 900px)" fetchpriority="high" />
+    <!-- LCP hint: the poster that matches the video source the phone will pick (portrait phones, everyone else) -->
+    <link rel="preload" as="image" href="/media/video/hero-poster-portrait.jpg" media="(max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
+    <link rel="preload" as="image" href="/media/video/hero-poster.jpg" media="not all and (max-width: 700px) and (orientation: portrait)" fetchpriority="high" />
   </Fragment>
   <main id="main">
-    <!-- 2. Hero (round 3, D36): the room on a cEDH night fills the width (poster first, loop after load; site.js); white copy on a dark scrim, a strip along the bottom -->
+    <!-- 2. Hero (round 8, #16): the shop montage plays behind the copy like the VFW and Riverside sites; white copy on a dark scrim, a strip along the bottom.
+         Poster first (CSS background); site.js starts the video after load and holds it back for reduced motion / Save-Data / slow links (no inline script, D24). -->
     <section class="phero" aria-labelledby="hero-h">
-      <div class="phero-media" id="hero-media">
-        <!-- From 900px the landscape still; under 900px the portrait poster and loop. The video has no <source> or poster here: site.js adds them on phones only. -->
-        <picture>
-          <source media="(min-width: 900px)" srcset="/img/social/shop-floor-cases-800.webp 800w, /img/social/shop-floor-cases.webp 1440w" sizes="100vw" width="1440" height="1080" />
-          <img src="/media/video/cedh-players-tables-loop-poster.webp" width="540" height="960" alt="Inside Mulligan Games: tables, sealed product and singles cases" fetchpriority="high" />
-        </picture>
-        <video id="hero-video" muted loop playsinline preload="none" width="540" height="960" aria-hidden="true" tabindex="-1"></video>
+      <div class="phero-media" id="hero-media" aria-hidden="true">
+        <!-- No src or poster here: the box's CSS background is the poster (one file per screen, global.css), and site.js gives the sources their src
+             only when the video may play, so held screens (and no JS) fetch no video at all -->
+        <video id="hero-video" muted loop playsinline preload="none" tabindex="-1">
+          <source media="(max-width: 700px) and (orientation: portrait)" data-src="/media/video/hero-portrait.mp4" type="video/mp4" />
+          <source media="(max-width: 700px)" data-src="/media/video/hero-720.mp4" type="video/mp4" />
+          <source data-src="/media/video/hero.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="wrap phero-in">
-        <Fragment set:html={`<!--mg:hero--><div class="phero-copy"><h1 class="phero-h" id="hero-h">Welcome to Mulligan Games.</h1><p class="phero-lede">A friendly game store in Warminster with a big play room, free play every day we’re open, and card nights all week. Come say hi.</p></div><!--/mg:hero-->`} />
+        <Fragment set:html={`<!--mg:hero--><div class="phero-copy"><p class="phero-chip" id="hero-chip" role="status"><span class="chip-dot" aria-hidden="true"></span><span id="hero-chip-t">Hours coming soon</span></p><h1 class="phero-h" id="hero-h">Shuffle up. Everyone’s welcome.</h1><p class="phero-sub" id="hero-sub">Welcome to Mulligan Games, Warminster’s friendly game store: a big play room, free play every day we’re open, and card nights all week. Come say hi.</p></div><!--/mg:hero-->`} />
       </div>
       <div class="phero-strip">
         <div class="wrap phero-strip-in">
-          <Fragment set:html="<!--mg:free-play-->" />{store.freePlay && <p class="freeplay2">{store.freePlay}</p>}<Fragment set:html="<!--/mg:free-play-->" />
-          <p class="media-cap">On screen: <span class="cap-wide">The shop floor at 445 York Rd</span><span class="cap-narrow">cEDH night at the shop</span></p>
+          <p class="media-cap">On screen: the shop at 445 York Rd</p>
           {clips.length >= 3 && <a class="clips-link" href="#clips">Watch clips from the shop<Icon name="chevron" /></a>}
           <button class="vid-btn" id="vid-btn" type="button" data-paused>
             <Icon name="pause" class="i-pause" /><Icon name="play" class="i-play" />
@@ -53,6 +54,22 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
         </div>
       </div>
     </section>
+
+    <!-- 2b. Two featured clips (round 7, D51), their own compact row under the hero, never over the moving picture. Same plain links and click-to-load dialog as 3b. -->
+    {feat.length > 0 && (
+    <section class="feat" aria-label="Featured clips">
+      <ul class="feat-in wrap" role="list">
+        {feat.map((c) => (
+          <li>
+            <a class="clip-a feat-a" href={c.url} target="_blank" rel="noopener" data-tt={c.file ? undefined : c.id} data-file={c.file} data-caption={c.caption}>
+              <span class="clip-ph"><img src={`/${c.poster}`} width={c.pw} height={c.ph} alt="" loading="lazy" decoding="async" style={`object-position:${clipPos(c)}`} /><span class="clip-play" aria-hidden="true"><Icon name="play" /></span></span>
+              <span class="feat-cap"><span class="feat-k">{NAMES[c.platform]}</span><span class="feat-t"><span class="vh">Play video: </span>{c.caption}</span></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+    )}
 
     <!-- 3. This week: the seven-day strip first, then the days (all of it is the mg:week marker) -->
     <section class="sec week" id="week" aria-labelledby="week-h">
@@ -98,9 +115,9 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
           <p class="clips-priv">Videos load from TikTok only when you press play, and Instagram clips open on Instagram; those sites may set their own cookies.</p>
         </div>
       </div>
-      <script src="/js/clips.js" defer is:inline></script>
     </section>
     )}
+    {feat.length > 0 && <script src="/js/clips.js" defer is:inline></script>}
 
     <!-- 4. cEDH strip (D4) -->
     <section class="cedh" id="cedh" aria-labelledby="cedh-h">

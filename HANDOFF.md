@@ -42,16 +42,16 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** round-7 port + VFW-style video hero (#16) + owner headline (combined): `src/`, `public/`, `server.js`, `test/`. Hero files done (234a2d8).
+- **Desktop:** round 7 + video hero ported. Next: P2.6 results and prizes. Nothing claimed.
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
 milestone push, not only at handoff. Sessions can end without warning.
 
 ## Status (handoff, 2026-10-27 evening, Desktop)
-**Build at ce96b00, 206 tests green. Live concept (GitHub Pages = `prototype/`) has rounds 1-6 + the VFW theme button.
-The real build (`src/`, `server.js`) has everything through round 6, the owner's warm welcome, inventory and
-preorders, and the counter follow-ups. Decisions run to D50; owner questions to Q27.**
+**Build: round 7 + the montage video hero ported (this commit), 206 tests green. Live concept (GitHub Pages =
+`prototype/`) has rounds 1-7 + the VFW theme button + #16. Headline (owner): "Shuffle up. Everyone's welcome." + "Welcome
+to Mulligan Games, Warminster's friendly game store...". Decisions run to D54; owner questions to Q27.**
 
 ### Done since 2026-10-26 (newest first)
 - **Counter follow-ups (D50, 61c9754):** Undo for Move in, delete a mistaken walk-in (5 min, purged after), Run it

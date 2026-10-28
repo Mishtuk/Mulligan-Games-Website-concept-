@@ -17,3 +17,5 @@ export function validClip(c) {
   return u.protocol === 'https:' && u.hostname === HOSTS[c.platform] && /^(media\/social|img\/social|media\/clips)\/[\w.-]+$/.test(c.poster) && (c.file === undefined || FILE.test(c.file));
 }
 export const clipPos = (c) => (/^\d{1,3}% \d{1,3}%$/.test(c.pos || '') ? c.pos : '50% 50%');
+/** The two clips shown in the row under the hero (round 7, D51), in order; each must still pass validClip. */
+export const FEATURED = ['7456651666096704814', '7467024512442289451'];

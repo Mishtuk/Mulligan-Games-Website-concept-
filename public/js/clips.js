@@ -4,8 +4,7 @@
  * The iframe is sandboxed (scripts, same-origin, presentation, popups only). createElement + textContent only; the id is checked against a strict pattern and the link's host before any URL is built. */
 (function () {
   'use strict';
-  var list = document.getElementById('clips-list');
-  if (!list) return;
+  var list = document.getElementById('clips-list'); // the scroll row (absent under 3 clips); the featured row and the hero button are bound too
   var NS = 'http://www.w3.org/2000/svg', open = null;
 
   function mk(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
@@ -76,7 +75,7 @@
     return true;
   }
 
-  Array.prototype.forEach.call(list.querySelectorAll('.clip-a[data-tt], .clip-a[data-file]'), function (a) {
+  Array.prototype.forEach.call(document.querySelectorAll('a[data-tt], a[data-file]'), function (a) {
     a.addEventListener('click', function (e) {
       if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // modifier-click opens the post itself
       if (openClip(a, a.getAttribute('data-tt'), a.getAttribute('data-file'))) e.preventDefault();
@@ -85,7 +84,7 @@
 
   // sideways scroll buttons (from 1024px, see clips.css); hidden until this script runs
   var nav = document.getElementById('clips-nav'), prev = document.getElementById('clips-prev'), next = document.getElementById('clips-next');
-  if (!nav || !prev || !next) return;
+  if (!list || !nav || !prev || !next) return;
   nav.hidden = false;
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)');
   function step() { var li = list.querySelector('.clip'); if (!li) return 200; return li.getBoundingClientRect().width + (parseFloat(getComputedStyle(list).columnGap) || 0); }

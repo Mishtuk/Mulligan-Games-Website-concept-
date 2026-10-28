@@ -13,7 +13,7 @@ const out = (name) => h`<span class="vh"> (opens ${name})</span>`;
 /** The open-now strip's address, Call and Directions. */
 export function bar({ store }) {
   const t = tel(store);
-  return h`<p class="ob-addr">${addr(store).street}, ${addr(store).city}</p>${t ? h`<a class="ob-link" href="${t}">${icon('phone')}<span class="ob-long">${store.phone}</span><span class="ob-short">Call</span></a>` : ''}<a class="ob-link" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>`;
+  return h`<p class="ob-addr">${addr(store).street}<span class="ob-long">, ${addr(store).city}</span></p>${t ? h`<a class="ob-link" href="${t}">${icon('phone')}<span class="ob-long">${store.phone}</span><span class="ob-short">Call</span></a>` : ''}<a class="ob-link" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>`;
 }
 /** The footer's weekly hours as short lines ("Wed–Thu 2 PM to 10 PM", "Mon–Tue closed"): neighbouring days with the same hours share a line. */
 export function hoursLines(store) {
@@ -72,8 +72,6 @@ export function nhToc({ store }) {
     ['prerelease', 'Prereleases'], ['proxies', 'Proxies'], ['trade', 'Trade-ins'], ['here', 'Getting here'], ['ask', 'Still have a question?']].filter(Boolean);
   return toc.map(([id, label]) => h`<li><a href="${`#${id}`}">${label}</a></li>`);
 }
-/** The free-play line in the front page hero strip (round 3); nothing when the store has none. */
-export const freePlay = ({ store }) => (store.freePlay ? h`<p class="freeplay2">${store.freePlay}</p>` : '');
 export const nhFree = ({ store }) => (store.freePlay ? h`<section id="free" aria-labelledby="h-free"><h2 id="h-free"><span class="nh-dia" aria-hidden="true"></span>Free play</h2><p>${store.freePlay}. Bring a deck and find a table.</p></section>` : '');
 export const nhKids = ({ store }) => (store.kids ? h`<p>${store.kids}</p>` : '');
 export function nhHere({ store }) {

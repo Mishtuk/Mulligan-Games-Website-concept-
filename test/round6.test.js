@@ -58,10 +58,11 @@ test('week: photo bands on today and the next day only, thumbs after, strip caps
   assert.deepEqual(bands, ['event-magic-night', 'event-full-room-2'], 'two card days, different pictures');
   assert.equal([...html.matchAll(/class="dl-ph ph"/g)].length, 2, 'later days get thumbs');
   assert.ok(html.includes('class="dl-main"') && html.includes('class="dl-dot"'));
-  assert.equal([...html.matchAll(/class="dc-ph ph"/g)].length, 4, 'one strip cap per open day');
+  assert.ok(!html.includes('dc-ph') && !html.includes('dc-pips'), 'round 7: the week strip is text only');
+  assert.equal([...html.matchAll(/<span class="dc-cap" aria-hidden="true">/g)].length, 7, 'seven tiles, each with its count');
   assert.ok(/<img [^>]*alt=""[^>]*loading="lazy"/.test(html));
   assert.ok(/class="ev-ph ph"[^>]*><img [^>]*srcset="\/img\/social\/[\w-]+-800\.webp 800w, \/img\/social\/[\w-]+\.webp 1600w"[^>]*width="800" height="600"/.test(html), 'bands: srcset 800/1600 and a size box');
-  assert.ok(!/class="(?:dl|dc)-ph ph"[^>]*><img [^>]*srcset/.test(html), 'thumbs and strip caps stay on the 800 file');
+  assert.ok(!/class="dl-ph ph"[^>]*><img [^>]*srcset/.test(html), 'thumbs stay on the 800 file');
 });
 
 test('week: a hostile title or game never reaches the photo markup', () => {
@@ -122,21 +123,29 @@ test('front page build: clips as plain links, nothing third-party before a click
   assert.ok(!/<iframe|<dialog/.test(html), 'no iframe or dialog until a click');
   assert.ok(!/<(?:script|img|link|iframe|source)\b[^>]*(?:src|href)="https?:\/\//.test(html), 'no third-party resource tags');
   assert.ok(html.includes('Videos load from TikTok only when you press play'));
-  assert.ok(html.includes('id="hero-h">Welcome to Mulligan Games.</h1>') && html.includes('Come say hi.'));
+  assert.ok(html.includes('id="hero-h">Shuffle up. Everyone’s welcome.</h1>') && html.includes('Welcome to Mulligan Games, Warminster’s friendly game store: a big play room, free play every day we’re open, and card nights all week. Come say hi.'));
+  assert.equal(html.split('free play every day').length, 2, 'free play is said once');
+  const feat = html.match(/<section class="feat"[^]*?<\/section>/)[0];
+  assert.deepEqual([...feat.matchAll(/data-file="(\/media\/clips\/[a-z-]+\.mp4)"/g)].map((m) => m[1]), ['/media/clips/cedh-full-room.mp4', '/media/clips/cedh-february.mp4'], 'two featured clips in their own row');
+  assert.ok(html.indexOf('class="feat"') > html.indexOf('</section>', html.indexOf('class="phero"')) && html.indexOf('class="feat"') < html.indexOf('id="week"'), 'the row sits between the hero and This week, not over the video');
+  assert.ok(!html.match(/<div class="openbar ob-front">[^]*?<header/)[0].includes('ob-status'), 'home top bar: no open / closed text');
 });
 
-test('welcome hero: fixed copy, hours status in the eyebrow (open / later today / closed / unknown)', () => {
+test('welcome hero: fixed copy, hours status in the chip (open / later today / closed / unknown)', () => {
   const HRS = [{ day: 0, open: '13:00', close: '22:00' }, { day: 1, closed: true }, { day: 2, closed: true }, { day: 3, open: '14:00', close: '22:00' }, { day: 4, open: '14:00', close: '22:00' }, { day: 5, open: '14:00', close: '24:00' }, { day: 6, open: '14:00', close: '24:00' }];
   const at = (iso, hours = HRS) => hero({ ...ctx([]), store: { hours }, now: etNow(new Date(iso)) }).toString();
-  const eyebrow = (s) => s.match(/id="hero-date">([^<]*)</)[1].replace(/ /g, ' '); // fmtTime uses a no-break space
+  const chip = (s) => s.match(/id="hero-chip-t">([^<]*)</)[1].replace(/ /g, ' '); // fmtTime uses a no-break space
   const open = at('2026-10-29T20:00:00Z'); // Thu 4 PM ET
-  assert.ok(open.includes('id="hero-h">Welcome to Mulligan Games.</h1>'));
-  assert.ok(open.includes('<p class="phero-lede">A friendly game store in Warminster with a big play room, free play every day we’re open, and card nights all week. Come say hi.</p>'));
-  assert.match(eyebrow(open), / · Open till 10 PM tonight$/);
-  assert.match(eyebrow(at('2026-10-31T01:00:00Z')), / · Open till midnight tonight$/); // Fri 9 PM
-  assert.match(eyebrow(at('2026-10-29T15:00:00Z')), / · Open today from 2 PM$/); // Thu 11 AM
-  assert.match(eyebrow(at('2026-10-27T15:00:00Z')), / · Closed today, back tomorrow at 2 PM$/); // Tue
-  assert.match(eyebrow(at('2026-10-30T03:00:00Z')), / · Closed for the night, back tomorrow at 2 PM$/); // Thu 11 PM
-  assert.match(eyebrow(at('2026-10-29T20:00:00Z', [])), / · Closed this week$/, 'D39: hours set but no rows = closed');
-  assert.equal(eyebrow(at('2026-10-29T20:00:00Z', null)), 'Thursday, October 29', 'unknown hours: the date alone');
+  assert.ok(open.includes('id="hero-h">Shuffle up. Everyone’s welcome.</h1>') && !open.includes('hero-date'));
+  assert.ok(open.includes('<p class="phero-sub" id="hero-sub">Welcome to Mulligan Games, Warminster’s friendly game store: a big play room, free play every day we’re open, and card nights all week. Come say hi.</p>'));
+  assert.ok(open.includes('class="phero-chip" id="hero-chip" role="status" data-open=""'));
+  assert.equal(chip(open), 'Open now · till 10 PM');
+  assert.equal(chip(at('2026-10-31T01:00:00Z')), 'Open now · till midnight'); // Fri 9 PM
+  assert.equal(chip(at('2026-10-29T15:00:00Z')), 'Opens 2 PM today'); // Thu 11 AM
+  assert.equal(chip(at('2026-10-27T15:00:00Z')), 'Closed today · back tomorrow 2 PM'); // Tue
+  assert.equal(chip(at('2026-10-30T03:00:00Z')), 'Closed · back tomorrow 2 PM'); // Thu 11 PM
+  assert.equal(chip(at('2026-10-26T15:00:00Z')), 'Closed today · back Wed 2 PM'); // Mon
+  assert.equal(chip(at('2026-10-29T20:00:00Z', [])), 'Closed this week', 'D39: hours set but no rows = closed');
+  assert.equal(chip(at('2026-10-29T20:00:00Z', null)), 'Hours coming soon', 'unknown hours');
+  assert.ok(open.includes('class="btn btn-clip"') && open.includes('data-file="/media/clips/cedh-full-room.mp4"'), 'phones: the Watch a clip button');
 });
