@@ -42,7 +42,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** round 7 + video hero ported. Next: P2.6 results and prizes. Nothing claimed.
+- **Desktop:** P2.6 results and prizes (DESIGN 9.4 results panel): `src/lib/results.js`, `src/db.js`, `server.js`, `src/pages/admin.astro`, `src/lib/render.js` (public results), `test/results.test.js`.
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
