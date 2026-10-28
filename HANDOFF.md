@@ -42,16 +42,16 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** per-event photo + Copy button done; build screenshots for the Laptop next. Waiting for round 8 (offered to split it, see #2). D-numbers: Laptop odd, Desktop even (next D59 / D60).
+- **Desktop:** nothing claimed. Done since round 7: P2.6 results, P2.7 /cedh/, Wix pass, per-event photo + Copy, build screenshots (docs/review/build-shots/). Waiting for round 8 (offered to split: Laptop front page, Desktop other pages). D-numbers: Laptop odd, Desktop even (next D59 / D60).
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
 milestone push, not only at handoff. Sessions can end without warning.
 
 ## Status (handoff, 2026-10-27 evening, Desktop)
-**Build: round 7 + montage video hero (3c1df2f) P2.6 results (15e111a) and P2.7 /cedh/ page (this commit), 224 tests green. Live concept (GitHub Pages =
+**Build: round 7 + montage video hero (3c1df2f) P2.6 results (15e111a), P2.7 /cedh/ (64ba4f8), per-event photo + Copy (67ad9ce), 228 tests green. Live concept (GitHub Pages =
 `prototype/`) has rounds 1-7 + the VFW theme button + #16. Headline (owner): "Shuffle up. Everyone's welcome." + "Welcome
-to Mulligan Games, Warminster's friendly game store...". Decisions run to D58; owner questions to Q30.**
+to Mulligan Games, Warminster's friendly game store...". Decisions run to D58; owner questions to Q32.**
 
 ### Done since 2026-10-26 (newest first)
 - **Counter follow-ups (D50, 61c9754):** Undo for Move in, delete a mistaken walk-in (5 min, purged after), Run it
