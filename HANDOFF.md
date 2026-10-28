@@ -42,7 +42,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** nothing claimed. Done since round 7: P2.6 results, P2.7 /cedh/, Wix pass, per-event photo + Copy, build screenshots (docs/review/build-shots/). Waiting for round 8 (offered to split: Laptop front page, Desktop other pages). D-numbers: Laptop odd, Desktop even (next D59 / D60).
+- **Desktop:** **round 8 taken over** (owner, 2026-10-28: the Laptop ran out of tokens): spec `docs/review/round-8-new-look.md` (designer agent, from both Wix passes + Direction B + D55), then built straight into the build: `src/`, `public/`, `server.js`, `test/`, `DESIGN.md` (round-8 section). `prototype/` untouched. D-numbers: Laptop odd, Desktop even (next D59 / D60).
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
