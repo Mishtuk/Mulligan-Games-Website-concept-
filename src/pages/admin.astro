@@ -1072,7 +1072,8 @@ import ThemeFab from '../components/ThemeFab.astro';
           const out = [opts.page && h('a', { class: 'back', href: '#events' }, ico('back', 18), 'Back to events'),
             h('div', { class: 'roster-head' }, h('h2', { class: 'roster-title' }, ev.title), h('p', { class: 'roster-sub' }, `${UTC(ev.date, { weekday: 'long', month: 'long', day: 'numeric' })}, ${ev.start ? T12(ev.start) : 'time not set'}, ${feeWords(ev.fee) ?? 'fee not set'}`)),
             h('p', { class: 'roster-tool' }, ev.tool && [`Official tool: `, ev.toolUrl && /^https?:\/\//i.test(ev.toolUrl) ? h('a', { href: ev.toolUrl, target: '_blank', rel: 'noopener' }, ev.tool, ico('ext', 16), h('span', { class: 'vh' }, ' (opens in a new tab)')) : ev.tool,
-              ev.toolCode && [' Event code ', h('strong', {}, ev.toolCode), h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: (e) => copyCode(ev.toolCode, e.currentTarget) }, ico('copy', 18), 'Copy')]], copy)];
+              ev.toolCode && [' Event code ', h('strong', {}, ev.toolCode), h('button', { class: 'btn btn-2 btn-sm', type: 'button', onclick: (e) => copyCode(ev.toolCode, e.currentTarget) }, ico('copy', 18), 'Copy')]], copy,
+            !ev.cancelled && reached(ev, ev.start) && h('button', { class: 'btn btn-act', type: 'button', 'data-k': 'results', onclick: (e) => resultsDialog(sid, slot, ev, st.d.regs, e.currentTarget) }, ico('check', 18), 'Enter results'))];
           if (ev.cancelled) return host.replaceChildren(...out.flat(9).filter(Boolean), h('div', { class: 'empty-today' }, h('p', { class: 'empty-h' }, 'This date is cancelled.'), h('button', { class: 'btn btn-2', type: 'button', onclick: bringBack2 }, 'Bring it back')));
           out.push(h('ul', { class: 'rstats' }, mode === 'list' ? [stat('check', `Checked in ${c.checkedIn} of ${c.in}`), !fee0 && stat('seat', `Paid ${c.paid}`), cap && stat('users', `${c.in} of ${cap} seats`), c.waitlist > 0 && stat('hourglass', `${c.waitlist} on the waitlist`, 'rstat-wait'),
             c.noshow > 0 && stat('noshow', `No-shows ${c.noshow}`), ev.minPlayers && c.in < ev.minPlayers && !ranIt(ev) && stat('warn', underMin(ev, c) ? `Started with ${c.in} (min ${ev.minPlayers})` : `Needs ${ev.minPlayers - c.in} more to run`, 'rstat-warn')] : stat('users', `Players ${st.d.headcount ?? 0}`)));
@@ -1108,6 +1109,64 @@ import ThemeFab from '../components/ThemeFab.astro';
         return { load };
       }
 
+      // ----- Results and prizes (P2.6; DESIGN 9.4). Names, notes and product names are typed text: built with h() / textContent only (D20). -----
+      /** The results panel for one date: players, winner, top names (suggested from the roster), prizes given, store-credit note, "reported" and "show on the website". */
+      async function resultsDialog(sid, slot, ev, regs, opener) {
+        const g = await api('GET', `admin/roster/${enc(sid)}/${enc(slot)}/results`);
+        if (!g.ok) return toast(say(g));
+        const R = g.data.results, prods = g.data.products, listId = 'rs-names';
+        const names = [...new Set(regs.filter((r) => r.status === 'in' && r.checkedIn).map((r) => r.name))];
+        const top = h('div', { class: 'rs-top' }), top8 = h('div', { class: 'rs-top' }), more = h('details', { class: 'rs-more', open: R.top.length > 4 }, h('summary', {}, 'Places 5 to 8'), top8); // the grid sits inside: a <details> does not lay out its own content as a grid
+        const nameIn = (i) => h('input', { type: 'text', maxlength: 60, list: listId, autocomplete: 'off', 'aria-label': `Place ${i + 1}`, placeholder: `Place ${i + 1}`, value: R.top[i] || '' });
+        for (let i = 0; i < 8; i++) (i < 4 ? top : top8).append(nameIn(i));
+        const prizes = h('div', { class: 'rs-prizes' });
+        const prizeRow = (p) => {
+          const sel = h('select', { 'aria-label': 'Prize product' }, h('option', { value: '' }, 'Pick a product'), prods.map((x) => h('option', { value: String(x.id), selected: p?.product === x.id }, `${x.name} (${x.onHand} on hand)`)));
+          const qty = h('input', { type: 'text', inputmode: 'numeric', maxlength: 4, autocomplete: 'off', 'aria-label': 'Quantity', value: p ? String(p.qty) : '1' });
+          const row = h('div', { class: 'rs-prow' }, sel, qty, h('button', { class: 'btn btn-2', type: 'button', onclick: () => row.remove() }, 'Remove', h('span', { class: 'vh' }, ' this prize')));
+          return row;
+        };
+        R.prizes.forEach((p) => prizes.append(prizeRow(p)));
+        const tool = R.toolName;
+        const kids = [h('datalist', { id: listId }, names.map((n) => h('option', { value: n }))),
+          ff('Players', h('input', { name: 'headcount', type: 'text', inputmode: 'numeric', maxlength: 4, autocomplete: 'off', value: String(R.headcount ?? R.suggested) }), { half: true, hint: `From check-ins: ${R.suggested}. Change it if it is off.` }),
+          h('p', { class: 'hint wide' }, `No-shows: ${R.noshows}. Those come from the roster.`),
+          ff('Winner', h('input', { name: 'winner', type: 'text', maxlength: 60, list: listId, autocomplete: 'off', value: R.winner }), { optional: true }),
+          h('div', { class: 'fld wide' }, h('span', { class: 'lbl' }, 'Top 4 or top 8', h('span', { class: 'opt' }, 'Optional')), top, more),
+          h('div', { class: 'fld wide' }, h('span', { class: 'lbl' }, 'Prizes given', h('span', { class: 'opt' }, 'Optional')), h('span', { class: 'hint' }, 'Each row takes its quantity out of stock. Changing or removing a row puts it back.'), prizes,
+            h('button', { class: 'btn btn-2', type: 'button', onclick: () => { prizes.append(prizeRow(null)); prizes.lastChild.querySelector('select').focus(); } }, ico('plus', 18), 'Add a prize')),
+          ff('Store credit given', h('input', { name: 'creditNote', type: 'text', maxlength: 200, autocomplete: 'off', value: R.creditNote, placeholder: 'For example: $10 to the winner, entered in the register' }), { optional: true, hint: 'A note only. Credit is not tracked on this site.' }),
+          ff('Notes', h('input', { name: 'notes', type: 'text', maxlength: 500, autocomplete: 'off', value: R.notes }), { optional: true, hint: 'Staff only. Never shown on the website.' }),
+          tool && h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: 'reported', checked: R.reported }), h('span', {}, `Reported to ${tool}`)),
+          h('label', { class: 'check wide' }, h('input', { type: 'checkbox', name: 'public', checked: R.public }), h('span', {}, 'Show these results on the website. The winner and top names appear exactly as typed here, with the date and player count. Needs a winner.'))];
+        formDialog(`Results: ${ev.title}, ${md(ev.date)}`, kids, 'Save results', async (f) => {
+          const e = f.elements, hc = e.headcount.value.trim(), rows = [...prizes.children].filter((r) => r.querySelector('select').value);
+          const body = { headcount: hc === '' ? null : int0(hc), winner: e.winner.value, top: [...top.querySelectorAll('input'), ...more.querySelectorAll('input')].map((i) => i.value), notes: e.notes.value, creditNote: e.creditNote.value,
+            reported: tool ? e.reported.checked : R.reported, public: e.public.checked, prizes: rows.map((r) => ({ product: int0(r.querySelector('select').value), qty: int0(r.querySelector('input').value.trim()) })) };
+          const r = await api('PUT', `admin/roster/${enc(sid)}/${enc(slot)}/results`, body);
+          if (r.ok) { toast('Results saved.'); refreshResultsDue(); return r; }
+          const errs = r.data.errors || {}, own = Object.keys(errs).filter((k) => ['headcount', 'winner'].includes(k));
+          if (Object.keys(errs).length && own.length !== Object.keys(errs).length) return { ok: false, data: { message: Object.values(errs)[0] } }; // top / prizes / switches have no single field: say it once
+          return r;
+        });
+      }
+      /** Past dates (last 14 days) with no results, or not reported to their official tool; the Today reminder line shows the count. */
+      let RESULTS_DUE = [];
+      const resultsDueText = () => plural(RESULTS_DUE.length, 'past event needs results', 'past events need results');
+      async function refreshResultsDue() {
+        const r = await api('GET', 'admin/results/pending');
+        RESULTS_DUE = r.ok ? r.data.pending : [];
+        document.querySelectorAll('[data-results-due]').forEach((a) => { a.textContent = resultsDueText(); });
+      }
+      function resultsDueDialog() {
+        const d = h('dialog', { class: 'ask wide', 'aria-labelledby': 'rd-t' }, h('h2', { id: 'rd-t' }, 'Results to enter'),
+          h('ul', { class: 'rd-list' }, RESULTS_DUE.map((x) => h('li', {}, h('a', { class: 'btn btn-2', href: `#roster/${enc(x.series)}/${enc(x.slot)}`, onclick: () => d.close() },
+            `${md(x.date)} · ${x.title} · ${x.state === 'missing' ? 'no results yet' : 'not reported to ' + x.tool}`)))),
+          h('div', { class: 'row' }, h('button', { class: 'btn btn-2', type: 'button', onclick: () => d.close() }, 'Close')));
+        d.addEventListener('close', () => d.remove());
+        document.body.append(d); d.showModal();
+      }
+
       // ----- Today: today's events as 2-line buttons, then the roster of the one picked (DESIGN 9.2) -----
       let tsel = null; // 'series|slot': a one-off date's slot is just the day, so two series can share one
       const tkey = (x) => x.s.id + '|' + x.o.slot;
@@ -1119,8 +1178,8 @@ import ThemeFab from '../components/ThemeFab.astro';
         for (const s of EV.series) for (const o of EV.upcoming[s.id] || []) if (o.date === day && !o.cancelled) list.push({ s, o, d: null });
         list.sort((a, b) => (a.o.start || '').localeCompare(b.o.start || ''));
         const head = h('div', { class: 'today-head' }, h('h1', {}, 'Today, ' + UTC(day, { weekday: 'long', month: 'short', day: 'numeric' })));
-        const sum = await refreshBadges(), rem = sum && [sum.low && ['#inventory/low', plural(sum.low, 'low in stock', 'low in stock'), 'warn'], sum.short && ['#inventory/short', plural(sum.short, 'will run short', 'will run short'), 'warn'], sum.arrived && ['#preorders/arrived', plural(sum.arrived, 'preorder arrived, call', 'preorders arrived, call')]].filter(Boolean);
-        if (rem?.length) head.append(h('p', { class: 'reminders' }, rem.map(([href, t, i], n) => [n > 0 && ' · ', i && ico(i, 18), h('a', { href }, t)])));
+        const [, sum] = await Promise.all([refreshResultsDue(), refreshBadges()]), rem = sum && [RESULTS_DUE.length > 0 && ['#', null, 'check', resultsDueDialog], sum.low && ['#inventory/low', plural(sum.low, 'low in stock', 'low in stock'), 'warn'], sum.short && ['#inventory/short', plural(sum.short, 'will run short', 'will run short'), 'warn'], sum.arrived && ['#preorders/arrived', plural(sum.arrived, 'preorder arrived, call', 'preorders arrived, call')]].filter(Boolean);
+        if (rem?.length) head.append(h('p', { class: 'reminders' }, rem.map(([href, t, i, fn], n) => [n > 0 && ' · ', i && ico(i, 18), fn ? h('a', { href, 'data-results-due': '', onclick: (e) => { e.preventDefault(); fn(); } }, resultsDueText()) : h('a', { href }, t)])));
         if (!list.length) {
           let nx = null;
           for (const s of EV.series) for (const o of EV.upcoming[s.id] || []) if (o.date > day && !o.cancelled && (!nx || (o.date + (o.start || '')) < (nx.o.date + (nx.o.start || '')))) nx = { s, o };

@@ -689,3 +689,39 @@ phones still open on the concept-only demo bar (D52 note).
   card / tabletop play found online (licence recorded per clip; no clip that needs attribution we can't give, no
   watermarks, no recognisable minors). Both machines research the Wix template gallery for the redesign; the Laptop
   designs and builds the reimagined front page and polishes the other pages in `prototype/`; the Desktop ports.
+
+### D56. Results and prizes (P2.6; DESIGN 9.4): one result per date, prizes write stock moves (2026-10-27, Desktop + boss)
+- **Key:** series id + D23 slot, so a moved date keeps its result. Only a date that has started can take one: a future
+  date is refused (422 "early"), a cancelled date 409; the button shows in the roster header after the start time
+  (Today mounts the same roster).
+- **Fields:** players (pre-filled from check-ins plus the walk-in tally, editable), no-shows read from the roster,
+  winner + up to 8 top names (free text, 60 characters each, suggested from the checked-in names), notes (500, staff
+  only), store-credit note (200), "Reported to <tool>" (only when the event names a tool), Show on the website.
+- **Prizes (D41):** product + qty rows. A save writes only the difference: more = a `prize` move, fewer or removed = an
+  `adjust` move that puts it back, returns first. Any move that would take on hand below 0 refuses the whole save in
+  the same transaction (result, rows and moves roll back) and says how many are on hand.
+- **Store credit:** a note only, no ledger, until Q4 / Q6 say where credit lives.
+- **Reminder:** Today says "N past events need results" for dates yesterday back 14 days with no result, or a result
+  not ticked as reported to its tool; cancelled dates and hidden series are skipped. The link opens the list.
+
+### D57. Public results privacy (2026-10-27, boss)
+- Results are private until staff tick Show, and Show needs a winner (the API refuses it without one). The public side
+  (front page "Lately at the shop", last 4, and the date's own page) shows only the winner, top names as typed, the
+  date and the player count. Notes, credit note, prizes and the reported tick never leave the admin routes.
+- Names are escaped everywhere (D20); the security log notes `results_save` with series, slot and prize count, never
+  names. The privacy page has an "Event results" section: named only when staff show results, ask at the counter to
+  be taken off. Consent to being named is Q28.
+
+### D58. Deletes and results (2026-10-27, boss)
+- Deleting a product drops its prize rows (its stock moves go with it, as before). Deleting a series drops its
+  results and prize rows; the stock moves they wrote stay in the product's ledger, so on hand does not change.
+
+**P2.6 review: PASS with boss fixes. Checked (headless Chrome over CDP, temp DATA_DIR):** Today reminder "2 past events need results" -> list -> roster ->
+Enter results; players pre-filled 3, names suggested, Save + toast, reopen keeps everything, prize 2 -> 1 wrote an
+`adjust` +1, 99 refused in the dialog with nothing moved, Show without a winner refused under the field, Show + reported
+-> reminder 1; `<img onerror>` winner and `' OR 1=1 --` shown as text on / and the date page, no alert, no notes or
+credit in the HTML, security log has no names. 1280 and 390: no overflow, every target >= 44px.
+**Boss fixes:** "Places 5 to 8" stacked in one column (a `<details>` does not grid its own content) and had no arrow ->
+inner grid + the `details.srow` arrow; prize product name cut to "Draft boo" at 390 -> own row under 600px; the
+"Lately" diamond sat above the link line; Today loads the reminder and badges together; dropped an unused
+`updatedAt`; two odd test asserts made plain (8 KB cap is 413).

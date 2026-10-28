@@ -53,7 +53,7 @@ export const listProducts = (db) => db.prepare(`SELECT p.*, ${SQL_ON_HAND} AS on
 export const recentMoves = (db, id, n = 10) => db.prepare('SELECT id, qty, reason, series, slot, who, at, note FROM stock_moves WHERE product = ? ORDER BY id DESC LIMIT ?').all(id, n).map((m) => ({ ...m }));
 
 /** Inside a transaction. Refuses a move that would take on hand below 0. */
-function addMove(db, { product, qty, reason, who = '', note = '', series = null, slot = null }, now = Date.now()) {
+export function addMove(db, { product, qty, reason, who = '', note = '', series = null, slot = null }, now = Date.now()) {
   const p = getProduct(db, product);
   if (!p) return { ok: false, error: 'not_found' };
   if (!Object.hasOwn(REASONS, reason)) return { ok: false, error: 'reason' }; // not `in`: 'constructor' would pass and hit the CHECK (500)
@@ -81,7 +81,7 @@ export const updateProduct = (db, id, c) => db.prepare('UPDATE products SET name
 export const deleteProduct = (db, id) => tx(db, () => {
   if (!getProduct(db, id)) return { ok: false, error: 'not_found' };
   if (db.prepare("SELECT 1 FROM preorders WHERE product = ? AND status IN ('waiting', 'arrived')").get(id)) return { ok: false, error: 'has_preorders' };
-  for (const t of ['stock_moves', 'event_use', 'preorders']) db.prepare(`DELETE FROM ${t} WHERE product = ?`).run(id); // fixed table names, no input
+  for (const t of ['stock_moves', 'event_use', 'preorders', 'result_prizes']) db.prepare(`DELETE FROM ${t} WHERE product = ?`).run(id); // fixed table names, no input
   db.prepare('DELETE FROM products WHERE id = ?').run(id);
   return { ok: true };
 });

@@ -265,10 +265,11 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Owner:** Desktop coder. **Files:** `src/lib/results.js`, `server.js`, `src/pages/admin.astro`, `test/results.test.js`.
 - **Needs:** P2.4.
 - **Done when:**
-  - [ ] Per date: headcount (from check-ins, editable), no-shows (from P2.4), winner / top N, prizes given (linked to stock moves), a
+  - [x] Per date: headcount (from check-ins, editable), no-shows (from P2.4), winner / top N, prizes given (linked to stock moves), a
         "reported to the publisher tool" tick, and a reminder list of unreported events.
-  - [ ] Store credit: as decided after Q4/Q6 (ledger here, or "issued in POS" note only).
-  - [ ] Public results archive for tournaments that opt in.
+  - [ ] Store credit: as decided after Q4/Q6 (ledger here, or "issued in POS" note only). For now a note only (D56).
+  - [x] Public results for dates staff tick Show on: "Lately at the shop" + the date's page (D57). A full archive
+        page waits for real use.
 
 ### P2.7 cEDH section
 - **Owner:** Desktop coder. **Files:** `src/pages/cedh.astro`, `src/lib/events.js` (series tag), components.

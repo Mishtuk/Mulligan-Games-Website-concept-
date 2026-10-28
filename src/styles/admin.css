@@ -326,3 +326,12 @@ label.pick .chosen { display: none; position: absolute; right: 6px; top: 6px; ga
 /* keep the sticky bars and focused rows clear of the round light/dark button in the corner (D46; Laptop 324d733) */
 .walkbar:not(.walkbar-inline), .savebar { margin-right: calc(44px + 12px + env(safe-area-inset-right)); }
 html:has(.adm) { scroll-padding-bottom: calc(4rem + 44px + 1.5rem + env(safe-area-inset-bottom)); }
+/* P2.6 results panel */
+.rs-top { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); margin-top: .35rem; }
+.rs-more { margin-top: var(--s2); } .rs-more > summary { min-height: 48px; display: flex; gap: .6rem; align-items: center; cursor: pointer; font-weight: 650; list-style: none; }
+.rs-more > summary::-webkit-details-marker { display: none; }
+.rs-more > summary::before { content: '▾'; width: 1.2rem; text-align: center; transform: rotate(-90deg); } .rs-more[open] > summary::before { transform: none; } /* as details.srow */
+.rs-prizes { display: grid; gap: var(--s2); margin: .35rem 0 var(--s2); }
+.rs-prow { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem auto; gap: var(--s2); align-items: center; }
+@media (max-width: 599px) { .rs-prow { grid-template-columns: minmax(0, 1fr) auto; } .rs-prow select { grid-column: 1 / -1; } } /* the product name gets the whole row on a phone */
+.rd-list { list-style: none; margin: 0 0 var(--s3); padding: 0; display: grid; gap: var(--s2); } .rd-list a { justify-content: flex-start; text-align: left; height: auto; min-height: 48px; }

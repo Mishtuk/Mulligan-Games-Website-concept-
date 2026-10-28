@@ -462,6 +462,17 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .proof-rate { margin: 0 0 var(--s3); font-weight: 750; }
 .proof-rate a, .tcg-line a { display: inline-flex; align-items: center; min-height: var(--tap); }
 .comm-proof { margin-top: var(--s5); }
+.lately { margin-top: var(--s5); }
+.lately-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
+.lately-list li { padding-left: 1.4rem; position: relative; display: grid; }
+.lately-list li::before { content: ""; position: absolute; left: 0.2rem; top: calc(var(--tap) / 2 - 0.25rem); /* centred on the 48px link line */ width: 0.5rem; height: 0.5rem; background: var(--line-strong); transform: rotate(45deg); }
+.lately-list a { display: inline-flex; gap: var(--s2); align-items: center; min-height: var(--tap); font-weight: 700; }
+.lt-d { color: var(--ink-2); font-weight: 600; }
+.lt-w { overflow-wrap: anywhere; }
+.lt-n { color: var(--ink-2); }
+.dp-result { border-top: 1px solid var(--line); padding-top: var(--s6); }
+.dp-result h2 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 800; margin: 0 0 var(--s3); }
+.dp-result p { margin: 0; overflow-wrap: anywhere; }
 .tcg-line { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
 .turnout { margin-top: var(--s5); padding-top: var(--s4); border-top: 1px solid rgb(255 255 255 / 0.18); }
 .turnout h4 { margin: 0 0 var(--s2); font-size: var(--t-lg); font-stretch: var(--wdth-head); }

@@ -215,6 +215,7 @@ const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok',
             {rv.items.map((q) => <li><q>{q.text}</q><small>{q.name}, {q.age}</small></li>)}
           </ul>
         </div>
+        <Fragment set:html={`<!--mg:lately--><!--/mg:lately-->`} />
       </div>
     </section>
   </main>

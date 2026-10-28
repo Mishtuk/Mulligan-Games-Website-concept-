@@ -553,9 +553,27 @@ export function eventPage(ctx, o, form = {}) {
 ${foot.s || arrive.s || signupNote.s ? h`<div class="dp-ticket"><div class="ev-foot">${foot}</div>${arrive}${signupNote}</div>` : ''}</div>
 </div>
 <div class="dp-low${about.s ? '' : ' dp-solo'}">${about}<div class="dp-side">${otherDates}${where}</div></div>
-${alsoOn}
+${resultBlock(ctx, o)}${alsoOn}
 </article></div>`;
 }
+
+/** Winner and the other names exactly as staff typed them (escaped by h); the winner is not listed twice. */
+const resultWords = (r) => {
+  const rest = (r.top ?? []).filter((n) => n.toLowerCase() !== r.winner.toLowerCase());
+  return h`Won by <strong>${r.winner}</strong>${rest.length ? h`, with ${rest.join(', ')} in the top ${(r.top ?? []).length}` : ''}`;
+};
+const playersWords = (r) => (Number.isInteger(r.headcount) && r.headcount > 0 ? `${r.headcount} ${r.headcount === 1 ? 'player' : 'players'}` : '');
+/** "Lately at the shop" (P2.6): the last four results staff ticked Show on, newest first. Notes, prizes and credit never come here. '' when there are none. */
+export function lately(ctx) {
+  const rows = (ctx.results?.recent() ?? []).filter((r) => r.day <= ctx.now.ymd).map((r) => ({ r, s: ctx.series.find((x) => x.id === r.series && x.enabled !== false) })).filter((x) => x.s).slice(0, 4);
+  if (!rows.length) return '';
+  return h`<div class="lately"><h3>Lately at the shop</h3><ul class="lately-list">${rows.map(({ r, s }) => h`<li><a href="${eventHref(ctx, { seriesId: r.series, slot: r.slot })}"><span class="lt-d">${fmtDate(r.day)}</span> <span class="lt-t">${s.title}</span></a><span class="lt-w">${resultWords(r)}${playersWords(r) ? h`<span class="lt-n"> · ${playersWords(r)}</span>` : ''}</span></li>`)}</ul></div>`;
+}
+/** The result on that date's own page, when staff ticked Show. */
+const resultBlock = (ctx, o) => {
+  const r = o.cancelled ? null : ctx.results?.one(o.seriesId, o.slot);
+  return r && r.day <= ctx.now.ymd ? h`<section class="dp-result" aria-labelledby="rs-${idKey(o)}"><h2 id="rs-${idKey(o)}">Results</h2><p>${resultWords(r)}.${playersWords(r) ? ` ${playersWords(r)} played.` : ''}</p></section>` : '';
+};
 
 /** Page not found for a series or date. */
 export function eventMissing(ctx, s) {

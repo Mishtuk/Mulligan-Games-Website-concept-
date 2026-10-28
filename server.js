@@ -26,6 +26,7 @@ import { endM, seatState } from './src/lib/seats.js';
 import { publicForm } from './src/forms.js';
 import * as regs from './src/lib/registrations.js';
 import * as inv from './src/lib/inventory.js';
+import * as resultsLib from './src/lib/results.js';
 import { sitemap } from './src/lib/sitemap.js';
 import { createStats } from './src/stats/index.js';
 
@@ -219,7 +220,8 @@ const FAMILY = Object.fromEntries(GAMES.map((g) => [g.id, g.family]));
 /** The data the renderers read. ?now=YYYY-MM-DDTHH:MM (store time) sets the clock outside production, for screenshots and tests. */
 function publicCtx(url) {
   const t = url.searchParams.get('now'), keepNow = !PROD && NOW_TEST.test(t ?? '') && realDay(t.slice(0, 10)) ? t : null;
-  return { store: facts(), series: listSeries(db), exceptions: listExceptions(db), counts: regs.countsMap(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL };
+  return { store: facts(), series: listSeries(db), exceptions: listExceptions(db), counts: regs.countsMap(db), games: GAMES, releases, now: etNow(keepNow ?? new Date()), keepNow, query: url.searchParams, baseUrl: PUBLIC_URL,
+    results: { recent: () => resultsLib.publicRecent(db), one: (series, slot) => resultsLib.publicOne(db, series, slot) } }; // P2.6: only results staff ticked Show on
 }
 /** Marker name -> function, for injectMarkers(); the database is read only when a page actually has a marker. */
 function liveParts(url, more = {}) {
@@ -229,6 +231,7 @@ function liveParts(url, more = {}) {
   return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), cedh: () => view.cedh(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
     events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(ctx().store, PUBLIC_URL)), origin: () => view.h`${PUBLIC_URL}`,
     bar: () => facts_view.bar(ctx()), 'foot-addr': () => facts_view.footAddr(ctx()), socials: () => facts_view.socials(ctx()), 'cedh-live': () => facts_view.cedhLive(ctx()), turnout: () => facts_view.turnout(ctx()), visit: () => facts_view.visit(ctx()), discord: () => facts_view.discord(ctx()),
+    lately: () => view.lately(ctx()),
     'nh-toc': () => facts_view.nhToc(ctx()), 'nh-free': () => facts_view.nhFree(ctx()), 'nh-kids': () => facts_view.nhKids(ctx()), 'nh-here': () => facts_view.nhHere(ctx()), 'nh-ask': () => facts_view.nhAsk(ctx()), 'nh-directions': () => facts_view.nhDirections(ctx()),
     ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
 }
@@ -589,16 +592,29 @@ function templatesApi(req, body, [id], ip, note) {
 }
 
 // ---------- roster (admin): GET roster/:series/:slot | POST roster/:series/:slot/walkin | POST roster/:series/:slot/:id/<action> ----------
-// also POST .../prereg {name, email?, phone?, payment?, anyway?} (G1), .../headcount {delta | n} (G10, walk-in-only events), walkin {anyway} (seat anyway on a name match),
+// also GET/PUT .../results (P2.6), POST .../prereg {name, email?, phone?, payment?, anyway?} (G1), .../headcount {delta | n} (G10, walk-in-only events), walkin {anyway} (seat anyway on a name match),
 // and .../:id/cancel {undo: true} (G6), .../runit {on}. actions: checkin {on}, payment {payment}, erase, cancel, noshow {on}, movein {undo}, delete {undo} (walk-ins), move {dir: -1|1}. Session + origin check come from route(). Every reply is the whole roster again.
-function rosterApi(req, url, body, [series, slot, id, action], ip, note) {
+function rosterApi(req, url, body, [series, slot, id, action], ip, note, user) {
   const m = req.method;
   if (m !== 'GET' && !allow(`ro:${ip}`, 1200)) { note('roster_blocked', 'rate limit'); return bad('rate', 429); }
-  const o = occurrenceOf(publicCtx(url), series ?? '', slot ?? '');
+  const ctx = publicCtx(url), o = occurrenceOf(ctx, series ?? '', slot ?? '');
   if (!o) return bad('not_found', 404);
   const full = (result) => json({ ...(result ? { result } : {}), event: { id: o.seriesId, title: o.title, date: o.date, slot: o.slot, start: o.start, end: o.end, arriveBy: o.arriveBy, capacity: o.capacity ?? null, waitlist: !!o.waitlist, signup: o.signup, cancelled: !!o.cancelled, fee: o.fee ?? null, tool: o.tool?.name ?? null, toolUrl: o.tool?.url ?? null, toolCode: o.tool?.code ?? null, minPlayers: o.minPlayers ?? null, runIt: regs.getRunIt(db, o.seriesId, o.slot), idLabel: regs.playerIdLabel(o.tool) },
     counts: regs.counts(db, o.seriesId, o.slot), headcount: o.signup === 'walkin' ? regs.getHeadcount(db, o.seriesId, o.slot) : null, regs: regs.roster(db, o.seriesId, o.slot) });
   if (m === 'GET' && !id) return full();
+  if (id === 'results' && !action && (m === 'GET' || m === 'PUT')) { // P2.6: GET the panel's data, PUT saves the result and its prize moves in one transaction
+    const panel = () => json({ results: resultsLib.get(db, o), products: inv.listProducts(db).map((p) => ({ id: p.id, name: p.name, onHand: p.onHand })) });
+    if (m === 'GET') return panel();
+    if (o.cancelled) return json({ error: 'cancelled' }, 409);
+    if (o.date > ctx.now.ymd) return json({ error: 'early', message: 'This date has not happened yet.' }, 422);
+    const c = resultsLib.clean(body);
+    if (Object.keys(c.errors).length) return invalid(c.errors);
+    const r = resultsLib.save(db, o, c.clean, user);
+    if (!r.ok) return r.error === 'short' ? json({ error: 'short', message: `Only ${r.onHand} of ${inv.getProduct(db, r.product)?.name ?? 'that product'} on hand, so that prize can’t be given. Nothing was saved.`, product: r.product, onHand: r.onHand }, 422)
+      : json({ error: r.error, message: 'One of the prize products is gone. Reload and try again.' }, r.error === 'not_found' ? 404 : 422);
+    note('results_save', `${o.seriesId} ${o.slot} ${c.clean.prizes.length} prizes`);
+    return panel();
+  }
   if (m !== 'POST') return bad('not_found', 404);
   const b = body && typeof body === 'object' && !Array.isArray(body) ? body : {};
   const done = (r, what) => { if (!r.ok) return json({ error: r.error ?? 'state', result: r }, 409); note(what, `${o.seriesId} ${o.slot} #${id}`); return full(r); };
@@ -758,7 +774,8 @@ async function adminApi(req, url, user) {
     note('photo_delete', a1);
     return json({ ok: true, photos: photoList() });
   }
-  if (section === 'roster') return rosterApi(req, url, body, [a1, a2, a3, a4], ip, note);
+  if (section === 'roster') return rosterApi(req, url, body, [a1, a2, a3, a4], ip, note, user);
+  if (key === 'GET results' && a1 === 'pending') { const c = publicCtx(url); return json({ pending: resultsLib.pending(db, c.series, c.exceptions, c.now.ymd) }); } // the Today reminder (P2.6)
   if (section === 'series') return seriesApi(req, url, body, [a1, a2, a3], ip, note);
   if (section === 'inventory') return inventoryApi(req, url, body, [a1, a2, a3], ip, note, user);
   if (section === 'store') return storeApi(req, url, body, ip, note, photoFiles);

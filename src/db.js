@@ -36,6 +36,9 @@ export function openDb(dir) {
     CREATE TABLE IF NOT EXISTS event_use (series TEXT NOT NULL, product INTEGER NOT NULL, fixed INTEGER, per_seat INTEGER, seats_per_date INTEGER, PRIMARY KEY (series, product)) WITHOUT ROWID;
     CREATE TABLE IF NOT EXISTS preorders (id INTEGER PRIMARY KEY, product INTEGER NOT NULL, customer TEXT NOT NULL, contact TEXT NOT NULL DEFAULT '', qty INTEGER NOT NULL, deposit INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL CHECK (status IN ('waiting', 'arrived', 'picked', 'cancelled')), created_at INTEGER NOT NULL, closed_at INTEGER, pickup_move INTEGER NOT NULL DEFAULT 0, purged INTEGER NOT NULL DEFAULT 0);`);
+  db.exec(`CREATE TABLE IF NOT EXISTS results (series TEXT NOT NULL, slot TEXT NOT NULL, day TEXT NOT NULL, headcount INTEGER, winner TEXT NOT NULL DEFAULT '', top_names TEXT NOT NULL DEFAULT '[]',
+      notes TEXT NOT NULL DEFAULT '', credit_note TEXT NOT NULL DEFAULT '', reported INTEGER NOT NULL DEFAULT 0, is_public INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL, PRIMARY KEY (series, slot)) WITHOUT ROWID;
+    CREATE TABLE IF NOT EXISTS result_prizes (series TEXT NOT NULL, slot TEXT NOT NULL, product INTEGER NOT NULL, qty INTEGER NOT NULL, PRIMARY KEY (series, slot, product)) WITHOUT ROWID;`); // P2.6, src/lib/results.js
   if (!db.prepare('PRAGMA table_info(registrations)').all().some((c) => c.name === 'undo')) db.exec('ALTER TABLE registrations ADD COLUMN undo TEXT'); // P2.4b: databases made before cancel Undo
   return db;
 }
@@ -56,6 +59,7 @@ export const putSeries = (db, s) => db.prepare('INSERT INTO series (id, data) VA
 export function deleteSeries(db, id) {
   db.prepare('DELETE FROM exceptions WHERE series = ?').run(id);
   db.prepare('DELETE FROM event_use WHERE series = ?').run(id);
+  db.prepare('DELETE FROM results WHERE series = ?').run(id); db.prepare('DELETE FROM result_prizes WHERE series = ?').run(id); // their stock moves stay in the ledger
   return db.prepare('DELETE FROM series WHERE id = ?').run(id).changes > 0;
 }
 export const listExceptions = (db, series) => (series === undefined ? db.prepare('SELECT data FROM exceptions ORDER BY series, date').all()

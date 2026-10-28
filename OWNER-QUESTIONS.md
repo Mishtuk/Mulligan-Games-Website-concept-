@@ -87,3 +87,12 @@ write the answer and date under the question and, if it changes a ruling, add an
 26. **Preorder status wording:** the screens say "Waiting" for an order not yet in. Would "Ordered" read better at the counter?
 27. **Who sees stock and preorder contacts:** owners only, or every staff login (ties to Q10)?
 - **Clip credit (round 6, 2026-10-27):** owner OK to show "by @perky_grn_fairy" under Instagram reel DTHcsxqjNDL ("all ok").
+
+## Results (2026-10-27; D56-D58)
+28. **Being named on the website:** staff can show an event's winner and top names, spelled as staff
+    type them. Is that OK by default once staff tick Show, or should staff ask each player first? (Privacy page says
+    players can ask to be taken off.)
+29. **Reporting to the official tool:** does the shop report every event to its tool (Wizards EventLink, Play! Pokemon,
+    Bandai TCG+), or only sanctioned ones? Today reminds about any event that names a tool until "Reported" is ticked.
+30. **Events nobody came to:** should a date with 0 players still ask for results, or drop off the reminder by itself?
+    Today it stays until staff save a result (players 0 is fine).
