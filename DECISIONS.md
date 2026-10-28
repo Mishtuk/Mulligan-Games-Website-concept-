@@ -676,3 +676,16 @@ phones still open on the concept-only demo bar (D52 note).
 - **Featured clips (D51 item 4):** with a moving hero, the two featured clips are a compact row directly under the
   hero instead of cards on top of the video (still "near the top"); phones keep "Watch a clip". Laptop may mirror or
   overrule in the prototype.
+
+### D55. Round 8 (first logged as D54, which the Desktop had used): the whole hero is a video; reimagine the front page from Wix templates (2026-10-27, owner)
+- **Owner (Mish):** "dont just put two video's on the start but the whole picture should be a video like the other
+  websites, reference the other website repos like [VFW] and Riverside website repo and make the hero video like that.
+  And instead of just having a still image, make it into a hero video using videos you can find online. So for the
+  different tabs, I want it to look a little bit better. So just start reimagining the front page. maybe revamp by
+  researching https://www.wix.com/website/templates and try a new look for the website." Then: "pass on to the desktop
+  what it can do and tell it to also use Wix to research the same URL for the research on the website redesign."
+- **Ruling:** the two featured TikTok cards leave the hero; the hero background is one full-width montage video on every
+  width (VFW / Riverside pattern, #16). Footage: the store's own clips and photo pans, plus free-licensed stock clips of
+  card / tabletop play found online (licence recorded per clip; no clip that needs attribution we can't give, no
+  watermarks, no recognisable minors). Both machines research the Wix template gallery for the redesign; the Laptop
+  designs and builds the reimagined front page and polishes the other pages in `prototype/`; the Desktop ports.

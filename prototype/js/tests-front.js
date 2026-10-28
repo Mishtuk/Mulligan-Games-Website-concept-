@@ -115,15 +115,15 @@
     eq(d.querySelector('.media-cap').textContent.trim(), 'On screen: Mulligan Games, 445 York Rd', 'strip caption');
     return v;
   }
-  pageTest('at 1280 px the hero has the montage video with the three <source media> files; poster first; wide placeholders have no src (fall back to the poster)', 'index.html', function (w, d) {
-    var v = heroChecks(w, d, '1280');
+  pageTest('at 1280 px the hero has the montage video with the three <source media> files; poster first, then hero.mp4 starts after load', 'index.html', function (w, d) {
+    var v = heroChecks(w, d, '1280'), btn = d.getElementById('vid-btn');
     var img = d.querySelector('#hero-media img'); ok(/hero-poster.jpg$/.test(img.currentSrc), 'wide poster ' + img.currentSrc);
     eq(w.getComputedStyle(v).opacity, '0', 'the video is invisible until a frame has painted: the poster shows first');
-    return T.wait(900).then(function () {
+    return T.wait(1500).then(function () {
       var withSrc = [].filter.call(v.querySelectorAll('source'), function (s) { return s.getAttribute('src'); }).map(function (s) { return s.getAttribute('src'); });
-      eq(withSrc.join('|'), '', 'no source gets a src on a screen with no file (wide files pending #16); nothing is requested');
-      eq(v.currentSrc, '', 'no file for a wide screen: nothing loaded'); ok(v.paused, 'not playing');
-      ok(!d.getElementById('vid-btn').classList.contains('is-ready') && w.getComputedStyle(d.getElementById('vid-btn')).visibility === 'hidden', 'no pause pill while there is nothing to pause');
+      eq(withSrc.join('|'), 'media/video/hero-portrait.mp4|media/video/hero-720.mp4|media/video/hero.mp4', 'every source gets its src after load; the media queries pick the file');
+      ok(/hero.mp4$/.test(v.currentSrc), 'wide file chosen at 1280: ' + v.currentSrc);
+      ok(btn.classList.contains('is-ready') && w.getComputedStyle(btn).visibility === 'visible', 'pause pill shown on a wide screen too');
     });
   });
   pageTest('at 390 px the hero has the portrait poster, then the portrait montage starts after load; the pause pill toggles Pause video / Play video', 'index.html', function (w, d) {

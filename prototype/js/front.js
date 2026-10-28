@@ -56,7 +56,7 @@
   // PLACEHOLDER MANIFEST: wide files pending #16 Desktop encode. Flip hero.mp4 and hero-720.mp4 to true when the Desktop
   // commits the real encodes (the build port reads the same three names). A false entry keeps its <source> without a src,
   // so the browser skips it and that screen keeps the poster; no request, no console error.
-  var HERO_FILES = { 'media/video/hero-portrait.mp4': true, 'media/video/hero-720.mp4': false, 'media/video/hero.mp4': false };
+  var HERO_FILES = { 'media/video/hero-portrait.mp4': true, 'media/video/hero-720.mp4': true, 'media/video/hero.mp4': true };
   function wireVideo() {
     var v = $('#hero-video'), btn = $('#vid-btn'), box = $('#hero-media');
     if (!v || !btn || !v.play) return;
