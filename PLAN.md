@@ -275,7 +275,7 @@ Node 22 built-ins + `node:sqlite` + nodemailer). Build at this repo's root (`pac
 - **Owner:** Desktop coder. **Files:** `src/pages/cedh.astro`, `src/lib/events.js` (series tag), components.
 - **Needs:** P2.3, `DESIGN.md` cEDH section.
 - **Done when:**
-  - [ ] Next Championship Series / 5K / Redemption dates from the event data, prize line, proxy rule, parking note,
+  - [x] Next Championship Series / 5K / Redemption dates from the event data, prize line, proxy rule, parking note,
         TopDeck registration and standings links, results archive. No points maths on our side (D4).
 
 ---

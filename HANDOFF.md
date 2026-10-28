@@ -42,14 +42,14 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** P2.7 cEDH page `/cedh/` (content + data now, round 8 restyles it): `src/pages/cedh.astro`, `src/lib/store-render.js`/`render.js`, `src/content/proof.json`, `src/components/Base.astro` (nav link), `src/lib/sitemap.js`, `server.js`, `test/`. D-numbers: Laptop odd, Desktop even (next D59 / D60).
+- **Desktop:** P2.7 done (/cedh/). Next: round-8 port when the Laptop posts it. Nothing claimed. D-numbers: Laptop odd, Desktop even (next D59 / D60).
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
 milestone push, not only at handoff. Sessions can end without warning.
 
 ## Status (handoff, 2026-10-27 evening, Desktop)
-**Build: round 7 + montage video hero (3c1df2f) and P2.6 results and prizes (this commit), 219 tests green. Live concept (GitHub Pages =
+**Build: round 7 + montage video hero (3c1df2f) P2.6 results (15e111a) and P2.7 /cedh/ page (this commit), 224 tests green. Live concept (GitHub Pages =
 `prototype/`) has rounds 1-7 + the VFW theme button + #16. Headline (owner): "Shuffle up. Everyone's welcome." + "Welcome
 to Mulligan Games, Warminster's friendly game store...". Decisions run to D58; owner questions to Q30.**
 

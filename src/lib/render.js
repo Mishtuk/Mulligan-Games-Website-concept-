@@ -340,9 +340,9 @@ function emptyPanel(ctx, chip, g) {
 }
 
 // ---------- cEDH strip and releases ----------
-export function cedh(ctx) {
+export function cedh(ctx, { days = 60, n = 3 } = {}) { // the front page shows 3, /cedh/ the next 4 in 6 months
   const links = ctx.store.links ?? {}, circuit = safeUrl(links.topdeckCircuit) ?? safeUrl(links.topdeck);
-  const rows = upcoming(ctx, ctx.now.ymd, addDays(ctx.now.ymd, 60)).filter((o) => live(o) && o.game === 'cedh' && o.cedhSeries).slice(0, 3);
+  const rows = upcoming(ctx, ctx.now.ymd, addDays(ctx.now.ymd, days)).filter((o) => live(o) && o.game === 'cedh' && o.cedhSeries).slice(0, n);
   if (!rows.length) return h`<p class="cedh-last">No cEDH dates are on the calendar yet.${circuit ? h` Watch <a href="${circuit}" target="_blank" rel="noopener">TopDeck<span class="vh"> (opens TopDeck)</span></a>.` : ''}</p>`;
   return h`<ol class="cedh-list">${rows.map((o) => {
     const st = seatState(o, ctx.now.m, regsOf(ctx, o)), tool = o.tool ?? {}, url = safeUrl(tool.url);
@@ -350,6 +350,15 @@ export function cedh(ctx) {
       : url ? h`<a class="btn btn-act" href="${url}" target="_blank" rel="noopener">${tool.name ? `Sign up on ${tool.name}` : 'Sign up online'}${ext(tool.name)}</a>` : h`<a class="btn btn-2" href="${eventHref(ctx, o)}">Event details</a>`;
     return h`<li class="tix"><p class="tix-date" aria-hidden="true">${dayShort(o.date)}<b>${dayNum(o.date)}</b>${monthShort(o.date)}</p><div class="tix-what"><h4><a href="${eventHref(ctx, o)}">${o.title}</a></h4><p>${[o.start && fmtTime(o.start), o.fee > 0 && fmtFee(o.fee)].filter(Boolean).join(' · ')}</p></div><div class="tix-acts">${act}${st.count ? statBox(st.count, 'registered', '', 'users') : ''}</div></li>`; // the date block says the day, the button names the tool
   })}</ol>`;
+}
+
+/** The /cedh/ results archive: every public cEDH result (series of game cedh), newest first, 24 to a page (?page=). Names escaped by h; notes, prizes and credit never come here. */
+export function cedhResults(ctx) {
+  const rows = (ctx.results?.recent(100000) ?? []).filter((r) => r.day <= ctx.now.ymd).map((r) => ({ r, s: ctx.series.find((x) => x.id === r.series && x.enabled !== false) })).filter((x) => x.s?.game === 'cedh');
+  if (!rows.length) return h`<p>No results are posted yet.</p>`;
+  const per = 24, pages = Math.ceil(rows.length / per), pg = Math.min(pages, Math.max(1, Number.parseInt(ctx.query?.get('page'), 10) || 1));
+  const nav = pages > 1 ? h`<nav class="chips" aria-label="Results pages">${Array.from({ length: pages }, (_, i) => h`<a class="chip" href="${keep(ctx, '/cedh/', { page: i ? String(i + 1) : '' })}#results"${i + 1 === pg ? h` aria-current="true"` : ''}>Page ${i + 1}</a>`)}</nav>` : '';
+  return h`<ul class="lately-list">${rows.slice((pg - 1) * per, pg * per).map(({ r, s }) => h`<li><a href="${eventHref(ctx, { seriesId: r.series, slot: r.slot })}"><span class="lt-d">${fmtDate(r.day)}</span> <span class="lt-t">${s.title}</span></a><span class="lt-w">${resultWords(r)}${playersWords(r) ? h`<span class="lt-n"> · ${playersWords(r)}</span>` : ''}</span></li>`)}</ul>${nav}`;
 }
 
 export function releases(ctx) {

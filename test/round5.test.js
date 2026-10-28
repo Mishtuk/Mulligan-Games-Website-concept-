@@ -12,7 +12,7 @@ const page = () => readFileSync(new URL('../dist/index.html', import.meta.url), 
 
 test('cEDH entry: $60 / $100 / $35, the $10 deposit said once', () => {
   const s = cedhLive({ store: {} }).toString();
-  assert.match(s, /Championship Series \$60, 5K \$100, Redemption \$35 \(\$25 after the 5K\)\. A \$10 online deposit/);
+  assert.match(s, /Championship Series \$60 and 5K \$100: a \$10 online deposit holds a spot, the rest is paid at the door\. Redemption \$35 \(\$25 if you played the 5K\), paid on site\./);
   assert.equal(s.split('deposit').length, 2);
 });
 
@@ -23,7 +23,7 @@ test('turnout: the last four past events, newest first, escaped, one TopDeck lin
   assert.ok(!s.includes('<script>') && s.includes('&lt;script&gt;'));
   assert.deepEqual([...s.matchAll(/<b>(\d+) players/g)].map((m) => +m[1]), [5, 69, 69, 12]); // Oct 11, Oct 4, Sep 6, Aug 9
   assert.equal(s.split('topdeck.gg').length, 2);
-  assert.equal(turnout({ now: etNow(new Date('2026-01-01T15:00:00Z')) }).toString(), '');
+  assert.equal(turnout({ now: etNow(new Date('2025-01-01T15:00:00Z')) }).toString(), '');
 });
 
 test('preorder tile without a note or event has no rel-text', () => {

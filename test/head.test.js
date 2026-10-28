@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 
-const PAGES = ['', 'events', 'new-here', 'privacy', 'event-page'];
+const PAGES = ['', 'events', 'new-here', 'cedh', 'privacy', 'event-page'];
 const html = (p) => readFileSync(new URL(`../dist/${p}${p ? '/' : ''}index.html`, import.meta.url), 'utf8');
 
 test('every public page has the theme switch, site.js, absolute og:image and the icon / manifest tags', { skip: !existsSync(new URL('../dist/index.html', import.meta.url)) }, () => {

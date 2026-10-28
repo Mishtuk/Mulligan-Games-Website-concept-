@@ -15,7 +15,7 @@ const a = store.address;
 const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${a.street} ${a.city} ${a.region} ${a.zip}`)}`;
 const tel = safeUrl(store.phoneHref);
 const social = [['Facebook', 'facebook'], ['Instagram', 'instagram'], ['TikTok', 'tiktok'], ['X', 'x'], ['TopDeck', 'topdeck']].map(([n, k]) => [n, safeUrl(store.links?.[k])]).filter(([, u]) => u);
-const nav = [['All events', '/events/', 'events'], ['This week', '/#week', 'home'], ['cEDH', '/#cedh', ''], ['Preorders', '/#new', ''], ['Visit', '/#visit', '']];
+const nav = [['All events', '/events/', 'events'], ['This week', '/#week', 'home'], ['cEDH', '/cedh/', 'cedh'], ['Preorders', '/#new', ''], ['Visit', '/#visit', '']];
 ---
 <!doctype html>
 <html lang="en">
@@ -93,7 +93,7 @@ const nav = [['All events', '/events/', 'events'], ['This week', '/#week', 'home
           <ul>
             <li><a href="/events/">All events</a></li>
             <li><a href="/#week">This week</a></li>
-            <li><a href="/#cedh">cEDH</a></li>
+            <li><a href="/cedh/">cEDH</a></li>
             <li><a href="/#new">Preorders</a></li>
             <li><a href="/new-here/">New here?</a></li>
           </ul>

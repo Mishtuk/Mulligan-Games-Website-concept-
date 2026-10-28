@@ -3,7 +3,7 @@ import { occurrences } from './events.js';
 import { addDays } from './clock.js';
 import { esc } from './state.js';
 
-export const PAGES = ['/', '/events/', '/new-here/'];
+export const PAGES = ['/', '/events/', '/cedh/', '/new-here/'];
 /** baseUrl without a trailing slash; today = store day; days = how far ahead to list dates. */
 export function sitemap(series, exceptions, baseUrl, today, days = 365) {
   const urls = PAGES.map((p) => ({ loc: baseUrl + p }));

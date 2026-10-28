@@ -1087,3 +1087,14 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   .ev, .daycard { border: 1px solid #000 !important; }
   a { text-decoration: underline; }
 }
+
+/* ---------- /cedh/ page (round 8 will restyle; reuses .ep, .tix, .lately-list, .turnout-list) ---------- */
+.cp-table { border-collapse: collapse; width: 100%; max-width: 32rem; margin: 0 0 var(--s3); }
+.cp-table caption { text-align: left; font-weight: 750; padding-bottom: var(--s2); }
+.cp-table th, .cp-table td { text-align: left; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line); }
+.cp-wide .turnout-list { color: var(--ink-2); max-width: 40rem; margin-bottom: var(--s4); }
+.cp-wide .turnout-list b { color: var(--ink); }
+.cp-wide .turnout-more { color: var(--ink); }
+.cp-wide .cedh-facts dd, .cp-wide .cedh-facts a { color: var(--ink); }
+.cp-wide .cedh-list { max-width: 44rem; }
+.cp-wide .turnout-list li { grid-template-columns: 7.5rem minmax(0, 1fr) auto; }

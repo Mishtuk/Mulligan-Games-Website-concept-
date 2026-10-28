@@ -36,7 +36,7 @@ export function socials({ store }) {
   return SOCIAL.map(([n, k]) => [n, link(store, k)]).filter(([, u]) => u).map(([n, u]) => h`<li><a href="${u}" target="_blank" rel="noopener">${n}<span class="vh"> (opens in a new tab)</span></a></li>`);
 }
 /** Two cEDH facts: what entry costs (src/content/proof.json; the $10 deposit is said once, here) and the parking note. */
-export const entryText = (p = proof) => `Championship Series $${p.cedh.fees.mcs}, 5K $${p.cedh.fees['5k']}, Redemption $${p.cedh.fees.redemption} ($${p.cedh.redemptionAfter5k} after the 5K). A $${p.cedh.deposit} online deposit holds a spot; the rest is paid at the door.`;
+export const entryText = (p = proof) => `Championship Series $${p.cedh.fees.mcs} and 5K $${p.cedh.fees['5k']}: a $${p.cedh.deposit} online deposit holds a spot, the rest is paid at the door. Redemption $${p.cedh.fees.redemption} ($${p.cedh.redemptionAfter5k} if you played the 5K), paid on site.`;
 export function cedhLive({ store }) {
   return h`<div><dt>Entry</dt><dd>${entryText()}</dd></div>${store.parking ? h`<div><dt>Parking</dt><dd>${store.parking}</dd></div>` : ''}`;
 }
@@ -45,6 +45,12 @@ export function turnout({ now }, p = proof) {
   const rows = p.circuit.events.filter((r) => r.date < now.ymd).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 4), url = safeUrl(p.circuit.url);
   if (!rows.length) return '';
   return h`<div class="turnout"><h4>Recent turnout</h4><ul class="turnout-list">${rows.map((r) => h`<li><span>${fmtDate(r.date)}</span><span>${r.title}</span><b>${r.players} players</b></li>`)}</ul>${url ? h`<a class="turnout-more" href="${url}" target="_blank" rel="noopener">Full standings on TopDeck${out('TopDeck')}</a>` : ''}</div>`;
+}
+/** /cedh/ turnout: every past circuit event newest first, upcoming ones as "registered so far", one TopDeck link. */
+export function turnoutAll({ now }, p = proof) {
+  const all = p.circuit.events, past = all.filter((r) => r.date < now.ymd).sort((a, b) => (a.date < b.date ? 1 : -1)), next = all.filter((r) => r.date >= now.ymd).sort((a, b) => (a.date < b.date ? -1 : 1)), url = safeUrl(p.circuit.url);
+  const li = (r, w) => h`<li><span>${fmtDate(r.date)}, ${r.date.slice(0, 4)}</span><span>${r.title}</span><b>${r.players} ${w}</b></li>`;
+  return h`${next.length ? h`<h3>Coming up</h3><ul class="turnout-list">${next.map((r) => li(r, 'registered so far'))}</ul>` : ''}${past.length ? h`<h3>Past events</h3><ul class="turnout-list">${past.map((r) => li(r, 'players'))}</ul>` : ''}${url ? h`<a class="turnout-more" href="${url}" target="_blank" rel="noopener">Full standings on TopDeck${out('TopDeck')}</a>` : ''}`;
 }
 /** The whole Visit block: a heading, then three columns (hours, address, good to know) on the band, no card box; the room photo below it when one is chosen. */
 export function visit(ctx) {
