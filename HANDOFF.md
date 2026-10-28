@@ -41,7 +41,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   D51/D52, port list `docs/review/round-7-port.md`). Now: #16 hero montage video, prototype side: `prototype/index.html`,
   `prototype/js/front.js`, `prototype/css/front.css`, `prototype/media/video/`, `DESIGN.md`. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** handed off (owner, 2026-10-27 evening). Nothing claimed. When back: finish the hero montage encode
+- **Desktop:** (1) #16 Desktop part, hero montage encode (`tools/hero-montage.sh`, `public/media/video/hero*`). (2) Then round-7 port (3d832d0): `src/`, `public/`, `server.js`, `test/`.
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
