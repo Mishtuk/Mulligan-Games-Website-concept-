@@ -42,7 +42,7 @@ Same rules as the Warminster VFW and Pokemon-Tracker repos.
   first, Save-Data / slow links hold the poster; wide files pending (flip `HERO_FILES` in `prototype/js/front.js`). Nothing
   else claimed; next: whatever the owner or the Desktop asks. The Laptop has Node 24 (no gh/python): tests run
   headless with Chrome (`prototype/tests.html` via --dump-dom), GitHub via curl + the git credential token.
-- **Desktop:** P2.7 done (/cedh/). Next: round-8 port when the Laptop posts it. Nothing claimed. D-numbers: Laptop odd, Desktop even (next D59 / D60).
+- **Desktop:** while round 8 is pending: per-event photo field (admin event editor -> date page / cards) and a Copy button for the TopDeck event code: `src/lib/events.js`, `src/lib/photos.js`, `src/lib/render.js`, `src/pages/admin.astro`, `public/js/site.js`, `server.js`, `test/`. D-numbers: Laptop odd, Desktop even (next D59 / D60).
   (#16, Desktop part), then P2.6 results and prizes.
 
 **Keep this file current (owner rule, 2026-10-27):** update this "Now working on" and the Status section with every
