@@ -51,3 +51,9 @@ test('front page: reviews come from proof.json, hero video with phone sources an
   assert.ok(h.includes('rel="preload" as="image" href="/media/video/hero-poster-portrait.jpg"') && !h.includes('cedh-players-tables-loop') && !h.includes('<picture'));
   assert.ok(!/t-?shirt/i.test(h) && h.includes('Shop Pokemon Japan and Magic cards online on TCGplayer') && h.includes('mg:turnout'));
 });
+
+test('site.js: the Copy button copies with navigator.clipboard, says Copied for 2 s, and is only shown when clipboard exists', () => {
+  const js = readFileSync(new URL('../public/js/site.js', import.meta.url), 'utf8');
+  assert.ok(js.includes('navigator.clipboard.writeText(cc.getAttribute(\'data-copy\'))') && js.includes("textContent = 'Copied'") && js.includes('2000') && js.includes('cc.hidden = false'));
+  assert.ok(js.indexOf('.copy-code') < js.indexOf('if (!chips || !days) return'), 'runs before the front-page early return');
+});

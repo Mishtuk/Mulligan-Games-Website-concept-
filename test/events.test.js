@@ -320,3 +320,19 @@ test('slots (D23): two slots on one day have their own cancel, change and post t
   assert.equal(hasSlot(s, '2026-11-08'), false);
   assert.equal(hasSlot(S(), '2026-11-06'), true);
 });
+
+test('series photo: only a listed bare file name, alt required and at most 120, stored with the alt cleaned', () => {
+  const ok = ['event-magic-night.webp', 'photo-20261026-abc123.webp'];
+  assert.deepEqual(validate(S({ photo: 'event-magic-night.webp', photoAlt: 'Tables set up' }), ok), {});
+  assert.deepEqual(validate(S({}), ok), {}, 'no photo is fine');
+  for (const bad of ['../event-magic-night.webp', 'a/b.webp', '..\\x.webp', 'http://x.example/a.webp', 'https:evil.webp', '//x.example/a.webp', 'unknown.webp', 'event-magic-night.png', 5, {}]) {
+    assert.ok(validate(S({ photo: bad, photoAlt: 'x' }), ok).photo, String(bad));
+  }
+  assert.ok(validate(S({ photo: 'event-magic-night.webp', photoAlt: 'x' })).photo, 'no list given: nothing is allowed');
+  assert.ok(validate(S({ photo: 'event-magic-night.webp' }), ok).photoAlt, 'alt is required');
+  assert.ok(validate(S({ photo: 'event-magic-night.webp', photoAlt: '   ' }), ok).photoAlt);
+  assert.ok(validate(S({ photo: 'event-magic-night.webp', photoAlt: 'x'.repeat(121) }), ok).photoAlt);
+  const c = clean(S({ photo: 'event-magic-night.webp', photoAlt: '<b>Tables</b> "x"' }));
+  assert.deepEqual([c.photo, c.photoAlt.includes('<')], ['event-magic-night.webp', false]);
+  assert.ok(!('photo' in clean(S({ photo: '', photoAlt: 'x' }))));
+});

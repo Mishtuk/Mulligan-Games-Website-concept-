@@ -10,7 +10,7 @@ import { hoursFor, openStatus } from './store-hours.js';
 import { MAX, RETENTION_DAYS, playerIdLabel } from './registrations.js';
 import { validClip, FEATURED } from './clips.js';
 import clipData from '../content/clips.json' with { type: 'json' };
-import { photoFor, photosForDay, photoPos } from './photos.js';
+import { photoDir, photoFor, photosForDay, photoPos } from './photos.js';
 
 // ---------- the escaping template tag ----------
 class Html { constructor(s) { this.s = s; } toString() { return this.s; } }
@@ -143,7 +143,7 @@ function actionArea(ctx, o, st, href, page = false) {
 
 // ---------- photos (constant map in photos.js; decorative, so alt is empty and the box is aria-hidden) ----------
 // Bands (big) get the 1600 copy on dense screens; thumbs and strip caps (48-150px) stay on -800.
-const photoImg = (p, big = false) => h`<img src="/img/social/${p.file}-800.webp"${big ? h` srcset="/img/social/${p.file}-800.webp 800w, /img/social/${p.file}.webp 1600w" sizes="(min-width: 1024px) 30rem, 100vw"` : ''} width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:${photoPos(p)}">`;
+const photoImg = (p, big = false) => h`<img src="${photoDir(p)}${p.file}-800.webp"${big ? h` srcset="${photoDir(p)}${p.file}-800.webp 800w, ${photoDir(p)}${p.file}.webp 1600w" sizes="(min-width: 1024px) 30rem, 100vw"` : ''} width="800" height="600" alt="" loading="lazy" decoding="async" style="object-position:${photoPos(p)}">`;
 const tintAttr = (p) => (p.tint ? h` data-tint` : '');
 
 // ---------- the event card ----------
@@ -538,7 +538,7 @@ export function eventPage(ctx, o, form = {}) {
   const row = (k, v) => (v && v.toString() ? h`<div><dt>${k}</dt><dd>${v}</dd></div>` : '');
   const wh = [o.points && `${o.points} points`, o.roundMinutes && `${o.roundMinutes} minute rounds`, o.listDeadline && `lists due ${o.listDeadline}`].filter(Boolean);
   const toolLink = toolUrl ? h`<a href="${toolUrl}" target="_blank" rel="noopener">${tool.name || 'Link'}${ext(tool.name)}</a>` : tool.name;
-  const facts = h`${row('Prizes', o.prize)}${row('Bring', o.bring)}${row('Ages', o.kidsWelcome ? 'All ages. Kids welcome.' : o.ageNote)}${row('Play style', o.playStyle === 'casual' ? 'Casual' : o.playStyle === 'competitive' ? 'Competitive' : '')}${row('Warhammer', wh.join(', '))}${tool.name || toolUrl || tool.code ? row(tool.code ? 'Event code' : 'Official tool', h`${tool.code ? h`<strong class="code">${tool.code}</strong>` : ''}${tool.code && toolLink ? ' on ' : ''}${toolLink}`) : ''}`;
+  const facts = h`${row('Prizes', o.prize)}${row('Bring', o.bring)}${row('Ages', o.kidsWelcome ? 'All ages. Kids welcome.' : o.ageNote)}${row('Play style', o.playStyle === 'casual' ? 'Casual' : o.playStyle === 'competitive' ? 'Competitive' : '')}${row('Warhammer', wh.join(', '))}${tool.name || toolUrl || tool.code ? row(tool.code ? 'Event code' : 'Official tool', h`${tool.code ? h`<strong class="code">${tool.code}</strong> <button type="button" class="btn btn-2 btn-sm copy-code" data-copy="${tool.code}" hidden>Copy</button>` : ''}${tool.code && toolLink ? ' on ' : ''}${toolLink}`) : ''}`;
   const about = facts.s || o.description ? h`<section aria-labelledby="ab-${key}"><h2 id="ab-${key}">About this night</h2>${facts.s ? h`<dl class="det-list">${facts}</dl>` : ''}${o.description ? h`<p class="dp-desc">${o.description}</p>` : ''}</section>` : '';
   const weekly = s.recurrence?.type === 'weekly';
   const otherDates = others.length ? h`<section aria-labelledby="od-${key}"><h2 id="od-${key}">Other dates</h2><ul class="dp-dates">${others.map((x) => { const xs = seatState(x, ctx.now.m, regsOf(ctx, x)); return h`<li><a href="${eventHref(ctx, x)}"${x.cancelled ? h` class="struck"` : ''}>${dayShort(x.date)} ${fmtDate(x.date)}</a><span>${x.start ? fmtTime(x.start) : ''}</span><span class="dp-seat">${x.cancelled ? h`<span class="tag tag-bad">cancelled</span>` : h`${seatWords(x, xs)}${x.changed || x.moved ? h` <span class="tag tag-upd">changed</span>` : ''}`}</span></li>`; })}</ul><p class="det-acts"><a class="btn btn-2" href="${`/events/${encodeURIComponent(o.seriesId)}.ics`}">${icon('calendar')}${weekly ? `Add every ${dayName(o.date)} to my calendar` : 'Add all dates to my calendar'}</a></p></section>` : '';
@@ -555,7 +555,7 @@ export function eventPage(ctx, o, form = {}) {
   return h`<div class="wrap dp-wrap"><p class="dp-back"><a href="${keep(ctx, '/events/', {})}">${icon('chevron', 'ic-back')}All events</a></p>
 <article class="dp" aria-labelledby="t-${key}">
 <div class="dp-top">
-<figure class="dp-pic" data-game="${o.game}"><img src="/img/social/${pic.file}.webp" srcset="/img/social/${pic.file}-800.webp 800w, /img/social/${pic.file}.webp 1600w" sizes="(min-width: 1024px) 58vw, 100vw" width="1600" height="1200" alt="${pic.alt}" fetchpriority="high" style="object-position:${photoPos(pic)}"></figure>
+<figure class="dp-pic" data-game="${o.game}"><img src="${photoDir(pic)}${pic.file}.webp" srcset="${photoDir(pic)}${pic.file}-800.webp 800w, ${photoDir(pic)}${pic.file}.webp 1600w" sizes="(min-width: 1024px) 58vw, 100vw" width="1600" height="1200" alt="${pic.alt}" fetchpriority="high" style="object-position:${photoPos(pic)}"></figure>
 <div class="dp-head ev" data-game="${o.game}" data-state="${st.state}"><p class="dp-kick"><time datetime="${o.date}">${kicker}</time></p><div class="dp-name"><h1 class="ev-title" id="t-${key}">${o.title}</h1>${costPip(o)}</div>
 <p class="ev-type">${gameBadge(ctx, o.game)}${o.format ? h`<span class="ev-fmt">${o.format}</span>` : ''}</p>
 <p class="ev-when">${icon('clock')}<span>${timeLine(o)}</span></p>${banner}<p class="dp-tags">${tagRow(o, st)}</p>

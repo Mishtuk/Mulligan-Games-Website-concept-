@@ -36,6 +36,7 @@ const PH = {
 /** The photo for one event: { file, pos, alt, tint }. `used` (optional, updated) holds the names already shown, so a list does not repeat while it lasts.
  *  A tinted stand-in (One Piece, Hololive, unknown games: the play room in the game colour) is tracked apart from plain photos. */
 export function photoFor(o, used = {}) {
+  if (o.photo) { const file = o.photo.replace(/\.webp$/, ''); used[file] = true; return { file, pos: '50% 50%', alt: o.photoAlt || '', tint: false, up: file.startsWith('photo-') }; } // chosen in the admin (events.js validates the name)
   const g = o.game;
   let list, tint = false;
   if (g === 'cedh') list = [...(o.featured ? PH.cedhFeat : []), ...PH.cedh];
@@ -52,8 +53,11 @@ export function photoFor(o, used = {}) {
 /** Photos for one day's events in time order, no repeat while the lists last: Map(key -> photo). `used` may be shared between days. */
 export function photosForDay(occs, key, used = {}) {
   const out = new Map();
+  for (const o of occs) if (o.photo) used[o.photo.replace(/\.webp$/, '')] = true; // a chosen photo is not handed to another event that day
   for (const o of [...occs].sort((a, b) => (a.start || '').localeCompare(b.start || '') || String(a.title).localeCompare(String(b.title)))) out.set(key(o), photoFor(o, used));
   return out;
 }
+/** Folder of a photo's files: the site's own pictures, or an admin upload. */
+export const photoDir = (p) => (p.up ? '/media/photos/' : '/img/social/');
 /** Position must look like "50% 60%", anything else falls back (it goes into a style attribute). */
 export const photoPos = (p) => (/^\d{1,3}% \d{1,3}%$/.test(p.pos || '') ? p.pos : '50% 50%');

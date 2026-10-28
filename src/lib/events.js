@@ -92,8 +92,10 @@ const INTS = { fee: [0, 9999, 'Use a whole number of dollars, 0 or more.'], capa
   roundMinutes: [1, 600, 'Use a whole number of minutes.'], cutoffHours: [1, 72, 'Use 1 to 72 hours.'] };
 const TIMES = ['start', 'end', 'doors'], BOOLS = ['featured', 'enabled', 'waitlist', 'beginnerFriendly', 'kidsWelcome', 'inviteOnly'], ARRIVE_MINS = [0, 5, 10, 15, 30];
 
-/** Per-field errors for a series, {} when it is fine. Looks at the raw input; clean() then builds what is stored. */
-export function validate(s) {
+const PHOTO = /^[A-Za-z0-9][A-Za-z0-9._-]{0,78}\.webp$/; // a bare file name: no path, no URL
+/** Per-field errors for a series, {} when it is fine. Looks at the raw input; clean() then builds what is stored.
+ *  photos: the file names a series may use (the site's own pictures plus uploads); the server passes the live list. */
+export function validate(s, photos = []) {
   const e = {};
   if (!s || typeof s !== 'object' || Array.isArray(s)) return { form: 'Send the event as an object.' };
   if (!blank(s.id) && !(typeof s.id === 'string' && /^[a-z0-9][a-z0-9-]{0,59}$/.test(s.id))) e.id = 'Use lower-case letters, digits and dashes.';
@@ -120,6 +122,11 @@ export function validate(s) {
   }
   if (s.signup === 'external' && !e.toolUrl && blank(tool?.url)) e.toolUrl = 'Add the link players sign up on.';
   if (!blank(s.externalCount) && !(typeof s.externalCount === 'object' && Object.entries(s.externalCount).every(([d, n]) => isDate(d) && isInt(n, 0, 99999)))) e.externalCount = 'Use date: headcount pairs.';
+  if (!blank(s.photo)) {
+    if (typeof s.photo !== 'string' || !PHOTO.test(s.photo) || !photos.includes(s.photo)) e.photo = 'Pick a picture from the list.';
+    else if (!text(s.photoAlt, 200)) e.photoAlt = 'Describe the picture in a few words, for people who cannot see it.';
+  }
+  if (!blank(s.photoAlt) && (typeof s.photoAlt !== 'string' || s.photoAlt.length > 120)) e.photoAlt = 'Keep the picture description under 120 characters.';
   const r = s.recurrence;
   if (!r || typeof r !== 'object') e.recurrence = 'Choose when it happens.';
   else if (r.type === 'none') { if (!isDate(r.date)) e.recurrence = 'Pick the date.'; }
@@ -154,6 +161,7 @@ export function clean(s) {
   const name = text(s.tool?.name, 60), url = blank(s.tool?.url) ? null : safeUrl(s.tool.url), code = text(s.tool?.code, 60);
   if (name || url || code) o.tool = { name, ...(url && { url }), ...(code && { code }) };
   if (s.externalCount) o.externalCount = { ...s.externalCount };
+  if (!blank(s.photo)) { o.photo = s.photo; o.photoAlt = text(s.photoAlt, 120); }
   return o;
 }
 function cleanRec(r) {

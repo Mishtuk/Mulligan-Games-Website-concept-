@@ -536,6 +536,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .tag-warn { background: var(--warn-bg); color: var(--warn); }
 .struck { text-decoration: line-through; }
 .code { font-family: ui-monospace, Consolas, monospace; font-size: 1.05em; letter-spacing: 0.02em; }
+.copy-code { min-height: 2.75rem; min-width: 2.75rem; margin-left: var(--s2); } /* 44px target */
 
 /* ---------- form fields: labels above, errors under ---------- */
 .fld { display: grid; gap: 0.3rem; margin: 0 0 var(--s3); font-weight: 650; }

@@ -149,3 +149,13 @@ test('welcome hero: fixed copy, hours status in the chip (open / later today / c
   assert.equal(chip(at('2026-10-29T20:00:00Z', null)), 'Hours coming soon', 'unknown hours');
   assert.ok(open.includes('class="btn btn-clip"') && open.includes('data-file="/media/clips/cedh-full-room.mp4"'), 'phones: the Watch a clip button');
 });
+
+test('photoFor: a series photo wins over the game choice and is not given to another event that day', () => {
+  const p = photoFor({ game: 'magic', photo: 'event-full-room-3.webp', photoAlt: 'A "full" room' }, {});
+  assert.deepEqual([p.file, p.alt, p.tint, p.up], ['event-full-room-3', 'A "full" room', false, false]);
+  assert.equal(photoFor({ game: 'magic', photo: 'photo-20261026-abc123.webp', photoAlt: 'x' }, {}).up, true);
+  const day = photosForDay([{ id: 'a', start: '17:00', game: 'magic' }, { id: 'b', start: '19:00', game: 'magic', photo: 'event-magic-night.webp', photoAlt: 'x' }], (o) => o.id);
+  assert.equal(day.get('b').file, 'event-magic-night');
+  assert.notEqual(day.get('a').file, 'event-magic-night', 'the earlier event skips the photo another event chose');
+  assert.equal(photoFor({ game: 'magic' }, {}).file, 'event-magic-night', 'no series photo: unchanged');
+});

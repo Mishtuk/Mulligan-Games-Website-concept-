@@ -640,6 +640,10 @@ import ThemeFab from '../components/ThemeFab.astro';
         const tools = withCur([['', 'None'], ...TOOLS.map((t) => [t, t])], v.tool?.name);
         const ages0 = v.kidsWelcome ? 'all' : v.ageNote ? 'rule' : 'none';
 
+        const UP = /^photo-\d{8}-[0-9a-f]{6}\.webp$/; // uploads; the rest of EV.photos are the site's own pictures
+        const picker = photoPicker(v.photo, { P: EV, label: 'Event picture', hint: "Shown on this event's page and cards. Empty: the site picks one for the game.",
+          merge: (up) => [...EV.photos.filter((p) => !UP.test(p.name)), ...up.filter((p) => UP.test(p.name)).map((p) => ({ name: p.name, url: '/media/photos/' + p.thumb }))] });
+        const altFld = fld('f-photoAlt', 'Describe the picture', inp('photoAlt', v.photoAlt, { max: 120, ph: 'Tables set up for a Friday night draft' }), { hint: 'For people who cannot see it. Needed when there is a picture.' }), showAlt = () => { altFld.hidden = !form.elements.photo.value; };
         const fmts = h('datalist', { id: 'fmts' });
         const drows = h('div', { class: 'date-rows' }), say1 = h('p', { class: 'say', 'aria-live': 'polite' }), hold = h('p', { class: 'say', 'aria-live': 'polite' });
         const addRow = (d = {}) => {
@@ -700,6 +704,7 @@ import ThemeFab from '../components/ThemeFab.astro';
             grp('f-ages', 'Ages', radios('ages', [['none', 'Not stated'], ['all', 'All ages. Kids welcome.'], ['rule', 'Age rule']], ages0, false)), W.ageNote,
             grp('f-playStyle', 'Play style', radios('playStyle', [['', 'Not stated'], ['casual', 'Casual'], ['competitive', 'Competitive']], v.playStyle || '', true), { hint: 'Mainly for Commander nights. Put the bracket or house rules in the description.' }),
             chk('inviteOnly', 'Invite only', v.inviteOnly), W.cedh, W.wh),
+          group('Picture', picker, altFld),
           group('On the website', chk('enabled', 'Show on the website', v.enabled !== false), chk('featured', 'Feature on the front page', v.featured)));
 
         const fmtList = () => {
@@ -724,6 +729,7 @@ import ThemeFab from '../components/ThemeFab.astro';
             prize: val('prize'), bring: val('bring'), description: form.elements.description.value, beginnerFriendly: c('beginnerFriendly'), kidsWelcome: ages === 'all', ageNote: ages === 'rule' ? val('ageNote') : null,
             playStyle: pick('playStyle') || null, inviteOnly: c('inviteOnly'), featured: c('featured'), enabled: c('enabled'),
             ...(g === 'cedh' && { cedhSeries: val('cedhSeries') }), ...(g === 'warhammer' && { points: num('points'), roundMinutes: num('roundMinutes'), listDeadline: val('listDeadline') }) };
+          if (val('photo')) { b.photo = val('photo'); b.photoAlt = val('photoAlt'); }
           const tn = val('toolName'), tu = val('toolUrl'), tc = val('toolCode');
           if (tn || tu || tc) b.tool = { name: tn, url: tu, code: tc };
           for (const k of ['todo', 'source', 'externalCount']) if (v[k] !== undefined) b[k] = v[k];
@@ -737,7 +743,7 @@ import ThemeFab from '../components/ThemeFab.astro';
           vis(W.waitlist, sg === 'here'); vis(W.cutoff, sg === 'here'); vis(W.cutoffHours, sg === 'here' && val('cutoff') === 'before'); vis(W.hold, sg === 'here' || sg === 'counter');
           vis(W.ageNote, pick('ages') === 'rule'); vis(W.cedh, g === 'cedh'); vis(W.wh, g === 'warhammer');
           if (sync.g !== g) { sync.g = g; fmtList(); }
-          say1.textContent = sentence(b); say1.hidden = !say1.textContent;
+          showAlt(); say1.textContent = sentence(b); say1.hidden = !say1.textContent;
           const st = rt === 'dates' ? b.recurrence.dates.find((d) => isT(d.start))?.start : b.start, m = form.elements.arriveByMins.value;
           hold.textContent = m !== '' && isT(st) ? `Players must arrive by ${T12(hmOf(mins(st) - +m))}. After that you can mark no-shows and the waitlist moves up.` : ''; hold.hidden = !hold.textContent;
         }
@@ -772,9 +778,10 @@ import ThemeFab from '../components/ThemeFab.astro';
       }
 
       /** The room photo: current picture with Change / Remove, and an inline picker with Upload plus the pictures already on the site. */
-      function photoPicker(cur) {
+      function photoPicker(cur, o = {}) {
+        const P = o.P || ST, src = (p) => p.url || '/media/photos/' + p.thumb; // events: P = EV, whose entries carry a full url (site photos live in /img/social)
         const hid = h('input', { type: 'hidden', name: 'photo', value: cur || '' }), pv = h('div'), panel = h('div', { class: 'picker', hidden: true }), perr = h('p', { class: 'err', role: 'alert', hidden: true });
-        const thumb = (n) => '/media/photos/' + (ST.photos.find((p) => p.name === n)?.thumb || n);
+        const thumb = (n) => { const p = P.photos.find((x) => x.name === n); return p ? src(p) : '/media/photos/' + n; };
         const set = (n) => { hid.value = n; drawPv(); hid.dispatchEvent(new Event('change', { bubbles: true })); };
         const fail = (m) => { perr.textContent = m; perr.hidden = false; };
         const drawPv = () => put(pv, hid.value ? h('img', { class: 'pimg', src: thumb(hid.value), alt: 'The picture now chosen' }) : h('div', { class: 'pimg none' }, 'No picture'),
@@ -784,8 +791,8 @@ import ThemeFab from '../components/ThemeFab.astro';
           perr.hidden = true;
           put(panel, h('div', { class: 'photo-grid' },
             h('label', { class: 'pick up' }, h('input', { type: 'file', class: 'vh', accept: 'image/jpeg,image/png,image/webp', onchange: (e) => choose(e.target.files[0]) }), ico('upload', 28), h('span', {}, 'Upload a new picture')),
-            ST.photos.map((p, i) => h('label', { class: 'pick' }, h('input', { type: 'radio', class: 'vh', name: 'pick', value: p.name, checked: p.name === hid.value, 'aria-label': `Picture ${i + 1} of ${ST.photos.length}`, onchange: () => set(p.name) }),
-              h('img', { src: '/media/photos/' + p.thumb, alt: '', loading: 'lazy' }), h('span', { class: 'chosen' }, ico('check', 14), 'Chosen')))),
+            P.photos.map((p, i) => h('label', { class: 'pick' }, h('input', { type: 'radio', class: 'vh', name: 'pick', value: p.name, checked: p.name === hid.value, 'aria-label': `Picture ${i + 1} of ${P.photos.length}`, onchange: () => set(p.name) }),
+              h('img', { src: src(p), alt: '', loading: 'lazy' }), h('span', { class: 'chosen' }, ico('check', 14), 'Chosen')))),
             perr, h('button', { class: 'btn btn-2', type: 'button', onclick: () => (panel.hidden = true) }, 'Done'));
         }
         async function choose(file) {
@@ -807,14 +814,14 @@ import ThemeFab from '../components/ThemeFab.astro';
             go.disabled = true; go.textContent = 'Saving the picture…';
             const r = await api('POST', 'admin/photos', { big, small });
             if (!r.ok) { go.disabled = false; go.textContent = 'Use this picture'; return fail(say(r)); }
-            ST.photos = r.data.photos; set(r.data.name); grid(); toast('Picture added.');
+            P.photos = o.merge ? o.merge(r.data.photos) : r.data.photos; set(r.data.name); grid(); toast('Picture added.');
           });
           put(panel, h('div', { class: 'preview' }, h('img', { src: small, alt: 'Preview of the new picture' }), bmp.width < 800 && h('p', { class: 'meta' }, 'This picture is small and may look soft.'),
             h('p', { class: 'meta' }, "The picture is trimmed to the website's shape. If something important is cut off, try a different photo."), perr,
             h('div', { class: 'row' }, go, h('button', { class: 'btn btn-2', type: 'button', onclick: grid }, 'Choose a different one'))));
         }
         drawPv();
-        return h('div', { class: 'fld wide' }, h('p', { class: 'lbl' }, 'Room photo', h('span', { class: 'opt' }, 'Optional')), h('span', { class: 'hint' }, 'Shows next to the opening hours on the front page.'), hid, pv, panel, h('p', { class: 'ferr', role: 'alert', hidden: true }));
+        return h('div', { class: 'fld wide' }, h('p', { class: 'lbl' }, o.label || 'Room photo', h('span', { class: 'opt' }, 'Optional')), h('span', { class: 'hint' }, o.hint || 'Shows next to the opening hours on the front page.'), hid, pv, panel, h('p', { class: 'ferr', role: 'alert', hidden: true }));
       }
 
       function drawStore() {

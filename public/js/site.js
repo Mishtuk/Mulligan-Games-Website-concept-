@@ -37,6 +37,18 @@
     var show = fmt.form.querySelector('button[type="submit"]'); if (show) show.hidden = true; /* no-JS fallback only */
   }
 
+  /* event page: Copy the TopDeck event code (the button is hidden in the HTML, so without JS or a clipboard there is no dead control) */
+  var cc = document.querySelector('.copy-code');
+  if (cc && navigator.clipboard && navigator.clipboard.writeText) {
+    cc.hidden = false;
+    cc.addEventListener('click', function () {
+      navigator.clipboard.writeText(cc.getAttribute('data-copy')).then(function () {
+        cc.textContent = 'Copied';
+        setTimeout(function () { cc.textContent = 'Copy'; }, 2000);
+      }, function () { /* denied: the code is still on the page to select */ });
+    });
+  }
+
   /* events page: Print the schedule */
   var pb = document.getElementById('print-btn');
   if (pb) pb.addEventListener('click', function () { window.print(); });

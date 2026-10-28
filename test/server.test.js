@@ -97,7 +97,7 @@ test('M4 security headers on pages, the admin page and error replies; CSP hashes
   assert.ok(/script-src 'self' 'sha256-/.test(csp), 'inline script blocks must be hashed into script-src');
   assert.ok(!/script-src[^;]*'unsafe-inline'/.test(csp));
   const dir = (n) => (csp.split('; ').find((d) => d.startsWith(n + ' ')) ?? '').split(' ').slice(1);
-  assert.deepEqual(dir('frame-src'), ['https://www.tiktok.com'], 'the TikTok player is the only frame source (D47)');
+  assert.deepEqual(dir('frame-src'), ["'self'", 'https://www.tiktok.com'], 'own pages (the admin card preview) and the TikTok player are the only frame sources (D47)');
   assert.ok(![...dir('script-src'), ...dir('img-src'), ...dir('connect-src'), ...dir('media-src')].some((v) => /^https?:|\*/.test(v)), 'nothing third-party can load scripts, images or media');
   check(await call('GET', '/admin/'));
   check(await call('GET', '/nope'));
@@ -224,6 +224,9 @@ test('picture upload: round trip, served from DATA with nosniff, traversal 404, 
   setState(db, { events: [{ id: 'e1', title: 'Prerelease', photo: name }] });
   assert.equal((await as('DELETE', `/api/admin/photos/${name}`)).status, 409); // still used
   setState(db, {});
+  db.prepare('INSERT INTO series (id, data) VALUES (?, ?)').run('pic-night', JSON.stringify({ id: 'pic-night', photo: name, photoAlt: 'x' }));
+  assert.equal((await as('DELETE', `/api/admin/photos/${name}`)).status, 409, 'an event picture is in use too');
+  db.prepare('DELETE FROM series WHERE id = ?').run('pic-night');
   db.close();
   assert.equal((await as('DELETE', '/api/admin/photos/pic.webp')).status, 404); // built photos are not deletable
   assert.equal((await as('DELETE', `/api/admin/photos/${name}`)).status, 200);

@@ -60,6 +60,10 @@ const photoFiles = () => new Set([...ls(join(DIST, 'media', 'photos')), ...ls(PH
 // Uploads are re-encoded with sharp when it loads (it ships with astro, but is not our dependency), otherwise only validated.
 const sharp = (await import('sharp').catch(() => null))?.default ?? null;
 log(sharp ? 'upload: sharp found, re-encoding pictures to WebP' : 'upload: sharp missing, validate-only');
+// A series may use the site's own pictures (public/img/social, big copy with a -800 twin) or an admin upload.
+const UPLOAD = /^photo-\d{8}-[0-9a-f]{6}\.webp$/;
+const eventPhotos = () => { const soc = ls(join(DIST, 'img', 'social')), up = new Set(ls(PHOTOS)); return [...soc.filter((f) => f.endsWith('.webp') && !f.endsWith('-800.webp') && soc.includes(f.replace('.', '-800.'))).sort().map((name) => ({ name, url: `/img/social/${name.replace('.', '-800.')}` })), ...[...up].filter((f) => UPLOAD.test(f) && up.has(f.replace('.', '-800.'))).sort().map((name) => ({ name, url: `/media/photos/${name.replace('.', '-800.')}` }))]; };
+const eventPhotoNames = () => eventPhotos().map((p) => p.name);
 const pickablePhotos = (set) => [...set].filter((f) => !f.includes('-400.') && !f.includes('-800.') && !f.includes('-full.')).sort();
 
 const dirProblem = dataDirProblem(DATA, DIST, join(ROOT, '.env'));
@@ -102,7 +106,7 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
 const TEXT = /^(text\/|application\/(json|xml|manifest)|image\/svg)/;
 
 // Security headers go on EVERY response, errors included. The CSP lists a hash for each inline script (and inline on*= handler) found in the
-// page being sent, so Astro's inline scripts run but injected script text would not. Inline styles stay allowed (style-src 'unsafe-inline'). frame-src is only the TikTok player, which a visitor opens with a click (public/js/clips.js).
+// page being sent, so Astro's inline scripts run but injected script text would not. Inline styles stay allowed (style-src 'unsafe-inline'). frame-src is our own pages (the admin card preview iframe) and the TikTok player, which a visitor opens with a click (public/js/clips.js).
 const sha = (t) => `'sha256-${createHash('sha256').update(t).digest('base64')}'`;
 const unent = (t) => t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 function csp(html = '') {
@@ -110,7 +114,7 @@ function csp(html = '') {
   const attrs = [...html.matchAll(/\son[a-z]+="([^"]*)"/g)].map((m) => sha(unent(m[1])));
   return ["default-src 'self'", `script-src 'self' ${scripts.join(' ')}`.trim(), `script-src-attr ${attrs.length ? `'unsafe-hashes' ${attrs.join(' ')}` : "'none'"}`,
     "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "media-src 'self'", "font-src 'self'", "connect-src 'self'", "object-src 'none'", "base-uri 'self'",
-    "form-action 'self'", "frame-src https://www.tiktok.com", "frame-ancestors 'self'"].join('; ');
+    "form-action 'self'", "frame-src 'self' https://www.tiktok.com", "frame-ancestors 'self'"].join('; ');
 }
 function baseHeaders(url, html) {
   const h = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN',
@@ -480,11 +484,11 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     if (m === 'GET') {
       const series = listSeries(db), exceptions = listExceptions(db), today = etDay(), to = new Date(Date.parse(today) + 400 * 864e5).toISOString().slice(0, 10);
       const upcoming = Object.fromEntries(series.map((s) => [s.id, occurrences(s, today, to, exceptions).slice(0, 8).map((o) => ({ date: o.date, slot: o.slot, originalDate: o.originalDate, start: o.start, end: o.end, capacity: o.capacity, cancelled: o.cancelled, moved: o.moved, changed: o.changed, note: o.note }))]));
-      return json({ series, exceptions, upcoming, today, games: GAMES, kinds: KINDS, signups: SIGNUPS, icons: ICONS });
+      return json({ series, exceptions, upcoming, today, photos: eventPhotos(), games: GAMES, kinds: KINDS, signups: SIGNUPS, icons: ICONS });
     }
     if (m !== 'POST') return bad('not_found', 404);
     if (!plain) return bad('body');
-    const errors = validateSeries(body);
+    const errors = validateSeries(body, eventPhotoNames());
     if (Object.keys(errors).length) return invalid(errors);
     const s = cleanSeries({ ...body, id: body.id || newId(body.title, new Set(listSeries(db).map((x) => x.id))) });
     if (getSeries(db, s.id)) return invalid({ id: 'That id is already used.' });
@@ -502,7 +506,7 @@ function seriesApi(req, url, body, [id, sub, date], ip, note) {
     }
     if (m !== 'PUT') return bad('not_found', 404);
     if (!plain) return bad('body');
-    const errors = validateSeries({ ...body, id });
+    const errors = validateSeries({ ...body, id }, eventPhotoNames());
     if (Object.keys(errors).length) return invalid(errors);
     const s = cleanSeries({ ...body, id });
     // G4: an edit that makes a date with sign-ups disappear (weekday, one-off date, slot time or last date changed) would lose those seats: refused, no override.
@@ -768,7 +772,7 @@ async function adminApi(req, url, user) {
   if (key === 'GET photos') return json({ photos: photoList() });
   if (key === 'POST photos') return uploadPhoto(body, ip, note, photoList);
   if (key === 'DELETE photos' && /^photo-\d{8}-[0-9a-f]{6}\.webp$/.test(a1 ?? '')) { // only uploads; built photos are never touched
-    if (facts().photo === a1 || Object.values(getState(db)).some((v) => Array.isArray(v) && v.some((x) => x?.photo === a1))) return bad('in_use', 409); // the room photo, or any saved item with this photo
+    if (facts().photo === a1 || listSeries(db).some((s) => s.photo === a1) || Object.values(getState(db)).some((v) => Array.isArray(v) && v.some((x) => x?.photo === a1))) return bad('in_use', 409); // the room photo, an event picture, or any saved item with this photo
     if (!existsSync(join(PHOTOS, a1))) return bad('not_found', 404);
     for (const f of [a1, a1.replace('.', '-800.')]) try { unlinkSync(join(PHOTOS, f)); } catch {}
     note('photo_delete', a1);

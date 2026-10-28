@@ -207,3 +207,22 @@ test('round 3: week strip sits in This week, events page has Print and Subscribe
   assert.ok(ev.includes('id="print-btn"') && ev.includes(`webcal://${new URL(SITE).host}/events.ics`));
   assert.ok(!/class="ev-cost">(?:<span[^>]*>[^<]*<\/span>)?\?/.test(home + ev));
 });
+
+test('a series picture and the event-code Copy button: the picture and escaped alt on the date page and cards, the fallback unchanged, the button hidden until site.js shows it', async () => {
+  mkdirSync(join(dist, 'img', 'social'), { recursive: true });
+  for (const f of ['event-full-room-3.webp', 'event-full-room-3-800.webp']) writeFileSync(join(dist, 'img', 'social', f), 'x');
+  const body = { title: 'Pic night', game: 'magic', kind: 'weekly', recurrence: { type: 'weekly', day: 5 }, start: '19:00', signup: 'external', tool: { name: 'TopDeck', url: 'https://topdeck.gg/x', code: 'ABC123' } };
+  for (const photo of ['../x.webp', 'http://x.example/a.webp', 'nope.webp']) assert.equal((await admin('POST', 'series', { ...body, photo, photoAlt: 'x' })).status, 422, photo);
+  assert.equal((await admin('POST', 'series', { ...body, photo: 'event-full-room-3.webp' })).status, 422, 'alt required');
+  const r = await admin('POST', 'series', { ...body, photo: 'event-full-room-3.webp', photoAlt: 'Room "full" <b>x</b>' });
+  assert.equal(r.status, 201);
+  const { series } = await r.json();
+  try {
+    const html = await text(page(series.id, DATE));
+    assert.ok(html.includes('<img src="/img/social/event-full-room-3.webp"') && html.includes('alt="Room &quot;full&quot; x"'), 'series photo + escaped alt');
+    assert.ok(!html.includes('alt="Room "full"') && !html.includes('<b>x</b>'));
+    assert.ok(html.includes('class="btn btn-2 btn-sm copy-code" data-copy="ABC123" hidden>Copy</button>'), 'Copy button, hidden without JS');
+    const plain = await text(page('fnm', DATE));
+    assert.ok(plain.includes('<img src="/img/social/event-magic-night.webp"') && !plain.includes('copy-code'), 'no photo: the game choice; no code: no button');
+  } finally { await admin('DELETE', `series/${series.id}`); }
+});
