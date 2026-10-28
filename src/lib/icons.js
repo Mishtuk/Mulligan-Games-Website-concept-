@@ -34,5 +34,6 @@ export const ICONS = {
   mug: '<path d="M5 8h11v8a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM16 10h2a2.5 2.5 0 0 1 0 5h-2M8 3.5v2M12 3.5v2"/>',
   tiktok: '<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5M14 3c.3 2.6 1.9 4.2 4.5 4.5"/>',
   instagram: '<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><path d="M17 7h.01"/>',
+  cards: '<rect x="3.5" y="8" width="11.5" height="13" rx="2"/><path d="M8.5 5h9a2 2 0 0 1 2 2v8.5"/>',
   trophy: '<path d="M8 4h8v6a4 4 0 0 1-8 0zM8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 14v4M8.5 20.5h7"/>',
 };

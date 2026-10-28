@@ -31,7 +31,7 @@ export function footAddr({ store }) {
   return h`<div class="foot-visit"><h2>Visit</h2><p>${a.street}<br>${a.city}, ${a.region} ${a.zip}</p>${t ? h`<p><a href="${t}">${store.phone}</a></p>` : h`<p>${store.phone}</p>`}<p><a href="${mapsUrl(store)}" target="_blank" rel="noopener">Directions<span class="vh"> (opens Google Maps)</span></a></p></div>
 <div class="foot-hours"><h2>Hours</h2>${lines.length ? h`<ul>${lines.map((l) => h`<li>${l}</li>`)}</ul>` : h`<p>Call the shop for hours.</p>`}</div>`;
 }
-/** Social links as list items (footer and "Between events"). */
+/** Social links as list items (footer and "Join in"). */
 export function socials({ store }) {
   return SOCIAL.map(([n, k]) => [n, link(store, k)]).filter(([, u]) => u).map(([n, u]) => h`<li><a href="${u}" target="_blank" rel="noopener">${n}<span class="vh"> (opens in a new tab)</span></a></li>`);
 }
@@ -52,24 +52,28 @@ export function turnoutAll({ now }, p = proof) {
   const li = (r, w) => h`<li><span>${fmtDate(r.date)}, ${r.date.slice(0, 4)}</span><span>${r.title}</span><b>${r.players} ${w}</b></li>`;
   return h`${next.length ? h`<h3>Coming up</h3><ul class="turnout-list">${next.map((r) => li(r, 'registered so far'))}</ul>` : ''}${past.length ? h`<h3>Past events</h3><ul class="turnout-list">${past.map((r) => li(r, 'players'))}</ul>` : ''}${url ? h`<a class="turnout-more" href="${url}" target="_blank" rel="noopener">Full standings on TopDeck${out('TopDeck')}</a>` : ''}`;
 }
-/** The whole Visit block: a heading, then three columns (hours, address, good to know) on the band, no card box; the room photo below it when one is chosen. */
+/** The whole Visit block ("Find your table"): a heading and a lead, then two columns (hours, address) on the band, no card box; the room photo below it when one is chosen. */
 export function visit(ctx) {
   const { store } = ctx, a = addr(store), t = tel(store), photo = store.photo;
-  return h`<div class="wrap"><div class="sec-head"><h2 id="visit-h">Visit</h2></div>
+  return h`<div class="wrap"><div class="sec-head"><h2 id="visit-h">Find your table</h2><p class="sec-note">Look for the sign on the roof. The door is right below it.</p></div>
 <div class="visit-in"><div class="visit-hours"><h3>Hours</h3>${hours(ctx)}</div>
 <div class="visit-where"><h3>Find us</h3><address>${a.street}<br>${a.city}, ${a.region} ${a.zip}</address>
 <p class="visit-acts"><a class="btn btn-2" href="${mapsUrl(store)}" target="_blank" rel="noopener">${icon('pin')}Directions<span class="vh"> (opens Google Maps)</span></a>${t ? h`<a class="btn btn-2" href="${t}">${icon('phone')}${store.phone}</a>` : ''}</p>
-<p class="visit-small">${store.parking ? h`<strong>Parking:</strong> ${store.parking} ` : ''}Look for the sign on the roof. The door is right below it.</p></div>
-<div class="visit-faq"><h3>Good to know</h3>
-<dl class="faq"><dt>New here?</dt><dd><a href="/new-here/">Start here.</a> What to expect and which nights are good for a first visit.</dd>${store.kids ? h`<dt>Can kids come?</dt><dd>${store.kids}</dd>` : ''}${store.freePlay ? h`<dt>Can I just come and play?</dt><dd>${store.freePlay}.</dd>` : ''}<dt>How do preorders work?</dt><dd>Preorders are taken in store. Each preorder has a last day, shown above.</dd></dl></div></div>
+${store.parking ? h`<p class="visit-small"><strong>Parking:</strong> ${store.parking}</p>` : ''}</div></div>
 ${photo ? h`<figure class="photo has-img"><img src="${`/media/photos/${encodeURIComponent(photo)}`}" alt="${store.photoAlt ?? ''}" loading="lazy"></figure>` : ''}</div>`;
 }
-/** "Between events": a normal section head carrying the Discord line, then the Discord button and the social links in one row. */
+/** "Join in": a normal section head carrying the Discord line, then the Discord button and the social links in one row. */
 export function discord({ store }) {
   const d = link(store, 'discord');
-  return h`<div class="sec-head"><h2 id="comm-h">Between events</h2><p class="sec-note">${d ? 'Chat with the regulars, find a pod and hear about new events first on the shop Discord.' : 'Follow the shop to hear about new events first.'}</p></div>
+  return h`<div class="sec-head"><h2 id="comm-h">Join in</h2><p class="sec-note">${d ? 'Chat with the regulars, find a pod and hear about new events first on the shop Discord.' : 'Follow the shop to hear about new events first.'}</p></div>
 <div class="comm-acts">${d ? h`<a class="btn btn-act" href="${d}" target="_blank" rel="noopener">${icon('chat')}Join the Discord${out('Discord')}</a>` : ''}<ul class="socials">${socials({ store })}</ul></div>`;
 }
+/** The three promises of "Why players choose Mulligan": fixed copy from the Google review themes and store facts (docs/research/social-assets-2.md). The third needs store.kids and is left out without it. */
+export const promises = ({ store }) => [
+  { icon: 'cards', title: 'Singles and sealed', text: 'A big Magic and Pokemon singles case, with sealed product on the shelf.' },
+  { icon: 'users', title: 'Staff who know the games', text: 'Friendly, patient help, from your first deck to your next tournament.' },
+  store.kids && { icon: 'sprout', title: 'Easy to start', text: `Learn-to-play nights. ${store.kids}`, href: '/new-here/', link: 'New here? Start here.' },
+].filter(Boolean);
 
 // ---------- New here? ----------
 /** Table of contents entries; "Free play" only while the store has a free-play line. */

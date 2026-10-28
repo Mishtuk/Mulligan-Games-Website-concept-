@@ -52,21 +52,19 @@ const NOW = etNow(new Date('2026-10-27T15:00:00Z')); // a Tuesday
 const series = (id, game, day, extra = {}) => ({ id, title: `T-${id}`, game, kind: 'weekly', recurrence: { type: 'weekly', day }, start: '19:00', end: '22:00', fee: 5, signup: 'walkin', enabled: true, ...extra });
 const ctx = (list) => ({ store: { hours: [] }, series: list, exceptions: [], games: ['magic', 'cedh', 'pokemon', 'other'].map((id) => ({ id, short: id })), releases: [], now: NOW, query: new URLSearchParams(), counts: new Map() });
 
-test('week: photo bands on today and the next day only, thumbs after, strip caps, no repeat between the two card days', () => {
+test('week: every day is a row with a thumb (no photo-card days), today is in the Tonight band, the front page has no chips', () => {
   const html = week(ctx([series('a', 'magic', 2), series('b', 'magic', 3), series('c', 'magic', 4), series('d', 'pokemon', 5)])).toString();
-  const bands = [...html.matchAll(/<figure class="ev-ph ph"[^>]*><img src="\/img\/social\/([\w-]+)-800\.webp"/g)].map((m) => m[1]);
-  assert.deepEqual(bands, ['event-magic-night', 'event-full-room-2'], 'two card days, different pictures');
-  assert.equal([...html.matchAll(/class="dl-ph ph"/g)].length, 2, 'later days get thumbs');
-  assert.ok(html.includes('class="dl-main"') && html.includes('class="dl-dot"'));
+  assert.ok(html.includes('id="tonight"') && html.includes('>Today</h2>') && !html.includes('id="d-2026-10-27"'), 'a date today: the band has it and the card leaves today out');
+  assert.equal([...html.matchAll(/class="dl-ph ph"/g)].length, 3, 'the other days get thumbs');
+  assert.ok(!html.includes('class="slots"') && !html.includes('<figure class="ev-ph') && !html.includes('id="chips"') && html.includes('class="dl-dot"'));
   assert.ok(!html.includes('dc-ph') && !html.includes('dc-pips'), 'round 7: the week strip is text only');
   assert.equal([...html.matchAll(/<span class="dc-cap" aria-hidden="true">/g)].length, 7, 'seven tiles, each with its count');
-  assert.ok(/<img [^>]*alt=""[^>]*loading="lazy"/.test(html));
-  assert.ok(/class="ev-ph ph"[^>]*><img [^>]*srcset="\/img\/social\/[\w-]+-800\.webp 800w, \/img\/social\/[\w-]+\.webp 1600w"[^>]*width="800" height="600"/.test(html), 'bands: srcset 800/1600 and a size box');
+  assert.ok(/class="daycard" style="--i:0" href="#tonight"/.test(html) && /<img [^>]*alt=""[^>]*loading="lazy"/.test(html));
   assert.ok(!/class="dl-ph ph"[^>]*><img [^>]*srcset/.test(html), 'thumbs stay on the 800 file');
 });
 
 test('week: a hostile title or game never reaches the photo markup', () => {
-  const html = week(ctx([series('e', '"><script>x</script>', 2, { title: '<script>alert(1)</script>' })])).toString();
+  const html = week(ctx([series('e', '"><script>x</script>', 3, { title: '<script>alert(1)</script>' })])).toString();
   assert.ok(!html.includes('<script>') && /data-tint/.test(html));
 });
 
@@ -125,9 +123,10 @@ test('front page build: clips as plain links, nothing third-party before a click
   assert.ok(html.includes('Videos load from TikTok only when you press play'));
   assert.ok(html.includes('id="hero-h">Shuffle up. Everyone’s welcome.</h1>') && html.includes('Welcome to Mulligan Games, Warminster’s friendly game store: a big play room, free play every day we’re open, and card nights all week. Come say hi.'));
   assert.equal(html.split('free play every day').length, 2, 'free play is said once');
-  const feat = html.match(/<section class="feat"[^]*?<\/section>/)[0];
-  assert.deepEqual([...feat.matchAll(/data-file="(\/media\/clips\/[a-z-]+\.mp4)"/g)].map((m) => m[1]), ['/media/clips/cedh-full-room.mp4', '/media/clips/cedh-february.mp4'], 'two featured clips in their own row');
-  assert.ok(html.indexOf('class="feat"') > html.indexOf('</section>', html.indexOf('class="phero"')) && html.indexOf('class="feat"') < html.indexOf('id="week"'), 'the row sits between the hero and This week, not over the video');
+  const rail = html.match(/<ul class="clips" id="clips-list"[^]*?<\/ul>/)[0], first = [...rail.matchAll(/<a class="clip-a"[^>]*>/g)].slice(0, 2).map((m) => /data-file="([^"]+)"/.exec(m[0])?.[1]);
+  assert.deepEqual(first, ['/media/clips/cedh-full-room.mp4', '/media/clips/cedh-february.mp4'], 'the two featured clips lead "Clips from the shop"');
+  assert.ok(!html.includes('class="feat"') && !html.includes('btn-clip'), 'no featured row under the hero, no phone clip button');
+  assert.ok(html.includes('<a class="clips-link" href="#clips">Watch clips<span class="cl-long"> from the shop</span>'), 'the strip link shows at every width');
   assert.ok(!html.match(/<div class="openbar ob-front">[^]*?<header/)[0].includes('ob-status'), 'home top bar: no open / closed text');
 });
 
@@ -147,7 +146,8 @@ test('welcome hero: fixed copy, hours status in the chip (open / later today / c
   assert.equal(chip(at('2026-10-26T15:00:00Z')), 'Closed today · back Wed 2 PM'); // Mon
   assert.equal(chip(at('2026-10-29T20:00:00Z', [])), 'Closed this week', 'D39: hours set but no rows = closed');
   assert.equal(chip(at('2026-10-29T20:00:00Z', null)), 'Hours coming soon', 'unknown hours');
-  assert.ok(open.includes('class="btn btn-clip"') && open.includes('data-file="/media/clips/cedh-full-room.mp4"'), 'phones: the Watch a clip button');
+  assert.equal([...open.matchAll(/class="btn /g)].length, 1, 'one hero button: the clip opens from the strip');
+  assert.ok(!open.includes('btn-clip') && open.includes('<a class="btn btn-act" href="#week">This week’s events</a>'));
 });
 
 test('photoFor: a series photo wins over the game choice and is not given to another event that day', () => {

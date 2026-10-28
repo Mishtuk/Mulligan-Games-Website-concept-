@@ -232,10 +232,9 @@ function liveParts(url, more = {}) {
   let c;
   const ctx = () => (c ??= publicCtx(url));
   const script = (obj) => view.h`<script type="application/ld+json">${view.safe(ldScript(obj))}</script>`;
-  return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), cedh: () => view.cedh(ctx()), 'cedh-all': () => view.cedh(ctx(), { days: 180, n: 4 }), 'cedh-results': () => view.cedhResults(ctx()), 'cedh-turnout': () => facts_view.turnoutAll(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
+  return { strip: () => view.strip(ctx()), hero: () => view.hero(ctx()), week: () => view.week(ctx()), games: () => view.gameTiles(ctx()), cedh: () => view.cedh(ctx()), 'cedh-all': () => view.cedh(ctx(), { days: 180, n: 4 }), 'cedh-results': () => view.cedhResults(ctx()), 'cedh-turnout': () => facts_view.turnoutAll(ctx()), releases: () => view.releases(ctx()), hours: () => view.hours(ctx()),
     events: () => view.events(ctx()), nights: () => view.nights(ctx()), 'today-hours': () => view.todayHours(ctx()), 'shop-ld': () => script(shopLd(ctx().store, PUBLIC_URL)), origin: () => view.h`${PUBLIC_URL}`,
     bar: () => facts_view.bar(ctx()), 'foot-addr': () => facts_view.footAddr(ctx()), socials: () => facts_view.socials(ctx()), 'cedh-live': () => facts_view.cedhLive(ctx()), turnout: () => facts_view.turnout(ctx()), visit: () => facts_view.visit(ctx()), discord: () => facts_view.discord(ctx()),
-    lately: () => view.lately(ctx()),
     'nh-toc': () => facts_view.nhToc(ctx()), 'nh-free': () => facts_view.nhFree(ctx()), 'nh-kids': () => facts_view.nhKids(ctx()), 'nh-here': () => facts_view.nhHere(ctx()), 'nh-ask': () => facts_view.nhAsk(ctx()), 'nh-directions': () => facts_view.nhDirections(ctx()),
     ...Object.fromEntries(Object.entries(more).map(([k, f]) => [k, () => f(ctx())])) };
 }

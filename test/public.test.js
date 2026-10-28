@@ -94,7 +94,7 @@ test('cancelling a date from admin shows on its page, the list, the feed and the
   assert.ok(other.includes('class="struck"') && !/<[^>]*=&quot;/.test(other));
   const list = await text(`/events/?now=${NOW}`);
   assert.ok(list.includes('data-state="cancelled"') || list.includes('is cancelled.') || list.includes('Cancelled'));
-  const front = await text(`/?now=2026-10-30T12:00`);
+  const front = await text(`/?now=2026-10-29T12:00`); // the day before: tomorrow's row says it is cancelled and why
   assert.ok(front.includes('data-state="cancelled"') && front.includes('No draft on Halloween weekend.'));
   const feed = await get(`/events.ics?now=${NOW}`);
   assert.match(feed.headers.get('content-type'), /text\/calendar/);
@@ -143,7 +143,7 @@ test('the date page: default picture per game, Other dates with seat words and t
   assert.ok(html.includes('src="/img/social/event-magic-night.webp"') && html.includes('event-magic-night-800.webp 800w') && /width="1600" height="1200"/.test(html));
   assert.ok((await text(page('evil', DATE))).includes('/img/social/event-full-room.webp')); // other (not D&D) -> the full room
   assert.ok(html.includes('<h2 id="od-') && html.includes('Nov 20') && html.includes('Walk in') && html.includes('Add every Friday to my calendar'));
-  assert.ok(html.includes('Getting here') && html.includes('class="dp-kick"'));
+  assert.ok(html.includes('Getting here') && html.includes('class="pg-k"'));
   const ics = await get('/events/fnm.ics');
   assert.equal(ics.status, 200);
   assert.equal(ics.headers.get('content-disposition'), 'attachment; filename="mulligan-fnm.ics"');
@@ -203,7 +203,7 @@ test('editing the store hours in admin changes the open-now strip without a rest
 
 test('round 3: week strip sits in This week, events page has Print and Subscribe, no "?" fee', async () => {
   const home = await text(`/?now=${NOW}`), ev = await text(`/events/?now=${NOW}`);
-  assert.ok(/<\/ol><\/nav><nav class="chips"/.test(home), 'the seven-day strip opens This week, right above the game chips');
+  assert.ok(/<\/ol><\/nav>\s*<div class="rows" id="days">/.test(home) && !home.includes('id="chips"'), 'the seven-day strip sits right above the rows card, and the front page has no game chips (round 8)');
   assert.ok(ev.includes('id="print-btn"') && ev.includes(`webcal://${new URL(SITE).host}/events.ics`));
   assert.ok(!/class="ev-cost">(?:<span[^>]*>[^<]*<\/span>)?\?/.test(home + ev));
 });

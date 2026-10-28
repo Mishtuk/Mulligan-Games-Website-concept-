@@ -133,7 +133,7 @@ const NOWQ = 'now=2026-11-07T12:00';
 let proc, origin, cookie = '', boosters;
 before(async () => {
   mkdirSync(join(dist, 'admin'), { recursive: true }); mkdirSync(join(dist, 'event-page'), { recursive: true });
-  writeFileSync(join(dist, 'index.html'), '<main>home<!--mg:lately--><!--/mg:lately--></main>'); writeFileSync(join(dist, 'admin', 'index.html'), '<p>admin</p>');
+  writeFileSync(join(dist, 'index.html'), '<main>home<!--mg:week--><!--/mg:week--></main>'); writeFileSync(join(dist, 'admin', 'index.html'), '<p>admin</p>');
   writeFileSync(join(dist, 'event-page', 'index.html'), '<html><head><!--mg:head--></head><body><main><!--mg:event--></main></body></html>');
   const db = openDb(data);
   db.prepare("INSERT INTO kv (key, value) VALUES ('series_seeded', '1')").run();

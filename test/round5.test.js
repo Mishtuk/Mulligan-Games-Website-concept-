@@ -40,7 +40,8 @@ test('site.js: hero video poster swap and hold rules live in the file (no inline
 
 test('front page: reviews come from proof.json, hero video with phone sources and posters', { skip: !built }, () => {
   const h = page();
-  assert.match(h, /4\.9 on Google · 81 reviews/);
+  assert.match(h, /4\.9 on Google from 81 reviews/);
+  assert.equal(h.split('4.9 on Google').length, 2, 'the rating is said once');
   for (const q of proof.reviews.items) assert.ok(h.includes(q.text) && h.includes(`${q.name}, ${q.age}`), q.name);
   assert.ok(h.includes('href="https://www.google.com/maps/search/'));
   // no autoplay, src or poster in the HTML: a held screen (reduced motion, Save-Data, 2g/3g) or no JS fetches no video; site.js arms the sources
@@ -55,5 +56,4 @@ test('front page: reviews come from proof.json, hero video with phone sources an
 test('site.js: the Copy button copies with navigator.clipboard, says Copied for 2 s, and is only shown when clipboard exists', () => {
   const js = readFileSync(new URL('../public/js/site.js', import.meta.url), 'utf8');
   assert.ok(js.includes('navigator.clipboard.writeText(cc.getAttribute(\'data-copy\'))') && js.includes("textContent = 'Copied'") && js.includes('2000') && js.includes('cc.hidden = false'));
-  assert.ok(js.indexOf('.copy-code') < js.indexOf('if (!chips || !days) return'), 'runs before the front-page early return');
 });

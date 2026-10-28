@@ -138,6 +138,7 @@ is a chip (not under Other as D14 listed) because Facebook shows a weekly One Pi
 | line-strong (non-text) on surface | 3.9 | 3.8 |
 | game colours (non-text) on surface | 3.6 (Pokemon, lowest) to 7.5 | 6.0 to 9.9 |
 
+<<<<<<< Updated upstream
 Round 8 pairs (WCAG formula, 2026-10-27; `js/tests-look.js` re-checks them):
 
 | Pair | Light | Dark |
@@ -149,6 +150,11 @@ Round 8 pairs (WCAG formula, 2026-10-27; `js/tests-look.js` re-checks them):
 | page-head lead `--ink-2` on `--surface` | 7.53 | 7.86 |
 | white over the hero scrim, worst case a pure-white pixel, alpha .62 / .70 / .80 | 5.21 / 6.93 / 10.04 | same |
 | **measured on the real montage (boss, D65):** every 0.5 s of the 18.4 s loop, text made transparent, brightest pixel under each text box | h1 3.93 at 1280 / 5.37 at 390 (large text, needs 3; 95th percentile 7.0+); sub-line 10.98 / 11.10; chip and outline button 95th percentile 5.9 / 4.9 (their max is their own white border) | hero is dark in both themes |
+=======
+Round 8 pairs (2026-10-28): Tonight band on `--brick` (inner `color-scheme: dark`): `--on-band` text 8.10, `--on-band-2` 5.15, dark `--act`
+button fill 4.66 (needs 3), `--on-act` on it 9.38, dark `--ok` "On now" 5.10, dark game colours (icons) 3.57 (One Piece) to 5.53.
+Page kicker `--mark` on `--paper` 5.34 light / 5.40 dark, on `--surface` 5.96 / 4.90.
+>>>>>>> Stashed changes
 
 All pass AA (text 4.5, large text and UI parts 3). Anyone changing a colour re-runs these pairs (a PowerShell snippet
 is enough: relative luminance, `(L1+0.05)/(L2+0.05)`).
@@ -1352,6 +1358,7 @@ waits] → New and preorders → cEDH → Why players choose Mulligan (rating, 3
 → Join in. Every tab opens with one `.pg-head` (optional fact kicker, Fraunces title, one lede, hairline). No new colour
 tokens (new pairs in the spec section 5; add them to 2.3 when built). Where the build differs from the spec, note it here.
 
+<<<<<<< Updated upstream
 ---
 
 ## 18b. Round 8 in the prototype, "Card-table warm" (Laptop; D55, D59 to D65)
@@ -1421,3 +1428,15 @@ the hours). Tests guard the budgets: front 390 <= 8,900px, 1280 <= 7,100px; even
 h1, h2, roster titles, legends and the top title in Fraunces 600; "Shop admin" under the plate in Fraunces; a 3px brick top rule
 on the phone/tablet top bar and the sidebar; counter numbers stay Archivo condensed; buttons keep `--r-ctl` and the 56px counter
 targets. No layout change.
+=======
+**Built (2026-10-28, Desktop).** All of the above is in `src/`, with these differences from the spec:
+- Lately is not its own marker on the page any more: `week()` includes `lately()`, because the Tonight band sits outside `.sec` and markers cannot nest. `games` is the only new marker.
+- The "Play by game" tile is `--paper` (not `--surface`) on the surface band, so it shows; counts are this week's live count per game (the old home chips' count), not the events page's 60-day chip count.
+- "Why players choose" is static (index.astro), so its "Easy to start" line follows `store.json` at build time; `promises()` in store-render.js builds the list.
+- `--t-2xl` is now smaller; admin's `.roster-title` keeps its round-7 size with a one-line override in admin.css (the only admin change).
+- The lineup starts tomorrow, not today: today's specials are in the Tonight band (or over), so they are said once.
+- "Why players choose": each promise has its icon beside the title, and promises and quotes are 3 columns from 768px (not 1024), so the page stays inside the round-7 length.
+- Length (boss review, 2026-10-28): the spec's 9,000 px at 390 was the screenshot cap, not the page. Real round-7 lengths were 10,496 px at 390 and 7,588 at 1280; round 8 is 10,249 and 7,456 (360: 10,476 vs 10,652; 768: 9,052 vs 9,060).
+- A cancelled date today is not in the Tonight band (live only), and when the band shows, today is left out of the rows card.
+- Client-side chip filtering in site.js is removed (no chips on the front page); `?game=` still filters server-side.
+>>>>>>> Stashed changes

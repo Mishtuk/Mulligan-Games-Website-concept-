@@ -20,6 +20,14 @@
   font-display: swap;
 }
 
+/* round 8 (D60): the one display face, Fraunces 600 (OFL, public/fonts/OFL-Fraunces.txt); used only by the selectors in "display type" at the end of this file */
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/fraunces-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
 :root { color-scheme: light dark; }
 :root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
 :root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
@@ -78,6 +86,7 @@
 
   /* ---------- type ---------- */
   --font: 'Archivo', 'Bahnschrift', 'DIN Alternate', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --font-cond: 'Archivo', 'Bahnschrift', 'DIN Condensed', 'Roboto Condensed', 'Arial Narrow', sans-serif;
   --wdth-display: 62%;   /* hero, day names, big numbers */
   --wdth-head: 72%;      /* section heads, card titles */
@@ -88,8 +97,10 @@
   --t-md: 1.0625rem;  /* 17: body */
   --t-lg: 1.3125rem;  /* 21: card title */
   --t-xl: 1.75rem;    /* 28: day name, stat number */
-  --t-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);    /* section head */
-  --t-hero: clamp(2.6rem, 1.5rem + 5.6vw, 6.25rem); /* page headline */
+  --t-lead: 1.1875rem; /* 19: a page head's lede */
+  --t-2xl: clamp(1.75rem, 1.3rem + 1.9vw, 2.75rem);   /* section head (Fraunces) */
+  --t-page: clamp(2.25rem, 1.6rem + 2.8vw, 3.75rem);  /* page title (Fraunces) */
+  --t-hero: clamp(2.5rem, 1.6rem + 4.2vw, 5rem);      /* hero headline (Fraunces) */
   --lh-tight: 0.95;
   --lh-head: 1.1;
   --lh-body: 1.55;
@@ -204,8 +215,8 @@ img { max-width: 100%; height: auto; display: block; }
 @media (min-width: 768px) { .ob-addr { display: block; } }
 
 /* ---------- header: the brick wall with the logo on its white sign plate (every public page) ---------- */
-.site-head {
-  color-scheme: dark; color: var(--ink); padding-top: env(safe-area-inset-top);
+.site-head { color-scheme: dark; color: var(--ink); padding-top: env(safe-area-inset-top); }
+.site-head, .tonight {
   background-color: var(--head-bg);
   /* brick coursing, very low contrast */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='44'%3E%3Cpath d='M0 1h64M0 23h64M1 0v22M33 22v22' fill='none' stroke='%23FFF0E1' stroke-opacity='.11' stroke-width='2'/%3E%3C/svg%3E");
@@ -248,12 +259,11 @@ img { max-width: 100%; height: auto; display: block; }
 /* ---------- section heads ---------- */
 .sec { padding-block: var(--s7); }
 .sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s2) var(--s5); margin-bottom: var(--s5); }
-.sec-head h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; }
 .sec-note { margin: 0; color: var(--ink-2); }
+.sec-note a { display: inline-flex; align-items: center; min-height: var(--tap); font-weight: 750; }
 @media (min-width: 1024px) { .sec { padding-block: 4.5rem; } }
 
 /* ---------- 3. this week ---------- */
-.week-note { margin: calc(-1 * var(--s3)) 0 var(--s5); }
 .chips { display: flex; gap: var(--s2); overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)) var(--s4); padding: var(--s1) var(--gutter) var(--s2); scroll-snap-type: x proximity; scroll-padding-inline: var(--gutter); }
 .chip {
   flex: none; scroll-snap-align: start; display: inline-flex; align-items: center; gap: 0.45rem;
@@ -374,8 +384,8 @@ img { max-width: 100%; height: auto; display: block; }
 .empty-h { font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 800; font-size: var(--t-lg); }
 
 /* further out */
-.later { margin-top: var(--s6); padding: var(--s5) var(--s4); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
-.later h3 { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s3); }
+.later, .duo .lately { padding: var(--s5) var(--s4); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
+.later h3, .lately h3 { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s3); }
 .later-list { list-style: none; margin: 0 0 var(--s2); padding: 0; }
 .later-list li { display: grid; grid-template-columns: 4.25rem minmax(0, 1fr); gap: var(--s1) var(--s3); align-items: center; padding-block: var(--s3); border-bottom: 1px solid var(--line); }
 .later-date { grid-row: span 2; text-align: center; line-height: 1.05; font-weight: 750; font-size: var(--t-sm); }
@@ -393,7 +403,6 @@ img { max-width: 100%; height: auto; display: block; }
 /* ---------- 4. cEDH band (dark in both themes) ---------- */
 .cedh { background-color: var(--band); color: var(--on-band); }
 .cedh-in { color-scheme: dark; display: grid; gap: var(--s6); padding-block: var(--s7); }
-.cedh h2 { font-size: clamp(2.5rem, 1.6rem + 4vw, 4.75rem); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
 .cedh-lede { font-size: 1.1875rem; max-width: 38ch; margin: var(--s4) 0 var(--s5); }
 .cedh-facts { display: grid; gap: var(--s4); margin: 0; }
 .cedh-facts dt { font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 800; font-size: var(--t-lg); }
@@ -446,23 +455,12 @@ img { max-width: 100%; height: auto; display: block; }
 .hours tr[data-today][data-closed] td { color: var(--on-highlight); }
 address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 1.3; margin-bottom: var(--s4); }
 .visit-acts { display: flex; flex-wrap: wrap; gap: var(--s2); }
-.faq { margin: 0; }
-.faq dt { font-weight: 800; }
-.faq dd { margin: 0 0 var(--s3); color: var(--ink-2); }
 
 /* ---------- 7. community ---------- */
 .comm-acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s5); }
 .socials { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); }
 .socials a { display: inline-flex; align-items: center; min-height: var(--tap); font-weight: 700; }
-.proof { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
-.proof li { padding-left: 1.4rem; position: relative; }
-.proof li::before { content: ""; position: absolute; left: 0.2rem; top: 0.55em; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--line-strong); }
-.proof q { quotes: "“" "”"; }
-.proof small { display: block; color: var(--ink-2); font-size: var(--t-sm); }
-.proof-rate { margin: 0 0 var(--s3); font-weight: 750; }
-.proof-rate a, .tcg-line a { display: inline-flex; align-items: center; min-height: var(--tap); }
-.comm-proof { margin-top: var(--s5); }
-.lately { margin-top: var(--s5); }
+.tcg-line a { display: inline-flex; align-items: center; min-height: var(--tap); }
 .lately-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); }
 .lately-list li { padding-left: 1.4rem; position: relative; display: grid; }
 .lately-list li::before { content: ""; position: absolute; left: 0.2rem; top: calc(var(--tap) / 2 - 0.25rem); /* centred on the 48px link line */ width: 0.5rem; height: 0.5rem; background: var(--line-strong); transform: rotate(45deg); }
@@ -471,7 +469,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .lt-w { overflow-wrap: anywhere; }
 .lt-n { color: var(--ink-2); }
 .dp-result { border-top: 1px solid var(--line); padding-top: var(--s6); }
-.dp-result h2 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 800; margin: 0 0 var(--s3); }
+.dp-result h2 { margin: 0 0 var(--s3); }
 .dp-result p { margin: 0; overflow-wrap: anywhere; }
 .tcg-line { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
 .turnout { margin-top: var(--s5); padding-top: var(--s4); border-top: 1px solid rgb(255 255 255 / 0.18); }
@@ -512,7 +510,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 /* ---------- P1.2 fix: keep the visually hidden text inside sideways-scrolling rows ----------
  * .vh is position:absolute; inside an overflow:auto row that is not positioned it escapes the clip and
  * makes the whole page scroll sideways (about 1,400px wide at 360px). */
-.chips, .site-nav, .deck ol, .rel-list { position: relative; }
+.chips, .site-nav, .deck ol, .rel-list, .lu-rail { position: relative; }
 
 /* F4: in dark the bands are only a little lighter than the page, so they get a hairline edge */
 @media (prefers-color-scheme: dark) { :root:not(:has(> head > meta[name="color-scheme"][content="light"])) :is(.openbar, .cedh, .site-foot) { border-block: 1px solid rgb(255 255 255 / 0.08); } }
@@ -601,10 +599,8 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 
 /* Mulligan Games concept: the events page (events.html). Reuses site.css (chips, day heads, slots, event card). */
 .ep { padding-block: var(--s4) var(--s7); }
-/* page head: title and one line; the controls sit in one row under the chips (F13) */
-.ep-head { margin-block: var(--s2) var(--s4); display: grid; gap: var(--s2); }
-.ep-head h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
-.ep-lede { margin: 0; max-width: 46ch; font-size: 1.125rem; color: var(--ink-2); }
+/* the controls sit in one row under the chips (F13); the walk-in note is said once, under them */
+.ep-note { margin: 0 0 var(--s4); font-size: var(--t-sm); color: var(--ink-2); }
 .ep-format { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); margin: 0 0 var(--s4); }
 .ep-format label { font-weight: 750; }
 .ep-format .btn-sm { min-height: 2.75rem; } /* small, but still a 44px target */
@@ -615,7 +611,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 @media (max-width: 480px) { .ep-tools { margin-left: 0; } }
 .ep-sec { margin-top: var(--s5); }
 .ep-sec > .sec-note { margin: 0 0 var(--s3); font-size: var(--t-sm); }
-.ep-sec > h2 { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; letter-spacing: -0.01em; margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 2px solid var(--line); }
+.ep-sec > h2 { margin-bottom: var(--s3); padding-bottom: var(--s2); border-bottom: 2px solid var(--line); }
 .ep .chips { margin-bottom: var(--s3); }
 
 
@@ -685,10 +681,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 }
 .phero-in { align-self: end; width: 100%; padding-block: var(--s5); }
 .phero-copy { max-width: 40rem; }
-.phero-h {
-  font-size: clamp(2.5rem, 1.3rem + 4.8vw, 5.25rem); font-stretch: var(--wdth-display); font-weight: 900; line-height: 0.96; letter-spacing: -0.01em;
-  max-width: 14ch; color: #FFFFFF; text-shadow: 0 2px 24px rgb(0 0 0 / 0.45);
-}
+.phero-h { font-size: var(--t-hero); line-height: 1; max-width: 14ch; color: #FFFFFF; text-shadow: 0 2px 24px rgb(0 0 0 / 0.45); }
 .phero-sub { margin: var(--s3) 0 var(--s4); font-weight: 650; font-size: 1.125rem; line-height: 1.5; max-width: 42ch; color: #FFFFFF; text-shadow: 0 1px 12px rgb(0 0 0 / 0.5); }
 /* the status chip above the headline, from the hours */
 .phero-chip {
@@ -711,13 +704,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .next-what { font-weight: 700; line-height: 1.3; }
 .next:hover .next-what { text-decoration: underline; }
 .phero-acts .btn { min-height: 3.25rem; }
-.phero-acts .btn-clip {
-  background: rgb(255 255 255 / 0.1); color: #FFFFFF; border: 1px solid rgb(255 255 255 / 0.55); gap: 0.45rem;
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-}
-.phero-acts .btn-clip:hover { background: rgb(255 255 255 / 0.2); border-color: #FFFFFF; }
-.phero-acts .btn-clip .ic { width: 1.25rem; height: 1.25rem; }
-/* from 360 to 420px the two hero buttons still share one row, so the hero stays short */
+/* from 360 to 420px the next-up ticket and the button still share one row, so the hero stays short */
 @media (max-width: 420px) { .phero-acts { column-gap: var(--s2); } .phero-acts .btn { padding-inline: 0.85rem; } }
 /* short phones (360x740): a smaller sub-line and padding, so the hero buttons, strip and Pause end above the quick-actions bar and the theme button */
 @media (max-width: 420px) and (max-height: 760px) { .phero-in { padding-block: var(--s4); } .phero-sub { font-size: 1rem; line-height: 1.45; } }
@@ -727,7 +714,6 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .phero-strip-in { display: flex; align-items: center; gap: var(--s2) var(--s5); min-height: 3.5rem; padding-block: var(--s1); padding-right: calc(var(--gutter) + 3.75rem); font-size: var(--t-sm); } /* D46: the theme button's corner stays free */
 .phero-strip p { margin: 0; }
 .media-cap { min-width: 0; color: rgb(255 255 255 / 0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.clips-link { margin-left: auto; }
 @media (max-width: 767px) { .phero-strip-in { min-height: 3rem; padding-block: 2px; font-size: var(--t-xs); } }
 .vid-btn {
   margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 0.4rem; min-height: var(--tap); padding: 0 1rem;
@@ -741,7 +727,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .vid-btn[data-paused] .i-play { display: block; }
 .vid-btn[data-paused] .i-pause { display: none; }
 @media (max-width: 420px) { .vid-btn #vid-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .vid-btn { padding: 0 0.8rem; } }
-@media (min-width: 768px) { .clips-link + .vid-btn { margin-left: 0; } }
+.clips-link + .vid-btn { margin-left: 0; }
 @media (min-width: 900px) {
   /* wide: the copy on the left, the video shows through on the right */
   .phero { min-height: clamp(34rem, 78svh, 50rem); }
@@ -751,21 +737,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
       linear-gradient(to top, rgb(18 12 9 / 0.5) 0%, transparent 30%);
   }
   .phero-in { align-self: center; padding-block: var(--s9) var(--s8); }
-  .phero-acts .btn-clip { display: none; } /* the featured row under the hero is in view */
 }
-
-/* two featured clips, their own compact row under the hero (round 7, D51): a small poster and the caption, one click to the same dialog */
-.feat { background: var(--surface); border-bottom: 1px solid var(--line); }
-.feat-in { list-style: none; margin: 0 auto; padding-block: var(--s3); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--s3) var(--s5); }
-.feat-a { grid-template-columns: 3.5rem minmax(0, 1fr); align-items: center; gap: var(--s3); min-height: var(--tap); }
-.feat-a .clip-play { width: 1.75rem; height: 1.75rem; }
-.feat-a .clip-play .ic { width: 0.9rem; height: 0.9rem; margin-left: 0.1rem; }
-.feat-a .clip-ph::after { display: none; }
-.feat-cap { display: grid; gap: 0.1rem; min-width: 0; }
-.feat-k { font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-2); }
-.feat-t { font-size: var(--t-sm); font-weight: 750; line-height: 1.3; }
-.feat-a:hover .feat-t { text-decoration: underline; }
-.feat-a:hover .clip-play { background: var(--act); border-color: #FFFFFF; }
 
 /* the week: seven plain tiles (day, date, event count) in a compact row, no photos or pips (round 7, D51) */
 .wdeck { min-width: 0; margin-bottom: var(--s4); }
@@ -785,17 +757,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 @media (max-width: 479px) { .wdeck ol { gap: 2px; margin-inline: -0.5rem; } } /* a little wider than the text column so 7 tiles stay >= 44 px at 360 */
 @media (min-width: 768px) { .wdeck .dc-dow { font-size: 0.75rem; } .wdeck .dc-cap { font-size: 0.6875rem; } }
 
-/* ---------- this week: a calmer layout on wide screens (round 3) ----------
- * The day stays on the left; the start time sits above its cards instead of in a third column, so cards get the width. */
-@media (min-width: 1024px) {
-  #days .day { grid-template-columns: 12rem minmax(0, 1fr); column-gap: var(--s6); }
-  #days .day-name { font-size: 2rem; }
-  /* a day's cards flow into one two-column grid in time order (each card shows its own time), so no slot leaves half a row empty */
-  #days .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); align-items: stretch; }
-}
-
 /* Clips from the shop (round 6, D47). Cards are plain links; the TikTok player dialog is built by public/js/clips.js. */
-.clips-sec { background: var(--surface); border-block: 1px solid var(--line); }
 .clips { list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: var(--s1) var(--gutter) var(--s2);
   display: grid; grid-auto-flow: column; grid-auto-columns: 10.25rem; gap: var(--s3);
   overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter);
@@ -838,12 +800,13 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .clips-btn:disabled { opacity: 0.4; cursor: default; }
 .clips-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
-/* hero strip link: from 768px, beside the "On screen" caption */
-.clips-link { display: none; align-items: center; gap: 0.2rem; min-height: 2.75rem; color: #FFFFFF; font-weight: 700; white-space: nowrap; text-decoration: underline; text-underline-offset: 0.2em; }
+/* hero strip link: beside the "On screen" caption ("Watch clips", from 600px "Watch clips from the shop") */
+.clips-link { display: inline-flex; align-items: center; margin-left: auto; gap: 0.2rem; min-height: 2.75rem; color: #FFFFFF; font-weight: 700; white-space: nowrap; text-decoration: underline; text-underline-offset: 0.2em; }
 .clips-link:hover { text-decoration-thickness: 2px; }
 .clips-link:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .clips-link .ic { width: 1rem; height: 1rem; }
-@media (min-width: 768px) { .clips-link { display: inline-flex; } }
+.cl-long { display: none; }
+@media (min-width: 600px) { .cl-long { display: inline; } }
 
 /* the player dialog: global .dlg / .dlg-top / .dlg-x, narrowed to the video */
 .dlg-clip { width: fit-content; max-width: calc(100% - 1rem); max-height: 96dvh; overflow-x: hidden; }
@@ -864,25 +827,19 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .cedh-photo { margin: 0 0 var(--s5); aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--r-photo); background: #000; }
 .cedh-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
 
-/* ---------- visit: one card, three columns (round 3; like the owner's VFW "New here?" block) ---------- */
+/* ---------- find your table: hours and address in two columns on the surface band ---------- */
 .visit { background: var(--surface); border-block: 1px solid var(--line); }
-.visit .sec-head h2 { margin-bottom: 0; }
 .visit-in { display: grid; gap: var(--s6); } /* no card box: the band is the container (F3); the columns keep their hairlines */
 .visit .visit-in h3 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 850; margin: 0 0 var(--s3); }
 .visit address { font-size: 1.2rem; }
 .visit-small { margin: var(--s4) 0 0; font-size: var(--t-sm); color: var(--ink-2); }
 .visit-small strong { color: var(--ink); }
-.visit .faq dd:last-child { margin-bottom: 0; }
-@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; } .visit-faq { grid-column: 1 / -1; } }
-@media (min-width: 1024px) {
-  .visit-in { grid-template-columns: 1fr 1fr 1.15fr; column-gap: var(--s7); }
-  .visit-faq { grid-column: auto; }
-  .visit-in > div + div { border-left: 1px solid var(--line); margin-left: calc(-1 * var(--s7) / 2); padding-left: calc(var(--s7) / 2); }
-}
+@media (min-width: 768px) { .visit-in { grid-template-columns: 1fr 1fr; column-gap: var(--s7); } }
+@media (min-width: 1024px) { .visit-in > div + div { border-left: 1px solid var(--line); margin-left: calc(-1 * var(--s7) / 2); padding-left: calc(var(--s7) / 2); } }
 
 .visit .photo { margin: var(--s5) 0 0; overflow: hidden; border-radius: var(--r-photo); } .visit .photo img { width: 100%; max-height: 24rem; object-fit: cover; }
 
-/* ---------- compact week (R5): later days are one line per event ---------- */
+/* ---------- one-line rows: the events page's weekly rows, "Also on" on a date page, and the front page's rows card ---------- */
 .day-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
 .day-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.6rem; padding-block: 0.55rem; border-top: 1px solid var(--line); min-height: var(--tap); }
 .day-line:first-child { border-top: 0; }
@@ -892,36 +849,51 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .dl-title a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 .dl-bits { color: var(--ink-2); font-size: var(--t-sm); font-weight: 600; }
 .day-line[data-state="cancelled"] .dl-title a { text-decoration: line-through; color: var(--ink-2); }
-/* phone (boss D35): closed and one-line days get a lighter header; the event bits always sit on their own line */
-@media (max-width: 1023px) {
-  .dl-bits { flex-basis: 100%; padding-left: 1.25rem; }
-  #days .day[data-quiet], #days .day:has(> .day-lines) { padding-block: var(--s3) var(--s4); gap: var(--s2); }
-  #days .day[data-quiet] .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
-  #days .day[data-quiet] .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-lg); }
-  #days .day[data-quiet] .day-meta, #days .day:has(> .day-lines) .day-meta { padding-left: 3rem; margin-top: -0.4rem; }
-}
-/* round 6: a small photo replaces the dot on the front page's one-line rows (the dot stays for print and for rows without a photo) */
-.day-line:has(> .dl-ph) { display: grid; grid-template-columns: 3rem minmax(0, 1fr); align-items: center; column-gap: var(--s3); min-height: 4rem; }
-.day-line:has(> .dl-ph) > .dl-dot { display: none; }
+@media (max-width: 1023px) { .dl-bits { flex-basis: 100%; padding-left: 1.25rem; } } /* phone (boss D35): the event bits always sit on their own line */
 .dl-ph { width: 3rem; height: 3rem; border-radius: 10px; overflow: hidden; background: var(--surface-2); border-bottom: 3px solid var(--gc, var(--g-other)); }
 .dl-ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.dl-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.6rem; min-width: 0; }
-.day-line:has(> .dl-ph) .dl-bits { padding-left: 0; }
-@media (min-width: 1024px) { .day-line:has(> .dl-ph) { grid-template-columns: 3.5rem minmax(0, 1fr); } .dl-ph { width: 3.5rem; height: 3.5rem; } }
 .day-line[data-state="cancelled"] .dl-ph img { filter: grayscale(1); opacity: 0.55; }
-@media print { .dl-ph, .ev-ph, .clips-sec, .dlg-clip { display: none !important; } .day-line:has(> .dl-ph) > .dl-dot { display: block; } }
+@media print { .dl-ph, .ev-ph, .lineup, .clips-sec, .dlg-clip { display: none !important; } }
 
-
-/* ---------- round 3: calmer week on wide screens ----------
- * days that are only one-line rows get the same light header as closed days; "Further out" rows are one line high */
-@media (min-width: 1024px) {
-  #days .day[data-quiet], #days .day:has(> .day-lines) { padding-block: var(--s4) var(--s5); }
-  #days .day[data-quiet] .day-h, #days .day:has(> .day-lines) .day-h { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); }
-  #days .day[data-quiet] .day-dia, #days .day:has(> .day-lines) .day-dia { width: 2.6rem; height: 2.6rem; font-size: 1.15rem; }
-  #days .day[data-quiet] .day-name, #days .day:has(> .day-lines) .day-name { font-size: var(--t-xl); }
-  #days .day[data-quiet] .day-meta, #days .day:has(> .day-lines) .day-meta { flex-basis: 100%; font-size: var(--t-xs); }
+/* ---------- This week, round 8: one card of dated rows ----------
+ * Every day is a section in the card: the day head, then its rows (time, title, bits, and a Sign up button only where seats are held).
+ * 390: the head sits above its rows, the thumb is hidden and the button wraps under the bits. 600: thumb and button join the row. 1024: the head is a 13rem left column. */
+.rows { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--lift); overflow: hidden; }
+.rows > * { border-top: 1px solid var(--line); }
+.rows > :first-child { border-top: 0; }
+.rows .day { gap: 0; padding: 0; }
+.rows .day-h { position: static; padding: var(--s3) 1.25rem var(--s2); background: none; }
+.rows .day-name { font-size: var(--t-lg); }
+.rows .day-dia { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+.rows .day-meta { padding-left: 3rem; margin-top: -0.4rem; font-size: var(--t-xs); }
+.rows .day-skip { padding: 0 1.25rem var(--s3) 4.25rem; }
+.rows .day-off { padding: var(--s3) 1.25rem; }
+.rows .empty { margin: var(--s4); }
+.rows .day-line { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0.1rem var(--s3); align-items: baseline; padding: 12px 20px; min-height: 56px; box-shadow: inset 3px 0 0 var(--gc, var(--g-other)); }
+.rows .day-line:first-child { border-top: 0; }
+.rows .dl-dot, .rows .dl-ph { display: none; }
+.rows .dl-time { grid-column: 1; font-variant-numeric: tabular-nums; }
+.rows .dl-title, .rows .dl-bits { grid-column: 2; }
+.rows .dl-bits { padding: 0; }
+.rows .day-line .btn { grid-column: 2; justify-self: start; margin-top: var(--s2); min-height: 2.75rem; } /* small, but still a 44px target */
+@media (min-width: 600px) {
+  .rows .day-line { grid-template-columns: 3rem 4.5rem minmax(0, 1fr) auto; column-gap: var(--s4); align-items: center; }
+  .rows .dl-ph { display: block; grid-column: 1; grid-row: 1 / span 2; }
+  .rows .dl-time { grid-column: 2; grid-row: 1 / span 2; }
+  .rows .dl-title { grid-column: 3; grid-row: 1; align-self: end; }
+  .rows .dl-bits { grid-column: 3; grid-row: 2; align-self: start; }
+  .rows .day-line .btn { grid-column: 4; grid-row: 1 / span 2; margin: 0 0 0 var(--s3); }
 }
-.week .later { padding: var(--s5); }
+@media (min-width: 1024px) {
+  .rows .day { grid-template-columns: 13rem minmax(0, 1fr); }
+  .rows .day-h { flex-direction: column; align-items: flex-start; gap: var(--s2); padding: var(--s4) 1.25rem; border-right: 1px solid var(--line); }
+  .rows .day-name { font-size: var(--t-xl); }
+  .rows .day-meta { padding-left: 0; margin-top: 0; }
+  .rows .day-skip { grid-column: 2; align-self: center; padding: var(--s4) 1.25rem; }
+}
+
+/* Further out | Lately: two cards from 1024px, stacked below; with nothing to show under Lately, Further out has the full width */
+.duo { display: grid; gap: var(--s4); margin-top: var(--s6); align-items: start; }
 .week .later-list li { padding-block: var(--s2); }
 .week .later-date { display: flex; flex-direction: column; align-items: center; }
 @media (min-width: 768px) {
@@ -929,6 +901,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   .week .later-date { flex-direction: row; align-items: baseline; justify-content: flex-start; gap: 0.3rem; text-align: left; }
   .week .later-date b { display: inline; font-size: 1.35rem; }
 }
+@media (min-width: 1024px) { .duo:not(.duo-solo) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* ======================================================================================================
  * P2.3a additions (built pages): event date page, New here?, arrive-by line, no-photo visit grid.
@@ -949,9 +922,10 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .dp-pic { margin: 0 calc(-1 * var(--gutter)); aspect-ratio: 16 / 9; border-bottom: 3px solid var(--gc); background: var(--surface-2); overflow: hidden; }
 .dp-pic img { width: 100%; height: 100%; object-fit: cover; }
 .dp-head { border: 0; background: none; box-shadow: none; border-radius: 0; overflow: visible; gap: var(--s3); }
-.dp-kick { margin: 0; font-size: var(--t-sm); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mark); }
+.dp-ph { padding: 0; border: 0; margin: 0; } /* the page head inside the ticket column: no rule, no extra space */
+.dp-ph h1 { max-width: none; }
 .dp-name { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
-.dp-head .ev-title { flex: 1; font-size: clamp(1.9rem, 1.3rem + 2.6vw, 3rem); font-weight: 800; }
+.dp-head .ev-title { flex: 1; }
 .dp-head .ev-cost { font-size: var(--t-xl); }
 .dp-head .ev-type { padding: 0; border: 0; font-size: var(--t-md); }
 .dp-head .ev-when { margin: 0; font-size: var(--t-md); }
@@ -965,7 +939,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .dp-ticket p { margin: 0; }
 .dp-low { display: grid; gap: var(--s6); }
 .dp-low, .dp-also { border-top: 1px solid var(--line); padding-top: var(--s6); }
-.dp-low h2, .dp-also h2 { font-size: var(--t-lg); font-stretch: var(--wdth-head); font-weight: 800; margin: 0 0 var(--s3); }
+.dp-low h2, .dp-also h2 { margin: 0 0 var(--s3); }
 .dp-side { display: grid; gap: var(--s6); align-content: start; }
 .dp-side:empty { display: none; }
 .dp-low .det-list, .dp-low .det-acts, .dp-low .det-where { padding-inline: 0; }
@@ -1006,14 +980,12 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 }
 
 /* New here? (15.6): one column, 70ch; the section list is a left rail from 1024 */
-.nh { padding-block: var(--s6) var(--s8); display: grid; gap: var(--s5); }
-.nh h1 { font-size: var(--t-hero); font-stretch: var(--wdth-display); font-weight: 900; line-height: var(--lh-tight); letter-spacing: -0.015em; }
-.nh-lede { font-size: 1.25rem; max-width: 40ch; margin: 0; }
+.nh, .pv { padding-block: 0 var(--s8); display: grid; gap: var(--s5); }
 .nh-toc { display: none; }
 .nh-toc ul { display: contents; margin: 0; padding: 0; list-style: none; }
 .nh-toc a { display: inline-flex; align-items: center; min-height: var(--tap); font-weight: 700; }
 .nh-body { max-width: 70ch; display: grid; gap: var(--s6); }
-.nh-body section > h2 { display: flex; align-items: center; gap: var(--s3); font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s3); }
+.nh-body section > h2 { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s3); }
 .nh-dia { flex: none; width: 1.1rem; height: 1.1rem; position: relative; }
 .nh-dia::before { content: ""; position: absolute; inset: 14.6%; transform: rotate(45deg); background: var(--mark); }
 .nh-body p { margin: 0 0 var(--s3); }
@@ -1021,9 +993,9 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 @media (min-width: 768px) { .nh-toc { display: flex; flex-wrap: wrap; gap: 0 var(--s4); } }
 @media (min-width: 1024px) {
   .nh { grid-template-columns: 14rem minmax(0, 1fr); column-gap: var(--s7); align-items: start; }
-  .nh > h1, .nh > .nh-lede { grid-column: 2; }
-  .nh-toc { display: grid; grid-column: 1; grid-row: 1 / span 3; position: sticky; top: 1rem; gap: 0; }
-  .nh-body { grid-column: 2; }
+  .nh > .pg-head { grid-column: 1 / -1; }
+  .nh > .nh-toc { display: grid; grid-column: 1; grid-row: 2; position: sticky; top: 1rem; gap: 0; }
+  .nh > .nh-body { grid-column: 2; grid-row: 2; }
 }
 .nh-body .later-list li { background: none; }
 
@@ -1040,7 +1012,7 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .su-link { overflow-wrap: anywhere; font-weight: 650; }
 
 /* 404: the four buttons in two even columns (F24) */
-.nf-acts { display: grid; grid-template-columns: 1fr 1fr; }
+.nf-acts { display: grid; grid-template-columns: 1fr 1fr; margin-top: var(--s5); }
 .nf-acts .btn { text-align: center; }
 
 /* ---------- safety nets ---------- */
@@ -1089,7 +1061,9 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
   a { text-decoration: underline; }
 }
 
-/* ---------- /cedh/ page (round 8 will restyle; reuses .ep, .tix, .lately-list, .turnout-list) ---------- */
+/* ---------- /cedh/ page (reuses .ep, .tix, .lately-list, .turnout-list); from 1024px the sections sit in pairs ---------- */
+.cp-pair { display: grid; column-gap: var(--s7); }
+@media (min-width: 1024px) { .cp-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } .cp-split { grid-template-columns: 7fr 5fr; } }
 .cp-table { border-collapse: collapse; width: 100%; max-width: 32rem; margin: 0 0 var(--s3); }
 .cp-table caption { text-align: left; font-weight: 750; padding-bottom: var(--s2); }
 .cp-table th, .cp-table td { text-align: left; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line); }
@@ -1099,3 +1073,83 @@ address { font-style: normal; font-size: 1.3rem; font-weight: 700; line-height: 
 .cp-wide .cedh-facts dd, .cp-wide .cedh-facts a { color: var(--ink); }
 .cp-wide .cedh-list { max-width: 44rem; }
 .cp-wide .turnout-list li { grid-template-columns: 7.5rem minmax(0, 1fr) auto; }
+
+/* ======================================================================================================
+ * Round 8 (D60): a new look for the public pages. No new colour tokens; type and order do the work.
+ * ====================================================================================================== */
+
+/* ---------- one page head for every tab ---------- */
+.pg-head { padding-block: var(--s6) var(--s5); border-bottom: 1px solid var(--line); margin-bottom: var(--s5); }
+.pg-k { margin: 0 0 var(--s2); font-size: var(--t-sm); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--mark); }
+.pg-head h1 { font-size: var(--t-page); line-height: 1.05; max-width: 20ch; text-wrap: balance; }
+.pg-lede { margin: var(--s3) 0 0; max-width: 60ch; font-size: var(--t-lead); line-height: 1.5; color: var(--ink-2); }
+@media (min-width: 1024px) { .pg-head { padding-block: 3.5rem var(--s6); } }
+
+/* ---------- Tonight: the brick band above This week, only while something is on ---------- */
+.tn-in { color-scheme: dark; color: var(--on-band); display: grid; gap: var(--s4); padding-block: var(--s6); }
+.tn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s4); }
+.tn-row { display: grid; grid-template-columns: 5.25rem minmax(0, 1fr); gap: var(--s2) var(--s3); align-items: start; padding-top: var(--s3); border-top: 1px solid rgb(255 255 255 / 0.2); }
+.tn-time { font-family: var(--font-cond); font-stretch: var(--wdth-display); font-weight: 900; font-size: 1.75rem; line-height: 1.1; white-space: nowrap; }
+.tn-what p { margin: 0; }
+.tn-title { font-weight: 800; font-size: var(--t-lg); line-height: 1.2; }
+.tn-title a { color: inherit; text-decoration: none; }
+.tn-title a:hover { text-decoration: underline; }
+.tn-title .tag { margin-left: var(--s1); vertical-align: 0.15em; }
+.tn-bits { color: var(--on-band-2); font-size: var(--t-sm); }
+.tn-row .btn { grid-column: 1 / -1; }
+.tn-more { margin: var(--s3) 0 0; }
+.tn-more a { display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--tap); color: var(--on-band); font-weight: 750; }
+@media (min-width: 1024px) {
+  .tn-in { grid-template-columns: 14rem minmax(0, 1fr); column-gap: var(--s6); align-items: start; padding-block: var(--s7); }
+  .tn-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s4) var(--s6); }
+  .tn-row .btn { grid-column: 2; justify-self: start; }
+}
+
+/* ---------- This week: the lineup of up to 3 big cards (a snap rail on phones, a grid from 768px) ---------- */
+.lineup { margin-bottom: var(--s6); }
+.lineup h3 { font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; margin-bottom: var(--s3); }
+.lu-rail { list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: var(--s1) var(--gutter) var(--s3); display: grid; grid-auto-flow: column; grid-auto-columns: 85%; gap: var(--s3);
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+.lu-rail > li { scroll-snap-align: start; display: grid; min-width: 0; }
+@media (min-width: 768px) { .lu-rail { margin-inline: 0; padding-inline: 0; grid-auto-columns: 1fr; overflow: visible; gap: var(--s4); } }
+
+/* ---------- Play by game: one tile per game ---------- */
+.games, .community { background: var(--surface); border-block: 1px solid var(--line); }
+.gtiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
+.gtile { height: 100%; min-height: 88px; display: grid; align-content: center; justify-items: start; gap: 0.15rem; padding: var(--s3) var(--s4);
+  background: var(--paper); border: 1px solid var(--line); border-top: 3px solid var(--gc); border-radius: var(--r-card); color: var(--ink); text-decoration: none; }
+.gtile:hover { border-color: var(--line-strong); border-top-color: var(--gc); }
+.gtile .gi { color: var(--gc); }
+.gt-n { font-family: var(--font-cond); font-stretch: var(--wdth-head); font-weight: 800; font-size: 1.125rem; line-height: 1.15; }
+.gt-c { font-size: var(--t-sm); color: var(--ink-2); line-height: 1.3; }
+@media (min-width: 768px) { .gtiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .gtiles { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--s2); } .gtile { padding-inline: var(--s3); } }
+
+/* ---------- Why players choose Mulligan: the promises, then the quotes (no boxes, no carousel) ---------- */
+.promises, .quotes { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s5); }
+.promises li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: var(--s1) var(--s3); align-content: start; }
+.promises .ic { width: 2rem; height: 2rem; grid-row: 1 / span 2; }
+.promises li > :not(.ic) { grid-column: 2; }
+.promises h3 { font-size: var(--t-lg); }
+.promises p { margin: 0; color: var(--ink-2); }
+.say-h { margin: var(--s6) 0 var(--s4); font-size: var(--t-xl); font-stretch: var(--wdth-display); font-weight: 900; }
+.quotes li { padding-left: var(--s4); border-left: 3px solid var(--line-strong); font-size: 1.125rem; line-height: 1.5; }
+.quotes q { quotes: "“" "”"; }
+.quotes small { display: block; margin-top: var(--s2); font-size: var(--t-sm); color: var(--ink-2); }
+@media (min-width: 768px) { .promises, .quotes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s5); } }
+@media (min-width: 1024px) { .promises, .quotes { gap: var(--s6); } }
+
+/* ---------- Join in: the lead on the left, the actions on the right from 1024px ---------- */
+@media (min-width: 1024px) {
+  .community .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: var(--s7); }
+  .community .sec-head { margin: 0; }
+}
+
+/* ---------- display type: Fraunces 600 for page titles and section heads ----------
+ * Public selectors only: admin.astro imports this file too, and the base h1-h4 rule stays Archivo. Not on h3/h4, card titles, day names, numbers, chips, buttons or the footer. */
+.phero-h, .pg-head h1, .sec-head h2, .cedh h2, .tonight h2, .ep-sec > h2, .dp-name .ev-title, .dp h2, .nh-body section > h2 {
+  font-family: var(--font-display); font-stretch: 100%; font-weight: 600; font-synthesis: none; letter-spacing: -0.01em;
+}
+.sec-head h2, .cedh h2, .tonight h2, .ep-sec > h2 { font-size: var(--t-2xl); line-height: 1.1; }
+.dp-name .ev-title { font-size: clamp(2rem, 1.6rem + 1.8vw, 3rem); line-height: 1.1; }
+.dp h2, .nh-body section > h2 { font-size: 1.5rem; line-height: 1.15; }

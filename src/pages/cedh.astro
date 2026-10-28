@@ -10,11 +10,12 @@ const circuit = safeUrl(proof.circuit.url);
 <Base title="cEDH at Mulligan Games, Warminster PA: Championship Series, 5K and results" description="The Mulligan Championship Series: a monthly cEDH tournament, 5K weekends, a Sunday Redemption and a November invitational. Dates, entry, points, rules, turnout and results." current="cedh" skip="#main" skipLabel="Skip to the page">
   <main id="main">
     <div class="wrap ep cp-wide">
-      <header class="ep-head">
+      <header class="pg-head">
         <h1>cEDH at Mulligan</h1>
-        <p class="ep-lede">The Mulligan Championship Series is a monthly cEDH tournament, with a 5K weekend and a Sunday Redemption event on some months. Every event winner is invited to the November invitational. Forty to 120 players an event.</p>
+        <p class="pg-lede">A monthly cEDH tournament, with 5K weekends, a Sunday Redemption and a November invitational. Forty to 120 players an event.</p>
       </header>
 
+      <div class="cp-pair cp-split">
       <section class="ep-sec" aria-labelledby="next-h">
         <h2 id="next-h">Next events</h2>
         <Fragment set:html={`<!--mg:cedh-all--><p>The dates load from the server. See every date on the events page.</p><!--/mg:cedh-all-->`} />
@@ -22,15 +23,18 @@ const circuit = safeUrl(proof.circuit.url);
       </section>
 
       <section class="ep-sec" aria-labelledby="entry-h">
-        <h2 id="entry-h">Entry and parking</h2>
+        <h2 id="entry-h">Entry, parking and proxies</h2>
         <dl class="cedh-facts">
           <Fragment set:html={`<!--mg:cedh-live--><!--/mg:cedh-live-->`} />
+          <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
         </dl>
       </section>
+      </div>
 
       <section class="ep-sec" aria-labelledby="points-h">
         <h2 id="points-h">How points work</h2>
         <p class="sec-note">Points are set by the size of the event. Every event winner is invited to the invitational, and the next-highest by points are invited too.</p>
+        <div class="cp-pair">
         <table class="cp-table">
           <caption>30 to 63 players</caption>
           <thead><tr><th scope="col">Finish</th><th scope="col">Points</th></tr></thead>
@@ -41,16 +45,11 @@ const circuit = safeUrl(proof.circuit.url);
           <thead><tr><th scope="col">Finish</th><th scope="col">Points</th></tr></thead>
           <tbody><tr><th scope="row">1st</th><td>200</td></tr><tr><th scope="row">2nd to 4th</th><td>125</td></tr><tr><th scope="row">5th to 16th</th><td>75</td></tr><tr><th scope="row">17th to 200th</th><td>25</td></tr></tbody>
         </table>
+        </div>
         {circuit && <p><a class="more" href={circuit} target="_blank" rel="noopener">Full rules on TopDeck<span class="vh"> (opens TopDeck)</span></a></p>}
       </section>
 
-      <section class="ep-sec" aria-labelledby="rules-h">
-        <h2 id="rules-h">Rules</h2>
-        <dl class="cedh-facts">
-          <div><dt>Proxies</dt><dd>Up to 10, judge-approved, printed with full rules text.</dd></div>
-        </dl>
-      </section>
-
+      <div class="cp-pair">
       <section class="ep-sec" aria-labelledby="turnout-h">
         <h2 id="turnout-h">Turnout</h2>
         <Fragment set:html={`<!--mg:cedh-turnout--><!--/mg:cedh-turnout-->`} />
@@ -60,6 +59,7 @@ const circuit = safeUrl(proof.circuit.url);
         <h2 id="results-h">Results</h2>
         <Fragment set:html={`<!--mg:cedh-results--><p>Results load from the server.</p><!--/mg:cedh-results-->`} />
       </section>
+      </div>
     </div>
   </main>
 </Base>

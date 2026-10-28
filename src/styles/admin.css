@@ -97,7 +97,7 @@ body:has(.savebar) { --toast-bottom: 7rem; }
 
 .roster { display: grid; gap: var(--s3); align-content: start; }
 .roster-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s4); }
-.roster-title { font-size: var(--t-2xl); font-stretch: var(--wdth-display); font-weight: 900; line-height: 1; margin: 0; }
+.roster-title { font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem); /* the round-7 size: --t-2xl shrank for the public section heads in round 8 (D60) */ font-stretch: var(--wdth-display); font-weight: 900; line-height: 1; margin: 0; }
 .roster-sub { margin: 0; font-weight: 650; color: var(--ink-2); }
 .roster-tool { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); font-size: var(--t-sm); font-weight: 650; }
 .back { display: inline-flex; align-items: center; min-height: 2.75rem; font-weight: 700; }

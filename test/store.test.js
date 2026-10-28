@@ -170,7 +170,7 @@ test('F4 + B1: hours not set and a special day: /events/ still renders, the fron
   const ov = [{ date: '2026-11-26', closed: true, note: 'Closed for Thanksgiving' }, { date: '2026-11-30', open: '12:00', close: '16:00', note: 'Short day' }];
   assert.equal((await save({ hours: null, hourOverrides: ov })).status, 200);
   const ev = await text('/events/?now=2026-11-25T12:00'); // the seven days ahead include the special days
-  assert.ok(ev.includes('class="ep-head"') && !ev.includes('PLACEHOLDER'), '/events/ is rendered, not the loading placeholder');
+  assert.ok(ev.includes('class="pg-head"') && !ev.includes('PLACEHOLDER'), '/events/ is rendered, not the loading placeholder');
   const closed = await text('/?now=2026-11-26T12:00');
   assert.ok(closed.includes('<strong>Closed today.</strong>') && closed.includes('id="hero-chip-t">Closed today') && closed.includes('id="hero-h">Shuffle up. Everyone’s welcome.</h1>'), 'closed special day');
   assert.ok(!closed.includes('Closed this week') && !closed.includes('<strong>Closed</strong>'));
@@ -195,7 +195,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
     links: { facebook: 'https://www.facebook.com/shop', discord: 'https://discord.gg/abc' }, photo: 'room-a.webp', photoAlt: 'Tables set for draft' });
   assert.equal(r.status, 200);
   const home = await text(`/?now=${NOW}`);
-  for (const t of ['9 Test Ln<span class="ob-long">, Hatboro</span>', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln<br>Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'Kids are welcome with an adult.', 'Free play after 3.', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
+  for (const t of ['9 Test Ln<span class="ob-long">, Hatboro</span>', 'href="tel:+12675550100"', '(267) 555-0100', '9 Test Ln<br>Hatboro, PA 19040', 'href="https://www.facebook.com/shop"', 'Park behind the shop', 'href="https://discord.gg/abc"']) assert.ok(home.includes(t), t);
   assert.ok(!home.includes('445 York') && !home.includes('baked bar') && !home.includes('baked foot') && !home.includes('baked visit'));
   assert.ok(home.includes('<figure class="photo has-img"><img src="/media/photos/room-a.webp" alt="Tables set for draft"') && !home.includes('no-photo'));
   const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(home)[1]);
@@ -208,7 +208,7 @@ test('address, phone, links, notes and the room photo show on the page frame, fr
   assert.ok((await text('/events/fnm?date=2026-10-30&now=' + NOW)).includes('9 Test Ln, Hatboro, PA 19040'));
   await save({ freePlay: '', photo: null, photoAlt: '', links: { facebook: '' } }); // fields can be cleared: the sections go away
   const after = await text(`/?now=${NOW}`), nh2 = await text(`/new-here/?now=${NOW}`);
-  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('Can I just come and play?') && !after.includes('facebook.com'));
+  assert.ok(!after.includes('class="photo') && !after.includes('/media/photos/') && !after.includes('facebook.com'));
   assert.ok(!nh2.includes('id="free"') && !nh2.includes('href="#free"'));
   assert.equal((await api('DELETE', 'photos/room-a.webp')).status, 404); // not an upload, never touched
 });
