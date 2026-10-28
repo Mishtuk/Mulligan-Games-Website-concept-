@@ -1292,3 +1292,13 @@ Replaces round 5's wide still + phone-only loop. One silent montage on EVERY wid
 - Copy: the `#hero-media` markup (`<picture>` + `<video>` with the three `<source media>` in this order), the two poster preloads, the `.phero-media` / `.phero-media video` / `.is-on` / `.vid-btn` / `.media-cap` / `.cap-k` CSS (front.css: the 700px-portrait poster swap, the 599px and 899px caption rules, the reduced-motion transition rule), and `wireVideo` from `prototype/js/front.js` (hold rule, session choice, first-frame reveal, pill labels).
 - Files go to `public/media/video/`: `hero.mp4` 1920x1080, `hero-720.mp4` 1280x720, `hero-portrait.mp4` 720x1280, `hero-poster.jpg` (first frame of hero.mp4) and `hero-poster-portrait.jpg` (first frame of hero-portrait.mp4); replace the prototype placeholders with the same names.
 - `HERO_FILES` in front.js: all three are true now. In the build drop the manifest and `hasFile()`, but keep `data-src` + the after-load `arm()`. The 1280 test now expects the wide file (`hero.mp4`) as `currentSrc` and the pill shown.
+
+## 18. Round 8: a new look for the public pages (D55, D60)
+Spec: `docs/review/round-8-new-look.md` (designer, 2026-10-28, written against the build, ported straight into `src/`).
+In short: D28 identity, colour tokens, the D54 video hero, the D46 theme button and the D51 headline stay. **Fraunces 600**
+(OFL, one self-hosted woff2) becomes the display face for page titles and section heads; Archivo stays for everything
+else; admin is untouched. Front page order: hero (one button) → Tonight band (only when something's on) → This week
+(lineup of up to 3 cards, week strip, one card of dated rows, Further out | Lately) → Play by game → [Meet the shop, Q31,
+waits] → New and preorders → cEDH → Why players choose Mulligan (rating, 3 promises, quotes) → Find your table → Clips
+→ Join in. Every tab opens with one `.pg-head` (optional fact kicker, Fraunces title, one lede, hairline). No new colour
+tokens (new pairs in the spec section 5; add them to 2.3 when built). Where the build differs from the spec, note it here.

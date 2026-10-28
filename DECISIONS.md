@@ -725,3 +725,19 @@ credit in the HTML, security log has no names. 1280 and 390: no overflow, every 
 inner grid + the `details.srow` arrow; prize product name cut to "Draft boo" at 390 -> own row under 600px; the
 "Lately" diamond sat above the link line; Today loads the reminder and badges together; dropped an unused
 `updatedAt`; two odd test asserts made plain (8 KB cap is 413).
+
+### D60. Round 8 new look: Direction B plus the shop-template order, built straight into the build (2026-10-28, Desktop designer; owner asked the Desktop to take over from the Laptop)
+- **Input:** D55 (owner: tabs "a little bit better", reimagine the front page from Wix templates, try a new look);
+  `docs/research/wix-templates.md` (Laptop, Direction B "Card-table warm") and `docs/research/wix-templates-desktop.md`.
+- **Ruling:** spec `docs/review/round-8-new-look.md`, ported straight into `src/` (not `prototype/`). Keeps D28 (identity
+  and every colour token), D46, D51's headline and sub-line, D54's video hero and holds. Adds Fraunces 600 as the display
+  face (self-hosted woff2, OFL; CSP unchanged). Front page: one hero button; a brick Tonight band only when something's
+  on; This week as a lineup of up to 3 cards over one card of dated rows; "Play by game" tiles replace the home page's
+  game chips (the events page keeps them, D14); "Why players choose Mulligan" (rating once, 3 promises from the Google
+  review themes, the D39 quotes); Visit becomes "Find your table" without "Good to know"; "Between events" becomes "Join
+  in". One `.pg-head` on every tab. "Meet the shop" waits for Q31.
+- **Replaces:** D51 item 4 / D54's featured-clip row under the hero and the phone "Watch a clip" button: with the whole
+  hero a video (D55) the two featured clips lead "Clips from the shop" and the strip's clips link shows on every width.
+  The hero's next-up ticket stays (D36). The Laptop's brick page-head band is not used (the header is already brick).
+- **Why:** both research passes point to the same calm order and to type, not effects, as the "new look"; each change
+  either says a thing once (D37) or gives the tabs one consistent head. No new data, features or third-party requests.
